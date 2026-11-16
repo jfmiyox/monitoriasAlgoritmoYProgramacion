@@ -1,0 +1,436 @@
+\documentclass[11pt,letterpaper]{article}
+\usepackage{../../latex_common/estilo_monitoria}
+
+\begin{document}
+
+\portadamodulo{M08}{Modularidad, Estrategia Anti-Pánico y Simulacros de Parcial}{3.0 horas}{Funciones en C++, SubProcesos en PSeInt, guía de supervivencia para exámenes y 2 simulacros completos con solucionario}{
+  \begin{itemize}
+    \item Dividir programas largos en funciones simples (\codigo{void} y con retorno) en C++ y \codigo{SubProceso}/\codigo{Funcion} en PSeInt.
+    \item Dominar la diferencia entre paso por valor (fotocopia) y paso por referencia \codigo{\&} (original), sin usar punteros ni memoria dinámica.
+    \item Pasar correctamente vectores estáticos (\codigo{int v[], int n}) y matrices estáticas (\codigo{int m[][MAX\_C], int f, int c}) a funciones.
+    \item Aplicar la estrategia ``Anti-Pánico en Parciales'', el checklist de 10 puntos y resolver dos simulacros cronometrados de 90 minutos.
+  \end{itemize}
+}
+
+\tableofcontents
+\vspace{6pt}
+
+% ============================================================================
+\section{Modularidad: Funciones en C++ y SubProcesos en PSeInt (1.0 h)}
+% ============================================================================
+
+\begin{paratontos}{¿Por qué no meter todo el programa dentro de \texttt{main()}?}
+Imagina que abres un restaurante y \textbf{una sola persona} (llamémosla \codigo{main()}) toma los pedidos, pica la cebolla, asa la carne, lava los platos, cobra en la caja y barre el piso. Con dos clientes funciona; cuando llegan treinta clientes (un parcial completo), esa persona colapsa y mezcla todo.
+
+\textbf{Modularizar} es contratar especialistas:
+\begin{itemize}
+  \item Un especialista solo lee y valida rangos (\codigo{leerEnteroEnRango}).
+  \item Otro especialista solo imprime tablas ordenadas (\codigo{mostrarInventario}).
+  \item Otro solo calcula o busca (\codigo{buscarPorCodigo}).
+  \item Y \codigo{main()} se convierte en el \textbf{director de orquesta}: solo llama a cada especialista en el orden correcto.
+\end{itemize}
+\end{paratontos}
+
+\subsection{Anatomía de una función en C++ vs. PSeInt}
+
+En C++, una función puede declararse arriba de \codigo{main()} (prototipo terminado en punto y coma) y definirse debajo de \codigo{main()}, manteniendo el archivo limpio y ordenado de arriba hacia abajo:
+
+\begin{lstlisting}[style=cppmonitoria, caption={Estructura general de una función en C++ básico}]
+// 1. Prototipo (avisa al compilador el nombre, retorno y parámetros)
+double calcularArea(double base, double altura);
+
+int main() {
+    double a = calcularArea(5.5, 3.0); // 2. Llamada desde main
+    return 0;
+}
+
+// 3. Definición (implementación real de la función)
+double calcularArea(double base, double altura) {
+    return base * altura;
+}
+\end{lstlisting}
+
+\newpage
+\begin{tablatraduccion}[Equivalencia Modular: PSeInt $\leftrightarrow$ C++ Básico]
+  Acción sin retorno & No aplica / Subrutina & SubProceso saludar(nom) ... FinSubProceso & void saludar(string nom) \{ ... \} \\
+  Función con retorno & Subprograma & Funcion r <- area(b, h) ... FinFuncion & double area(double b, double h) \\
+  Paso por valor & Copia del dato & SubProceso f(x Por Valor) & void f(int x) \\
+  Paso por referencia & Modifica original & SubProceso f(x Por Referencia) & void f(int \&x) \\
+  Vector estático & Arreglo completo & SubProceso ver(v, n) & void ver(const int v[], int n) \\
+  Matriz estática & Tabla 2D & SubProceso verM(m, f, c) & void verM(const int m[][MAX\_C], int f, int c) \\
+\end{tablatraduccion}
+
+\begin{consejo}{Usa funciones \texttt{bool} para condiciones elegantes}
+Una función como \codigo{bool esNumeroPar(int numero)} permite escribir en \codigo{main()} frases casi en español: \codigo{if (esNumeroPar(numero)) \{ ... \}}. Consulta el ejemplo completo en \codigo{cpp/01\_anatomia\_funciones\_void\_retorno.cpp}.
+\end{consejo}
+
+\lstinputlisting[style=cppmonitoria, caption={\texttt{cpp/01\_anatomia\_funciones\_void\_retorno.cpp}: funciones \texttt{void}, \texttt{double}, \texttt{bool} y \texttt{char}}]{cpp/01_anatomia_funciones_void_retorno.cpp}
+
+\subsection{Paso por Valor vs. Paso por Referencia (\texttt{\&})}
+
+\begin{paratontos}{Fotocopia (valor) vs. Documento Original (referencia \texttt{\&})}
+\begin{itemize}
+  \item \textbf{Paso por valor (\codigo{int x}):} Le sacas una \textbf{fotocopia} a tu variable y se la entregas a la función. Si la función modifica su copia (\codigo{x = x * 2}), tu variable original en \codigo{main()} \textbf{no cambia}.
+  \item \textbf{Paso por referencia (\codigo{int \&x}):} Le entregas el \textbf{documento original} (un apodo directo al mismo casillero de RAM). Si la función lo cambia, la variable de \codigo{main()} \textbf{sí cambia}.
+\end{itemize}
+\end{paratontos}
+
+¿Cuándo usar \codigo{\&} en un parcial? En tres casos clásicos:
+\begin{enumerate}
+  \item \textbf{Intercambiar dos valores:} \codigo{void intercambiar(int \&a, int \&b)}.
+  \item \textbf{Leer y validar datos desde teclado:} \codigo{void leerEnteroEnRango(int \&destino, ...)}.
+  \item \textbf{Devolver 2 o más resultados al tiempo:} como \codigo{obtenerMinMax(..., int \&minimo, int \&maximo)}.
+\end{enumerate}
+
+\begin{peligro}{Olvidar el símbolo \texttt{\&} en un intercambio o lectura}
+Si escribes \codigo{void intercambiar(int a, int b)} sin \codigo{\&}, el programa compila sin errores, pero al regresar a \codigo{main()} las variables \textbf{no se habrán intercambiado}. Verifica siempre que \codigo{\&} aparezca tanto en el prototipo como en la definición.
+\end{peligro}
+
+\lstinputlisting[style=cppmonitoria, caption={\texttt{cpp/02\_valor\_vs\_referencia.cpp}: demostración práctica de valor vs. \texttt{\&}}]{cpp/02_valor_vs_referencia.cpp}
+
+\subsection{Pasar Vectores y Matrices Estáticas a Funciones}
+
+En este curso trabajamos exclusivamente con \textbf{arreglos estáticos de capacidad fija} (\texttt{const int MAX = 50;}), \textbf{sin punteros (\texttt{*}, \texttt{->}), sin \texttt{new}/\texttt{delete} y sin \texttt{std::vector}}.
+
+\begin{peligro}{Las 4 trampas mortales al pasar arreglos a funciones}
+\begin{enumerate}
+  \item \textbf{Olvidar pasar el tamaño lógico \texttt{n}:} Un arreglo en C++ no sabe cuántas casillas llenaste. Siempre pasa \codigo{(int v[], int n)}.
+  \item \textbf{Llamar con corchetes:} En \codigo{main()}, llama \codigo{mostrarVector(datos, n);}. \textbf{Nunca} escribas \codigo{mostrarVector(datos[n], n);}, porque \codigo{datos[n]} es un solo entero fuera de rango.
+  \item \textbf{Dejar vacía la segunda dimensión en matrices:} En matrices estáticas \codigo{const int MAX\_C = 10;}, la firma debe escribir obligatoriamente \codigo{int m[][MAX\_C]}. Si escribes \codigo{int m[][]}, \textbf{no compila}, porque el compilador necesita saber el ancho físico de cada fila para saltar en memoria.
+  \item \textbf{Intentar retornar un arreglo local:} No escribas \codigo{return v;} para devolver un vector estático creado dentro de una función; declara el vector en \codigo{main()} y pásalo como parámetro para llenarlo.
+\end{enumerate}
+\end{peligro}
+
+\begin{consejo}{¿Por qué agregamos \texttt{const} en funciones de consulta?}
+Cuando pasas un vector o matriz a una función, C++ comparte directamente la memoria original (no hace copia). Por eso escribir \codigo{const int v[]} en \codigo{mostrarVector} o \codigo{buscarPosicion} protege tus datos contra modificaciones accidentales.
+\end{consejo}
+
+\lstinputlisting[style=cppmonitoria, caption={\texttt{cpp/03\_funciones\_vector\_estatico.cpp}: funciones con vector estático y \texttt{const}}]{cpp/03_funciones_vector_estatico.cpp}
+
+\lstinputlisting[style=cppmonitoria, caption={\texttt{cpp/04\_funciones\_matriz\_estatica.cpp}: matrices estáticas con \texttt{[][MAX\_C]}}]{cpp/04_funciones_matriz_estatica.cpp}
+
+% ============================================================================
+\section{Estrategia ``Anti-Pánico en Parciales'' (0.5 h)}
+% ============================================================================
+
+\subsection{Protocolo de los Primeros 8 Minutos (Sin Tocar Teclado)}
+
+\begin{analisis}{Cómo leer un enunciado largo sin ahogarse}
+Lee todo el enunciado \textbf{dos veces}. En la segunda lectura, clasifica en cuatro bloques:
+\begin{enumerate}
+  \item \textbf{ENTRADAS:} Qué digita el usuario, qué tipo es (\codigo{int}, \codigo{double}, \codigo{char}) y cuál es su rango válido.
+  \item \textbf{REGLAS Y FÓRMULAS:} Condiciones exactas (\emph{``al menos''} $\rightarrow \ge$, \emph{``supera''} $\rightarrow >$, \emph{``entre A y B inclusive''} $\rightarrow$ \codigo{A <= x \&\& x <= B}) y orden en que se aplican recargos o descuentos.
+  \item \textbf{REPETICIÓN:} ¿Cantidad fija $n$? $\Rightarrow$ \codigo{for}. ¿Centinela (\codigo{-999}, \codigo{0})? $\Rightarrow$ \codigo{while} con lectura previa. ¿Menú o validación al menos 1 vez? $\Rightarrow$ \codigo{do-while}.
+  \item \textbf{SALIDAS EXACTAS:} Qué resultados exige imprimir el enunciado y con qué decimales o etiquetas.
+\end{enumerate}
+\end{analisis}
+
+\begin{center}
+  \small
+  \captionof{table}{Distribución recomendada de tiempo en un parcial de 90 minutos}
+  \rowcolors{2}{GrisSuave}{white}
+  \begin{tabularx}{\textwidth}{>{\bfseries\color{AzulMarino}}p{2.4cm} >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}p{4.8cm}}
+    \rowcolor{AzulMarino}
+    \textcolor{white}{\textbf{Franja}} & \textcolor{white}{\textbf{Acción prioritaria}} & \textcolor{white}{\textbf{Entregable intermedio}} \\
+    \midrule
+    Min 0 -- 10 & Leer todos los puntos, armar tablas EPS en borrador y empezar por el punto más claro. & Cero código precipitado; mapa mental listo. \\
+    Min 10 -- 35 & Resolver y verificar el primer punto (DFD/código + caso de prueba manual). & Primeros 25--35 puntos asegurados. \\
+    Min 35 -- 75 & Codificar los puntos 2 y 3 por bloques pequeños, compilando tras cada función. & Solución completa sin errores de sintaxis. \\
+    Min 75 -- 90 & Ejecutar prueba de escritorio (caso normal, borde e inválido) y revisar checklist. & Entrega limpia sin trampas silenciosas. \\
+    \bottomrule
+  \end{tabularx}
+\end{center}
+
+\subsection{Checklist de 10 Puntos Antes de Entregar}
+
+\begin{consejo}[top=2.2mm,bottom=2.2mm]{Verifica estos 10 puntos en los últimos 5 minutos del examen}
+\begin{enumerate}[itemsep=1pt,topsep=2pt,parsep=0pt]
+  \item \textbf{Inicialización:} ¿Todo contador y acumulador arranca en \codigo{0} o \codigo{0.0}?
+  \item \textbf{División real vs. entera:} ¿Usé \codigo{static\_cast<double>(suma) / n} o \codigo{5.0 / 2} en lugar de \codigo{5 / 2}?
+  \item \textbf{Rangos bien escritos:} ¿Usé \codigo{10 <= x \&\& x <= 20} y nunca \codigo{10 <= x <= 20}?
+  \item \textbf{Igualdad vs. asignación:} ¿Puse \codigo{==} en condiciones y \codigo{=} solo al asignar?
+  \item \textbf{Switch completo:} ¿Cada \codigo{case} cierra con \codigo{break;} y hay \codigo{default:}?
+  \item \textbf{Fin del ciclo:} ¿Actualicé el contador o volví a leer el centinela al final del \codigo{while}?
+  \item \textbf{Arreglos seguros:} ¿Declaré \codigo{const int MAX} y validé \codigo{1 <= n \&\& n <= MAX} recorriendo solo de \codigo{0} a \codigo{n - 1}?
+  \item \textbf{Mínimo y máximo:} ¿Inicialicé \codigo{min} y \codigo{max} con el \textbf{primer dato válido} o \codigo{v[0]}, no con \codigo{0}?
+  \item \textbf{Firmas de funciones:} ¿Puse \codigo{\&} si modifico escalares, \codigo{[][MAX\_C]} en matrices y \codigo{return} en todo camino no-\codigo{void}?
+  \item \textbf{Prueba de escritorio:} ¿Probé al menos un caso real a mano comparando contra la salida del programa?
+\end{enumerate}
+\end{consejo}
+
+\newpage
+\subsection{Los 12 Errores Mortales en DFD, PSeInt y C++}
+
+\begin{center}
+  \footnotesize
+  \captionof{table}{Diagnóstico rápido de errores frecuentes en parciales}
+  \rowcolors{2}{GrisSuave}{white}
+  \begin{tabularx}{\textwidth}{c >{\ttfamily\raggedright\arraybackslash}p{3.6cm} >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}p{4.6cm}}
+    \rowcolor{RojoAlerta}
+    \textcolor{white}{\textbf{\#}} & \textcolor{white}{\textbf{\sffamily Error típico}} & \textcolor{white}{\textbf{Consecuencia real}} & \textcolor{white}{\textbf{Corrección inmediata}} \\
+    \midrule
+    1 & if (x = 5) & Asigna 5 y siempre entra como verdadero. & Cambiar a \texttt{if (x == 5)}. \\
+    2 & if (10 <= x <= 20) & Evalúa \texttt{0 <= 20} o \texttt{1 <= 20}: siempre cierto. & \texttt{if (10 <= x \&\& x <= 20)}. \\
+    3 & double p = suma / n; & Si ambos son \texttt{int}, trunca decimales. & \texttt{static\_cast<double>(suma) / n}. \\
+    4 & case 'A': ... (sin break) & Cae en cascada ejecutando el siguiente \texttt{case}. & Agregar \texttt{break;} en cada rama. \\
+    5 & Repetir..Hasta Que == do..while & PSeInt termina al ser V; C++ sigue mientras es V. & Negar la condición al traducir. \\
+    6 & cin >> x; getline(cin, s); & \texttt{getline} lee el Enter pendiente y queda vacío. & Poner \texttt{cin.ignore();} antes. \\
+    7 & int v[n]; & VLA no estándar; falla con \texttt{n <= 0} o desborda. & \texttt{const int MAX=100; int v[MAX];}. \\
+    8 & for (i=0; i<=n; i++) & Lee/escribe en \texttt{v[n]} (basura fuera de rango). & Condición estricta \texttt{i < n}. \\
+    9 & Rombo DFD sin Sí/No & Flujo ambiguo o ramas sueltas sin unir. & Etiquetar \texttt{Sí}/\texttt{No} y converger. \\
+    10 & Índice 1..n vs 0..n-1 & Desfase de una casilla entre PSeInt y C++. & Documentar base antes de traducir. \\
+    11 & void swap(int a, int b) & Intercambia copias locales; \texttt{main} no cambia. & Usar \texttt{int \&a, int \&b}. \\
+    12 & void f(int m[][]) & No compila en C++ por ancho desconocido. & Escribir \texttt{int m[][MAX\_C]}. \\
+    \bottomrule
+  \end{tabularx}
+\end{center}
+
+\imagenmodulo[0.58\linewidth]{met_01_cinco_pasos_analisis.png}{Recordatorio visual: Método de los 5 Pasos bajo presión de parcial}
+
+% ============================================================================
+\clearpage
+\section{Simulacro 1 (Corte 1 — 90 minutos, 100 puntos)}
+% ============================================================================
+
+\etiqueta[NaranjaCalido]{Alcance Corte 1} Análisis EPS, DFD, tipos de datos, operadores (\codigo{/}, \codigo{\%}), condicionales y ciclos \textbf{sin arreglos}.
+
+\subsection{Enunciados y Rúbrica Oficial}
+
+\begin{ejercicio}{Simulacro 1 — Punto 1 (25 pts | 25 min): Control de Peaje Vehicular}
+Diseñe el análisis EPS, el pseudocódigo PSeInt y el programa C++ para liquidar el pago en un peaje nacional:
+\begin{itemize}
+  \item Categorías: \codigo{1} = Automóvil (\texttt{\$12000}), \codigo{2} = Camioneta/Microbús (\texttt{\$18500}), \codigo{3} = Camión pesado (base \texttt{\$28000} de 2 ejes, más \texttt{\$7500} por cada eje adicional; validar $\text{ejes} \ge 2$). Si la categoría no está en \codigo{1..3}, mostrar error y terminar.
+  \item Si transita en hora pico (\codigo{S}/\codigo{N}), sumar recargo del \textbf{15\%} sobre la tarifa base.
+  \item Si posee Telepeaje/TAG (\codigo{S}/\codigo{N}), restar descuento del \textbf{10\%} sobre el subtotal (base + recargo).
+  \item Mostrar tarifa base, recargo, descuento y total a pagar con 2 decimales.
+\end{itemize}
+\textbf{Rúbrica (25 pts):} EPS (5) + validación categoría/ejes (6) + cálculo porcentual sobre subtotal (9) + prueba de escritorio (5).
+\end{ejercicio}
+
+\begin{ejercicio}{Simulacro 1 — Punto 2 (35 pts | 30 min): Parqueadero Inteligente}
+Liquide la estadía según el tipo de vehículo (\codigo{M}=Moto \texttt{\$1800/h}, \codigo{C}=Carro \texttt{\$3500/h}, \codigo{V}=Van \texttt{\$5000/h}; usar \codigo{switch} aceptando mayúsculas y minúsculas) y el tiempo total en minutos ($\ge 1$):
+\begin{itemize}
+  \item Convierta los minutos a horas completas (\codigo{minutos / 60}) y minutos sobrantes (\codigo{minutos \% 60}).
+  \item Si estuvo menos de 1 hora, cobre mínimo \textbf{1 hora}. Si ya completó al menos 1 hora y los minutos sobrantes superan 15, sume 1 hora adicional.
+  \item Si las horas cobradas son $\ge 6$, aplique \textbf{15\% de descuento} por larga estadía.
+  \item Si presenta convenio comercial (\codigo{S}/\codigo{N}), reste \texttt{\$2000} fijos (si el total resulta negativo, fíjelo en \texttt{0.00}).
+\end{itemize}
+\textbf{Rúbrica (35 pts):} \codigo{switch} completo (8) + uso exacto de \codigo{/}, \codigo{\%} y tolerancia (12) + descuentos y piso en cero (10) + prueba de escritorio (5).
+\end{ejercicio}
+
+\begin{ejercicio}{Simulacro 1 — Punto 3 (40 pts | 35 min): Monitor de Temperaturas de Invernadero}
+Sin usar arreglos, lea lecturas en °C hasta ingresar el centinela \codigo{-999}:
+\begin{itemize}
+  \item Solo son válidas las lecturas en el rango \texttt{[-10.0, 60.0]}. Cualquier otro valor (distinto de \codigo{-999}) debe descartarse con un mensaje de aviso sin terminar el ciclo.
+  \item Al final reporte: cantidad de lecturas válidas, promedio térmico, temperatura mínima, temperatura máxima, alertas de frío (\codigo{< 12.0}) y alertas de calor (\codigo{> 32.0}). Si hubo 0 lecturas válidas, mostrar un mensaje sin dividir por cero.
+\end{itemize}
+\textbf{Rúbrica (40 pts):} \codigo{while} con lectura anticipada del centinela (10) + validación física sin cortar ciclo (8) + inicialización segura de mín/máx (10) + alertas y protección contra división por cero (7) + prueba de escritorio (5).
+\end{ejercicio}
+
+\subsection{Solucionario Comentado del Simulacro 1}
+
+\begin{solucion}{Simulacro 1 — Punto 1: Peaje Vehicular}
+\textbf{Análisis EPS:} Entradas: \codigo{categoria}, \codigo{ejes} (si cat=3), \codigo{horaPico}, \codigo{tieneTag}. Proceso: validar categoría, calcular base, aplicar recargo 15\% a la base para obtener subtotal y descuento 10\% al subtotal. Salidas: desglose de tirilla y total.
+
+\begin{lstlisting}[style=pseintmonitoria, caption={Pseudocódigo PSeInt del Punto 1 (Peaje)}]
+Algoritmo PeajeNacional
+    Definir categoria, ejes Como Entero;
+    Definir horaPico, tieneTag Como Caracter;
+    Definir base, recargo, subtotal, desc, total Como Real;
+    Escribir "Ingrese categoria (1-3):";
+    Leer categoria;
+    Si categoria < 1 O categoria > 3 Entonces
+        Escribir "Error: categoria invalida.";
+    SiNo
+        Si categoria = 1 Entonces base <- 12000;
+        SiNo Si categoria = 2 Entonces base <- 18500;
+        SiNo
+            Escribir "Ejes (>=2):"; Leer ejes;
+            base <- 28000 + (ejes - 2) * 7500;
+        FinSi FinSi
+        Escribir "Hora pico (S/N) y TAG (S/N):";
+        Leer horaPico, tieneTag;
+        recargo <- 0;
+        Si horaPico = "S" O horaPico = "s" Entonces recargo <- base * 0.15; FinSi
+        subtotal <- base + recargo;
+        desc <- 0;
+        Si tieneTag = "S" O tieneTag = "s" Entonces desc <- subtotal * 0.10; FinSi
+        total <- subtotal - desc;
+        Escribir "TOTAL A PAGAR: $", total;
+    FinSi
+FinAlgoritmo
+\end{lstlisting}
+\end{solucion}
+
+\lstinputlisting[style=cppmonitoria, caption={\texttt{cpp/05\_simulacro1\_p1\_peaje.cpp}: solución verificada del Punto 1}]{cpp/05_simulacro1_p1_peaje.cpp}
+
+\begin{pruebaescritorio}{Simulacro 1 — Punto 1 (Entrada: \texttt{3, 4, S, S})}
+\begin{center}
+\small
+\begin{tabular}{ccccccccc}
+\toprule
+\textbf{cat} & \textbf{ejes} & \textbf{tarifaBase} & \textbf{pico} & \textbf{recargoPico} & \textbf{subtotal} & \textbf{TAG} & \textbf{descuentoTag} & \textbf{totalPagar} \\
+\midrule
+3 & 4 & 43000.00 & S & 6450.00 & 49450.00 & S & 4945.00 & \textbf{44505.00} \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{pruebaescritorio}
+
+\begin{solucion}{Simulacro 1 — Punto 2: Parqueadero Inteligente}
+La clave está en el orden de operaciones: primero separar \codigo{minutos / 60} y \codigo{minutos \% 60}, luego aplicar la regla de tolerancia de 15 minutos, multiplicar por la tarifa del \codigo{switch} y por último restar descuentos protegiendo el límite inferior en \codigo{0.0}.
+\end{solucion}
+
+\lstinputlisting[style=cppmonitoria, caption={\texttt{cpp/06\_simulacro1\_p2\_parqueadero.cpp}: solución verificada del Punto 2}]{cpp/06_simulacro1_p2_parqueadero.cpp}
+
+\begin{pruebaescritorio}{Simulacro 1 — Punto 2 (Entrada: \texttt{C, 380, S})}
+\begin{center}
+\small
+\begin{tabular}{ccccccc}
+\toprule
+\textbf{tarifaHora} & \textbf{hComp} & \textbf{minSob} & \textbf{hCob} & \textbf{subtotal} & \textbf{desc15\% + conv} & \textbf{total} \\
+\midrule
+3500.00 & 6 & 20 ($>15$) & 7 & 24500.00 & 3675.00 + 2000.00 & \textbf{18825.00} \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{pruebaescritorio}
+
+\begin{solucion}{Simulacro 1 — Punto 3: Monitor de Temperaturas de Invernadero}
+Como no conocemos la cantidad de lecturas de antemano, usamos \codigo{while (temp != -999)} con lectura previa y lectura al final del cuerpo. Inicializamos \codigo{tempMin} y \codigo{tempMax} únicamente cuando \codigo{validas == 0} (primer dato físicamente válido).
+\end{solucion}
+
+\lstinputlisting[style=cppmonitoria, caption={\texttt{cpp/07\_simulacro1\_p3\_invernadero.cpp}: solución verificada del Punto 3}]{cpp/07_simulacro1_p3_invernadero.cpp}
+
+\begin{pruebaescritorio}{Simulacro 1 — Punto 3 (Entrada: \texttt{22.5, 85.0, 10.0, 35.5, 24.0, -999})}
+\begin{center}
+\small
+\begin{tabular}{cccccccc}
+\toprule
+\textbf{Iter.} & \textbf{temp} & \textbf{¿Válida?} & \textbf{validas} & \textbf{suma} & \textbf{tempMin} & \textbf{tempMax} & \textbf{frío / calor} \\
+\midrule
+1 & 22.5 & Sí (1ª) & 1 & 22.5 & 22.5 & 22.5 & 0 / 0 \\
+2 & 85.0 & No (desc.) & 1 & 22.5 & 22.5 & 22.5 & 0 / 0 \\
+3 & 10.0 & Sí ($<12$) & 2 & 32.5 & 10.0 & 22.5 & 1 / 0 \\
+4 & 35.5 & Sí ($>32$) & 3 & 68.0 & 10.0 & 35.5 & 1 / 1 \\
+5 & 24.0 & Sí & 4 & 92.0 & 10.0 & 35.5 & 1 / 1 \\
+Fin & -999 & Sale & 4 & 92.0 & \textbf{10.00} & \textbf{35.50} & \textbf{1 / 1} \\
+\bottomrule
+\end{tabular}
+\end{center}
+Resultado final impreso: \codigo{Promedio = 92.0 / 4 = 23.00 C}.
+\end{pruebaescritorio}
+
+% ============================================================================
+\clearpage
+\section{Simulacro 2 (Corte Final — 90 minutos, 100 puntos)}
+% ============================================================================
+
+\etiqueta[Turquesa]{Alcance Corte Final} Modularidad (\codigo{void}, retorno, \codigo{\&}), ciclos anidados, vectores estáticos con capacidad \codigo{MAX} y matrices estáticas \codigo{[][MAX\_C]}.
+
+\subsection{Enunciados y Rúbrica Oficial}
+
+\begin{ejercicio}{Simulacro 2 — Punto 1 (25 pts | 20 min): Analizador Numérico Modular}
+Implemente un programa modular en C++ con:
+\begin{itemize}
+  \item \codigo{void leerRangoValido(int \&inicio, int \&fin)} validando \codigo{1 <= inicio <= fin}.
+  \item \codigo{bool esPrimo(int n)}, \codigo{int sumaDivisoresPropios(int n)} y \codigo{bool esPerfecto(int n)}.
+  \item \codigo{void analizarRango(int inicio, int fin)} que liste todos los primos y números perfectos en el rango junto con sus conteos totales.
+\end{itemize}
+\textbf{Rúbrica (25 pts):} Lectura con \codigo{\&} (5) + \codigo{esPrimo} (7) + \codigo{sumaDivisoresPropios}/\codigo{esPerfecto} (8) + \codigo{analizarRango} y prueba (5).
+\end{ejercicio}
+
+\begin{ejercicio}{Simulacro 2 — Punto 2 (35 pts | 35 min): Inventario de Tienda (Vectores Estáticos)}
+Con \codigo{const int MAX\_PROD = 50;}, declare 3 vectores paralelos estáticos (\codigo{codigos}, \codigo{stocks}, \codigo{precios}) y valide \codigo{1 <= n <= MAX\_PROD}. Implemente funciones separadas para: cargar, mostrar tabla, hallar índice del producto más caro, contar stock crítico (\codigo{< 5}), búsqueda secuencial por código (retornando \codigo{-1} si no existe) y ordenamiento Burbuja descendente por precio manteniendo los tres arreglos sincronizados.
+
+\textbf{Rúbrica (35 pts):} Estáticos + validación (6) + cargar/mostrar (6) + máximo y conteo (7) + búsqueda (6) + Burbuja sincronizado (10).
+\end{ejercicio}
+
+\begin{ejercicio}{Simulacro 2 — Punto 3 (40 pts | 35 min): Consumo Energético (Matriz Estática)}
+Con \codigo{const int MAX\_P = 10;} y \codigo{const int MAX\_D = 7;}, declare \codigo{double consumo[MAX\_P][MAX\_D];}. Valide \codigo{p} pisos y \codigo{d} días. Implemente funciones para: leer consumos ($\ge 0$), mostrar tabla, calcular total por piso (fila), promedio por día (columna), hallar coordenadas del pico máximo mediante \codigo{int \&pisoMax, int \&diaMax} y, solo si \codigo{p == d}, calcular la suma de la diagonal principal.
+
+\textbf{Rúbrica (40 pts):} Uso de \codigo{[][MAX\_D]} (8) + lectura/tabla (8) + fila y columna sin cruzar índices (10) + pico con \codigo{\&} (9) + diagonal si cuadrada (5).
+\end{ejercicio}
+
+\newpage
+\subsection{Solucionario Comentado del Simulacro 2}
+
+\lstinputlisting[style=cppmonitoria, caption={\texttt{cpp/08\_simulacro2\_p1\_primos\_perfectos.cpp}: solución verificada del Punto 1}]{cpp/08_simulacro2_p1_primos_perfectos.cpp}
+
+\begin{pruebaescritorio}{Simulacro 2 — Punto 1 (Entrada: \texttt{inicio = 1, fin = 30})}
+\begin{itemize}
+  \item Primos encontrados (10): \codigo{2, 3, 5, 7, 11, 13, 17, 19, 23, 29}.
+  \item Números perfectos (2): \codigo{6} ($1+2+3$) y \codigo{28} ($1+2+4+7+14$).
+\end{itemize}
+\end{pruebaescritorio}
+
+\lstinputlisting[style=cppmonitoria, caption={\texttt{cpp/09\_simulacro2\_p2\_inventario\_vector.cpp}: solución verificada del Punto 2}]{cpp/09_simulacro2_p2_inventario_vector.cpp}
+
+\begin{pruebaescritorio}{Simulacro 2 — Punto 2 (Entrada: \texttt{n=3}: \texttt{(101,8,4500)}, \texttt{(102,2,12000)}, \texttt{(103,15,3200)}; buscar \texttt{102})}
+\begin{center}
+\small
+\begin{tabular}{ll}
+\toprule
+\textbf{Función ejecutada} & \textbf{Resultado exacto observado} \\
+\midrule
+\codigo{indiceMasCaro} & Índice 1 $\Rightarrow$ Código \codigo{102}, Precio \texttt{\$12000.00} \\
+\codigo{contarStockCritico(5)} & \codigo{1} producto (código 102 tiene stock 2) \\
+\codigo{buscarPorCodigo(102)} & Encontrado en posición 1 $\Rightarrow$ Stock 2, Precio \texttt{\$12000.00} \\
+\codigo{ordenarPorPrecioDesc} & \texttt{[(102, 2, 12000.00), (101, 8, 4500.00), (103, 15, 3200.00)]} \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{pruebaescritorio}
+
+\lstinputlisting[style=cppmonitoria, caption={\texttt{cpp/10\_simulacro2\_p3\_consumo\_matriz.cpp}: solución verificada del Punto 3}]{cpp/10_simulacro2_p3_consumo_matriz.cpp}
+
+\begin{pruebaescritorio}{Simulacro 2 — Punto 3 (Entrada: \texttt{p=2, d=2}, matriz \texttt{[[10.5, 12.0], [8.5, 15.0]]})}
+\begin{center}
+\small
+\begin{tabular}{ll}
+\toprule
+\textbf{Operación} & \textbf{Cálculo y salida verificada} \\
+\midrule
+\codigo{totalPorPiso} & Piso 1: \texttt{22.50 kWh} \textbar\ Piso 2: \texttt{23.50 kWh} \\
+\codigo{promedioPorDia} & Día 1: \texttt{9.50 kWh} \textbar\ Día 2: \texttt{13.50 kWh} \\
+\codigo{encontrarPicoMaximo} & \texttt{15.00 kWh} en \texttt{(Piso 2, Dia 2)} (\codigo{pisoMax=1, diaMax=1}) \\
+\codigo{sumarDiagonalPrincipal} & Cuadrada $2\times 2$ $\Rightarrow 10.5 + 15.0 = \mathbf{25.50\ kWh}$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{pruebaescritorio}
+
+% ============================================================================
+\clearpage
+\section{Ejercicios Propuestos Express de Modularidad}
+% ============================================================================
+
+\begin{ejercicio}[top=2mm,bottom=2mm,before skip=5pt,after skip=4pt]{1. Normalizar un par en orden ascendente}
+Implementa \texttt{void ordenarPar(int \&a, int \&b)} para asegurar que al regresar al \codigo{main()} siempre se cumpla \codigo{a <= b}.
+\end{ejercicio}
+\begin{solucion}[top=2mm,bottom=2mm,before skip=3pt,after skip=6pt]{1}
+Usa \codigo{if (a > b)} y dentro aplica intercambio clásico con variable temporal \texttt{int temp = a; a = b; b = temp;}.
+\end{solucion}
+
+\begin{ejercicio}[top=2mm,bottom=2mm,before skip=5pt,after skip=4pt]{2. Contar aprobados en vector estático}
+Dado \codigo{double notas[MAX]} con \codigo{n} notas válidas, escribe \texttt{int contarAprobados(const double notas[], int n, double minima)}.
+\end{ejercicio}
+\begin{solucion}[top=2mm,bottom=2mm,before skip=3pt,after skip=6pt]{2}
+Recorre con \codigo{for (int i = 0; i < n; i++)}, incrementa \codigo{cont++} si \codigo{notas[i] >= minima} y retorna \codigo{cont}.
+\end{solucion}
+
+\begin{ejercicio}[top=2mm,bottom=2mm,before skip=5pt,after skip=4pt]{3. Simetría en matriz cuadrada estática}
+Implementa \texttt{bool esSimetrica(const int m[][MAX\_C], int n)} que retorne \codigo{true} solo si \codigo{m[i][j] == m[j][i]} para toda celda.
+\end{ejercicio}
+\begin{solucion}[top=2mm,bottom=2mm,before skip=3pt,after skip=6pt]{3}
+Recorre solo la parte triangular superior (\codigo{i} de \codigo{0} a \codigo{n-1}, \codigo{j} de \codigo{i+1} a \codigo{n-1}). Si encuentras \codigo{m[i][j] != m[j][i]}, haz \codigo{return false;} inmediato; si termina el doble ciclo, \codigo{return true;}.
+\end{solucion}
+
+\begin{ejercicio}[top=2mm,bottom=2mm,before skip=5pt,after skip=4pt]{4. Cazador de 3 errores de parcial}
+Detecta los tres errores antes de compilar: \texttt{void leerM(int m[][], int f, int c);} --- \texttt{int n = 5; int vec[n];} --- \texttt{mostrar(vec[n], n);}.
+\end{ejercicio}
+\begin{solucion}[top=2mm,bottom=2mm,before skip=3pt,after skip=4pt]{4}
+(1) Falta \codigo{MAX\_C} en el segundo corchete de la matriz; (2) \codigo{int vec[n];} es VLA no estándar (usar \codigo{const int MAX}); (3) \codigo{vec[n]} pasa un entero fuera de rango en lugar de \codigo{mostrar(vec, n)}.
+\end{solucion}
+
+\end{document}

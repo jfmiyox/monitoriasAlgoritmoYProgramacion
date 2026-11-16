@@ -1,0 +1,39 @@
+# Temporales de LaTeX / XeLaTeX
+*.aux
+*.log
+*.toc
+*.out
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.nav
+*.snm
+*.vrb
+
+# Binarios y objetos compilados de C++
+*.o
+*.obj
+*.exe
+a.out
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Editores y sistema operativo
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*~
+
+# Nunca subir configuraciones locales de agentes
+.agents/
+.opencode/
+.gemini/
+.claude/
+.codex/
+AGENTS.md
+GEMINI.md
+CLAUDE.md
+opencode.jsonc

@@ -1,0 +1,596 @@
+\documentclass[11pt,letterpaper]{article}
+\usepackage{../../latex_common/estilo_monitoria}
+
+\begin{document}
+
+\portadamodulo{07}{Matrices Estáticas (Arreglos Bidimensionales)}{4.0 horas}{Edificios, hojas de cálculo, recorridos por filas y columnas, diagonales y casos de la vida real}{%
+  \begin{itemize}
+    \item Comprender qué es una matriz estática mediante la analogía del edificio o la hoja de cálculo con filas y columnas fijas.
+    \item Declarar e inicializar matrices estáticas de tamaño fijo literal (\codigo{char sala[5][6]}) o capacidad constante (\codigo{const int MAX\_F = 20, MAX\_C = 20; int mat[MAX\_F][MAX\_C];}).
+    \item Distinguir cuándo recorrer por filas (\codigo{for i -> for j}) y cuándo recorrer por columnas (\codigo{for j -> for i}).
+    \item Dominar los patrones 2D: suma total, suma/promedio por fila y columna, mayor/menor con coordenadas \codigo{(fila, col)}, diagonales principal y secundaria, triangulares, simetría y transpuesta.
+    \item Aplicar matrices estáticas en casos reales: boletín de notas, ventas por tienda y mes, reserva de cine \codigo{5x6}, cuadrado mágico y multiplicación de matrices.
+  \end{itemize}
+}
+
+\tableofcontents
+\vspace{8pt}
+
+% ============================================================================
+\section{Explicado Para Tontos: ¿Qué es una Matriz Estática?}
+% ============================================================================
+
+\begin{paratontos}{La analogía del edificio de apartamentos y la hoja de cálculo}
+Si un vector es una \textbf{sola fila de casilleros}, una \textbf{matriz estática} (arreglo bidimensional) es un \textbf{edificio de apartamentos} o una \textbf{hoja de cálculo de Excel}:
+\begin{itemize}
+  \item Tiene \textbf{filas horizontales} (los pisos del edificio, numerados en C++ desde la \textbf{fila 0} hasta \codigo{f - 1}).
+  \item Tiene \textbf{columnas verticales} (los apartamentos por piso, numerados en C++ desde la \textbf{columna 0} hasta \codigo{c - 1}).
+  \item Para ubicar un apartamento necesitas \textbf{dos coordenadas}: \codigo{edificio[piso][apto]} — \textbf{siempre primero la fila, luego la columna}.
+  \item El terreno del edificio se construye con \textbf{capacidad física fija} (\codigo{MAX\_F} filas por \codigo{MAX\_C} columnas) desde el inicio del programa, aunque hoy solo ocupemos \codigo{f} pisos y \codigo{c} apartamentos.
+\end{itemize}
+\end{paratontos}
+
+\imagenmodulo[0.96\linewidth]{mem_04_matriz_estatica_2d.png}{Anatomía de una matriz estática 2D: acceso \codigo{m[fila][col]}, recorrido por filas, recorrido por columnas y ambas diagonales.}
+
+% ============================================================================
+\section{Declaración Estática, Inicialización y Trampas Clásicas}
+% ============================================================================
+
+\begin{enumerate}
+  \item \textbf{Tamaño fijo literal} (cuando la cuadrícula siempre mide igual, como una sala de cine o un tablero):
+\begin{lstlisting}[style=cppmonitoria]
+char sala[5][6];        // 5 filas (0..4) x 6 columnas (0..5) = 30 sillas
+int tablero[3][3];      // Tablero fijo 3x3
+\end{lstlisting}
+  \item \textbf{Capacidad máxima fija con constantes + dimensiones lógicas \codigo{f} y \codigo{c}}:
+\begin{lstlisting}[style=cppmonitoria]
+const int MAX_F = 20;
+const int MAX_C = 20;
+int mat[MAX_F][MAX_C];  // Reserva 20x20 = 400 enteros estaticos
+int f, c;               // Cuantas filas y columnas usaremos hoy
+
+do { cin >> f; } while (f < 1 || f > MAX_F);
+do { cin >> c; } while (c < 1 || c > MAX_C);
+\end{lstlisting}
+  \item \textbf{Inicialización explícita o en cero}:
+\begin{lstlisting}[style=cppmonitoria]
+int m1[2][3] = {
+    {10, 20, 30},       // Fila 0
+    {40, 50, 60}        // Fila 1
+};
+int m2[4][4] = {0};     // Todas las 16 celdas quedan en 0!
+\end{lstlisting}
+\end{enumerate}
+
+\begin{peligro}{¿Por qué NO hacemos \texttt{int m[f][c];} ni \texttt{vector<vector<int>>} en este curso?}
+\begin{itemize}
+  \item \textbf{VLA prohibido en C++ estándar:} \codigo{int m[f][c];} con variables \codigo{f, c} no es estándar ISO C++. Además, en 2D el riesgo de desbordar la pila (\emph{stack overflow}) crece de forma cuadrática (\codigo{f * c}).
+  \item \textbf{Sin contenedores dinámicos:} Usar \codigo{std::vector}, \codigo{new} o punteros dobles pertenece a Estructuras de Datos. Aquí la regla es reservar capacidad segura (\codigo{MAX\_F}, \codigo{MAX\_C}) y validar \codigo{1 <= f <= MAX\_F} y \codigo{1 <= c <= MAX\_C}.
+\end{itemize}
+\end{peligro}
+
+\begin{peligro}{Tres trampas mortales en matrices}
+\begin{enumerate}
+  \item \textbf{Invertir índices (\texttt{mat[j][i]} en vez de \texttt{mat[i][j]}):} En matrices rectangulares \codigo{2x5}, acceder a \codigo{mat[4][1]} desborda la fila y corrompe la memoria.
+  \item \textbf{PSeInt vs C++:} En PSeInt se declara con coma \codigo{Dimension m[20, 20];} y base \codigo{1..f, 1..c} por defecto. En C++ se declara con doble corchete \codigo{int m[20][20];} y base \codigo{0..f-1, 0..c-1}.
+  \item \textbf{No reiniciar el acumulador:} Si declaras \codigo{sumaFila = 0} \emph{afuera} de ambos \codigo{for}, sumarás toda la matriz acumulada en lugar de cada fila independiente.
+\end{enumerate}
+\end{peligro}
+
+\begin{tablatraduccion}[Equivalencias rápidas para Matrices Estáticas]
+  Declarar matriz 20x20 & Cuadrícula estática & Dimension m[20, 20]; & const int MAX=20; int m[MAX][MAX]; \\
+  Acceder celda & Coordenada (fila, col) & m[i, j] (base 1 por defecto) & m[i][j] (siempre base 0) \\
+  Diagonal principal & \codigo{i} igual a \codigo{j} & i = j (base 1) & i == j (base 0) \\
+  Diagonal secundaria & Esquina opuesta & i + j = n + 1 (base 1) & i + j == n - 1 (base 0) \\
+\end{tablatraduccion}
+
+% ============================================================================
+\section{Recorrido por Filas vs Recorrido por Columnas}
+% ============================================================================
+
+\begin{consejo}{¿Cuál ciclo va afuera y cuál adentro?}
+\begin{itemize}
+  \item \textbf{Recorrido POR FILAS (\texttt{for i} afuera $\rightarrow$ \texttt{for j} adentro):} Visitas fila 0 completa, luego fila 1, etc. Úsalo para \textbf{leer, imprimir como tabla, o promediar por estudiante / tienda}.
+  \item \textbf{Recorrido POR COLUMNAS (\texttt{for j} afuera $\rightarrow$ \texttt{for i} adentro):} Visitas columna 0 de arriba a abajo, luego columna 1, etc. Úsalo para \textbf{promediar por materia o sumar ventas por mes}.
+\end{itemize}
+\end{consejo}
+
+\begin{lstlisting}[style=cppmonitoria]
+// Recorrido POR FILAS: suma y promedio de cada fila
+for (int i = 0; i < f; i++) {
+    double sumaFila = 0.0;              // Reinicia al empezar cada fila!
+    for (int j = 0; j < c; j++) {
+        sumaFila += mat[i][j];
+    }
+    cout << "Promedio fila " << i << ": " << (sumaFila / c) << "\n";
+}
+
+// Recorrido POR COLUMNAS: suma de cada columna
+for (int j = 0; j < c; j++) {
+    double sumaCol = 0.0;               // Reinicia al empezar cada columna!
+    for (int i = 0; i < f; i++) {
+        sumaCol += mat[i][j];
+    }
+    cout << "Suma columna " << j << ": " << sumaCol << "\n";
+}
+\end{lstlisting}
+
+% ============================================================================
+\section{Patrones Maestros de Matrices Estáticas}
+% ============================================================================
+
+\subsection{Mayor y Menor con Coordenadas \texttt{(fila, col)}}
+\begin{lstlisting}[style=cppmonitoria]
+int mayor = mat[0][0], filaMay = 0, colMay = 0;
+for (int i = 0; i < f; i++) {
+    for (int j = 0; j < c; j++) {
+        if (mat[i][j] > mayor) {
+            mayor = mat[i][j];
+            filaMay = i;
+            colMay = j;
+        }
+    }
+}
+\end{lstlisting}
+
+\subsection{Matriz Cuadrada (\texttt{n x n}): Diagonales, Triangulares y Simetría}
+
+\begin{center}
+\begin{tikzpicture}[scale=0.92, every node/.style={font=\ttfamily\footnotesize}]
+  \foreach \i in {0,1,2,3} {
+    \node[font=\sffamily\footnotesize\bfseries, color=AzulMarino] at (-0.7, -\i*0.95) {i=\i};
+    \node[font=\sffamily\footnotesize\bfseries, color=AzulMarino] at (\i*1.35, 0.75) {j=\i};
+    \foreach \j in {0,1,2,3} {
+      \pgfmathtruncatemacro{\sumij}{\i+\j}
+      \def\cfill{GrisSuave}
+      \ifnum\i=\j
+        \def\cfill{TurquesaClaro}
+      \else
+        \ifnum\sumij=3
+          \def\cfill{NaranjaClaro}
+        \else
+          \ifnum\i<\j
+            \def\cfill{AzulClaro}
+          \else
+            \def\cfill{VerdeClaro}
+          \fi
+        \fi
+      \fi
+      \node[draw=AzulMarino!60, thick, fill=\cfill, minimum width=1.18cm, minimum height=0.78cm, rounded corners=2pt] at (\j*1.35, -\i*0.95) {(\i,\j)};
+    }
+  }
+  \node[anchor=west, font=\sffamily\footnotesize, align=left] at (5.3, -0.3) {
+    \etiqueta[Turquesa]{i == j} Diagonal principal\\
+    \etiqueta[NaranjaCalido]{i + j == n - 1} Diagonal secundaria\\
+    \etiqueta[AzulMarino]{i < j} Triangular superior estricta\\
+    \etiqueta[VerdeExito]{i > j} Triangular inferior estricta
+  };
+\end{tikzpicture}
+\captionof{figure}{Regiones clásicas de una matriz cuadrada \texttt{4x4} en C++ (base \codigo{0}).}
+\end{center}
+
+\begin{lstlisting}[style=cppmonitoria]
+// Diagonales en un solo ciclo for (O(n))
+for (int i = 0; i < n; i++) {
+    sumaDiagP += mat[i][i];             // Principal: i == j
+    sumaDiagS += mat[i][n - 1 - i];     // Secundaria: i + j == n - 1
+}
+
+// Simetria: verificar mat[i][j] == mat[j][i] en la mitad superior
+bool simetrica = true;
+for (int i = 0; i < n && simetrica; i++) {
+    for (int j = i + 1; j < n; j++) {
+        if (mat[i][j] != mat[j][i]) { simetrica = false; break; }
+    }
+}
+
+// Transpuesta rectangular (A de f x c -> T de c x f)
+for (int i = 0; i < f; i++) {
+    for (int j = 0; j < c; j++) {
+        T[j][i] = A[i][j];
+    }
+}
+\end{lstlisting}
+
+% ============================================================================
+\section{Ocho Problemas Resueltos Completos}
+% ============================================================================
+
+\subsection{Problema 1: Boletín de Notas (\texttt{N} Estudiantes \texorpdfstring{$\times$}{x} \texttt{M} Materias)}
+\begin{analisis}{Recorrido por filas, por columnas y máximo con coordenadas (\texttt{m07\_p01})}
+\begin{itemize}
+  \item \textbf{Entradas:} \codigo{f} estudiantes (\codigo{1..30}), \codigo{c} materias (\codigo{1..10}), matriz \codigo{notas[30][10]}.
+  \item \textbf{Proceso:} Calcular promedio por estudiante (recorrido por filas), promedio por materia (recorrido por columnas) y mayor nota global con \codigo{(filaMayor, colMayor)}.
+  \item \textbf{Salidas:} Promedios por estudiante, por materia y mejor nota con coordenadas.
+\end{itemize}
+\end{analisis}
+
+\subsubsection*{PSeInt (\texttt{pseint/m07\_p01\_boletin\_notas.psc})}
+\lstinputlisting[style=pseintmonitoria]{pseint/m07_p01_boletin_notas.psc}
+
+\subsubsection*{C++ (\texttt{cpp/m07\_p01\_boletin\_notas.cpp})}
+\lstinputlisting[style=cppmonitoria]{cpp/m07_p01_boletin_notas.cpp}
+
+\begin{pruebaescritorio}{\texttt{f = 2} estudiantes $\times$ \texttt{c = 3} materias}
+Matriz: Fila 0 \texttt{[4.0, 3.5, 5.0]}, Fila 1 \texttt{[2.5, 4.5, 3.0]}.
+\begin{itemize}
+  \item \textbf{Por filas (estudiantes):} Est 0 = \codigo{(4.0+3.5+5.0)/3 = 4.17}; Est 1 = \codigo{(2.5+4.5+3.0)/3 = 3.33}.
+  \item \textbf{Por columnas (materias):} Mat 0 = \codigo{3.25}; Mat 1 = \codigo{4.00}; Mat 2 = \codigo{4.00}.
+  \item \textbf{Mejor nota:} \codigo{5.00} en coordenadas \codigo{(estudiante=0, materia=2)}.
+\end{itemize}
+\end{pruebaescritorio}
+
+\subsection{Problema 2: Ventas por Tienda y Mes}
+\begin{analisis}{Totales acumulados y liderazgo en matriz rectangular (\texttt{m07\_p02})}
+\begin{itemize}
+  \item \textbf{Entradas:} \codigo{t} tiendas (\codigo{1..15}), \codigo{m} meses (\codigo{1..12}), \codigo{ventas[15][12]}.
+  \item \textbf{Proceso:} Sumar por filas para hallar el total de cada tienda, el \codigo{totalGlobal} y la tienda líder; sumar por columnas para hallar el mes con menor venta.
+  \item \textbf{Salidas:} Ventas por tienda, por mes, total global, tienda líder y mes de menor venta.
+\end{itemize}
+\end{analisis}
+
+\subsubsection*{PSeInt (\texttt{pseint/m07\_p02\_ventas\_tiendas\_meses.psc})}
+\lstinputlisting[style=pseintmonitoria]{pseint/m07_p02_ventas_tiendas_meses.psc}
+
+\subsubsection*{C++ (\texttt{cpp/m07\_p02\_ventas\_tiendas\_meses.cpp})}
+\lstinputlisting[style=cppmonitoria]{cpp/m07_p02_ventas_tiendas_meses.cpp}
+
+\begin{pruebaescritorio}{2 tiendas $\times$ 3 meses: \texttt{[[100,200,150],[300,250,100]]}}
+Tienda 0 = \codigo{\$450.00}, Tienda 1 = \codigo{\$650.00} (líder). Mes 0 = \codigo{\$400.00}, Mes 1 = \codigo{\$450.00}, Mes 2 = \codigo{\$250.00} (menor venta). Total global = \codigo{\$1100.00}.
+\end{pruebaescritorio}
+
+\subsection{Problema 3: Reserva de Sillas de Cine \texttt{5x6}}
+\begin{analisis}{Matriz estática literal \texttt{char sala[5][6]} (\texttt{m07\_p03})}
+\begin{itemize}
+  \item \textbf{Entradas:} \codigo{opcion} de menú y coordenadas \codigo{(f, c)} en rango \codigo{0..4} y \codigo{0..5}.
+  \item \textbf{Proceso:} Inicializar todas las 30 sillas en \codigo{'L'} (libre); al reservar, verificar rango y que no esté en \codigo{'X'} (ocupada).
+  \item \textbf{Salidas:} Mapa tabular de sillas y estadísticas de ocupación.
+\end{itemize}
+\end{analisis}
+
+\subsubsection*{PSeInt (\texttt{pseint/m07\_p03\_reserva\_cine\_5x6.psc})}
+\lstinputlisting[style=pseintmonitoria]{pseint/m07_p03_reserva_cine_5x6.psc}
+
+\subsubsection*{C++ (\texttt{cpp/m07\_p03\_reserva\_cine\_5x6.cpp})}
+\lstinputlisting[style=cppmonitoria]{cpp/m07_p03_reserva_cine_5x6.cpp}
+
+\begin{pruebaescritorio}{Reserva en \texttt{(1, 2)} seguida de consulta de mapa y estadísticas}
+Se marca \codigo{sala[1][2] = 'X'}. El mapa muestra \codigo{X} en la fila \codigo{F1}, columna \codigo{C2}. Estadísticas: \codigo{Ocupadas: 1 | Libres: 29 | Ocupacion: 3.3\%}.
+\end{pruebaescritorio}
+
+\subsection{Problema 4: Diagonales y Triangulares en Matriz Cuadrada}
+\begin{analisis}{Zonas de una matriz cuadrada \texttt{N x N} (\texttt{m07\_p04})}
+\begin{itemize}
+  \item \textbf{Entradas:} Orden \codigo{n} (\codigo{1..15}), \codigo{mat[15][15]}.
+  \item \textbf{Proceso:} Acumular \codigo{mat[i][i]}, \codigo{mat[i][n-1-i]}, elementos con \codigo{i < j} y elementos con \codigo{i > j}.
+  \item \textbf{Salidas:} Ambas diagonales y las cuatro sumas.
+\end{itemize}
+\end{analisis}
+
+\subsubsection*{PSeInt (\texttt{pseint/m07\_p04\_diagonales\_y\_triangulares.psc})}
+\lstinputlisting[style=pseintmonitoria]{pseint/m07_p04_diagonales_y_triangulares.psc}
+
+\subsubsection*{C++ (\texttt{cpp/m07\_p04\_diagonales\_y\_triangulares.cpp})}
+\lstinputlisting[style=cppmonitoria]{cpp/m07_p04_diagonales_y_triangulares.cpp}
+
+\begin{pruebaescritorio}{\texttt{N = 3}, matriz \texttt{[[1,2,3],[4,5,6],[7,8,9]]}}
+Principal: \codigo{1+5+9 = 15}. Secundaria: \codigo{3+5+7 = 15}. Triangular superior (\codigo{i < j}): \codigo{2+3+6 = 11}. Triangular inferior (\codigo{i > j}): \codigo{4+7+8 = 19}.
+\end{pruebaescritorio}
+
+\subsection{Problema 5: Matriz Transpuesta y Simetría}
+\begin{analisis}{Transformación \texttt{F x C} $\rightarrow$ \texttt{C x F} y chequeo de simetría (\texttt{m07\_p05})}
+\begin{itemize}
+  \item \textbf{Entradas:} \codigo{f}, \codigo{c} (\codigo{1..15}), matriz \codigo{A[15][15]}.
+  \item \textbf{Proceso:} Asignar \codigo{T[j][i] = A[i][j]}. Si \codigo{f == c}, comparar \codigo{A[i][j]} con \codigo{A[j][i]} usando bandera \codigo{esSimetrica}.
+  \item \textbf{Salidas:} Matriz transpuesta \codigo{T} e informe de simetría.
+\end{itemize}
+\end{analisis}
+
+\subsubsection*{PSeInt (\texttt{pseint/m07\_p05\_transpuesta\_y\_simetria.psc})}
+\lstinputlisting[style=pseintmonitoria]{pseint/m07_p05_transpuesta_y_simetria.psc}
+
+\subsubsection*{C++ (\texttt{cpp/m07\_p05\_transpuesta\_y\_simetria.cpp})}
+\lstinputlisting[style=cppmonitoria]{cpp/m07_p05_transpuesta_y_simetria.cpp}
+
+\begin{pruebaescritorio}{\texttt{A = [[1,2,3],[2,4,5],[3,5,6]]}}
+\codigo{T} resulta idéntica a \codigo{A}; los pares \codigo{(0,1)==(1,0)}, \codigo{(0,2)==(2,0)} y \codigo{(1,2)==(2,1)} coinciden $\Rightarrow$ \codigo{ES simetrica}.
+\end{pruebaescritorio}
+
+\subsection{Problema 6: Verificador de Cuadrado Mágico}
+\begin{analisis}{Validación multi-criterio con bandera (\texttt{m07\_p06})}
+\begin{itemize}
+  \item \textbf{Entradas:} \codigo{n} (\codigo{1..10}), \codigo{mat[10][10]}.
+  \item \textbf{Proceso:} Tomar la suma de la fila \codigo{0} como \codigo{sumaObjetivo}. Comprobar todas las filas, columnas y ambas diagonales.
+  \item \textbf{Salidas:} Confirmación con constante mágica o rechazo.
+\end{itemize}
+\end{analisis}
+
+\subsubsection*{PSeInt (\texttt{pseint/m07\_p06\_cuadrado\_magico.psc})}
+\lstinputlisting[style=pseintmonitoria]{pseint/m07_p06_cuadrado_magico.psc}
+
+\subsubsection*{C++ (\texttt{cpp/m07\_p06\_cuadrado\_magico.cpp})}
+\lstinputlisting[style=cppmonitoria]{cpp/m07_p06_cuadrado_magico.cpp}
+
+\begin{pruebaescritorio}{\texttt{[[8,1,6],[3,5,7],[4,9,2]]}}
+Todas las filas (\codigo{15}), todas las columnas (\codigo{15}) y ambas diagonales (\codigo{8+5+2=15}, \codigo{6+5+4=15}) coinciden $\Rightarrow$ \codigo{ES un Cuadrado Magico! Constante magica = 15}.
+\end{pruebaescritorio}
+
+\subsection{Problema 7: Búsqueda de Coordenadas e Intercambio de Filas}
+\begin{analisis}{Coordenadas de coincidencias e intercambio completo de fila (\texttt{m07\_p07})}
+\begin{itemize}
+  \item \textbf{Entradas:} \codigo{f}, \codigo{c} (\codigo{1..20}), \codigo{mat[20][20]}, \codigo{objetivo}.
+  \item \textbf{Proceso:} Imprimir cada \codigo{(i, j)} donde \codigo{mat[i][j] == objetivo}; luego hallar \codigo{filaMenor} e intercambiar elemento a elemento \codigo{mat[0][j]} con \codigo{mat[filaMenor][j]}.
+  \item \textbf{Salidas:} Coordenadas halladas y matriz modificada.
+\end{itemize}
+\end{analisis}
+
+\subsubsection*{PSeInt (\texttt{pseint/m07\_p07\_busqueda\_e\_intercambio\_filas.psc})}
+\lstinputlisting[style=pseintmonitoria]{pseint/m07_p07_busqueda_e_intercambio_filas.psc}
+
+\subsubsection*{C++ (\texttt{cpp/m07\_p07\_busqueda\_e\_intercambio\_filas.cpp})}
+\lstinputlisting[style=cppmonitoria]{cpp/m07_p07_busqueda_e_intercambio_filas.cpp}
+
+\begin{pruebaescritorio}{\texttt{[[9, 5, 7], [5, 1, 8]]}, \texttt{objetivo = 5}}
+Apariciones en \codigo{(0, 1)} y \codigo{(1, 0)}. El menor global es \codigo{1} en \codigo{(1, 1)}. Al intercambiar la fila \codigo{1} con la \codigo{0}, la matriz queda \texttt{[[5, 1, 8], [9, 5, 7]]}.
+\end{pruebaescritorio}
+
+\subsection{Problema 8: Multiplicación de Matrices Estáticas (\texttt{A x B})}
+\begin{analisis}{Validación dimensional \texttt{c1 == f2} y triple ciclo \texttt{i, j, k} (\texttt{m07\_p08})}
+\begin{itemize}
+  \item \textbf{Entradas:} \codigo{f1, c1, f2, c2} (\codigo{1..15}), \codigo{A[15][15]}, \codigo{B[15][15]}.
+  \item \textbf{Proceso:} Verificar \codigo{c1 == f2}. Para cada celda \codigo{(i, j)}, acumular \codigo{A[i][k] * B[k][j]} con \codigo{k = 0..c1-1}.
+  \item \textbf{Salidas:} Matriz resultante \codigo{R} de tamaño \codigo{f1 x c2}.
+\end{itemize}
+\end{analisis}
+
+\subsubsection*{PSeInt (\texttt{pseint/m07\_p08\_multiplicacion\_matrices.psc})}
+\lstinputlisting[style=pseintmonitoria]{pseint/m07_p08_multiplicacion_matrices.psc}
+
+\subsubsection*{C++ (\texttt{cpp/m07\_p08\_multiplicacion\_matrices.cpp})}
+\lstinputlisting[style=cppmonitoria]{cpp/m07_p08_multiplicacion_matrices.cpp}
+
+\begin{pruebaescritorio}{Multiplicación \texttt{A(2x3)} por \texttt{B(3x2)}}
+Con \codigo{A = [[1,2,3],[4,5,6]]} y \codigo{B = [[7,8],[9,10],[11,12]]}:
+\begin{itemize}
+  \item \codigo{R[0][0] = 1*7 + 2*9 + 3*11 = 58}, \codigo{R[0][1] = 1*8 + 2*10 + 3*12 = 64}
+  \item \codigo{R[1][0] = 4*7 + 5*9 + 6*11 = 139}, \codigo{R[1][1] = 4*8 + 5*10 + 6*12 = 154}
+\end{itemize}
+\end{pruebaescritorio}
+
+% ============================================================================
+\section{Catorce Ejercicios Propuestos (con Pistas)}
+% ============================================================================
+
+\begin{ejercicio}{1 al 7 (Nivel Básico e Intermedio)}
+\begin{enumerate}
+  \item \textbf{[Básico] Suma de dos matrices \texttt{A + B}:} Lee \codigo{f, c} (\codigo{MAX=20}) y genera \codigo{C[i][j] = A[i][j] + B[i][j]}. \emph{Pista: un doble \codigo{for} suma las mismas coordenadas.}
+  \item \textbf{[Básico] Conteo de pares, impares y ceros:} Clasifica todas las celdas de \codigo{F x C} (\codigo{MAX=15}). \emph{Pista: evalúa \codigo{m[i][j] == 0} antes que el módulo.}
+  \item \textbf{[Básico] Matriz identidad \texttt{N x N}:} Llena \codigo{1} cuando \codigo{i == j} y \codigo{0} en el resto. \emph{Pista: usa un condicional \codigo{i == j}.}
+  \item \textbf{[Básico] Suma del borde (marco):} Suma solo las celdas del perímetro sin duplicar esquinas. \emph{Pista: \codigo{i == 0 || i == f-1 || j == 0 || j == c-1}.}
+  \item \textbf{[Intermedio] Máximo por fila y mínimo por columna:} Guarda ambos en dos vectores \codigo{maxFila[MAX]} y \codigo{minCol[MAX]}. \emph{Pista: inicializa con el primer elemento de cada fila/columna.}
+  \item \textbf{[Intermedio] Temperaturas semanales \texttt{7x3}:} Usa \codigo{double temp[7][3]} (7 días $\times$ 3 jornadas) para hallar el día de mayor promedio y la jornada más fría. \emph{Pista: fija fila para promediar el día.}
+  \item \textbf{[Intermedio] Matriz diagonal y triangular superior:} Usa dos banderas booleanas para verificar ambas propiedades en \codigo{N x N}. \emph{Pista: revisa \codigo{i != j} y \codigo{i > j}.}
+\end{enumerate}
+\end{ejercicio}
+
+\begin{ejercicio}{8 al 14 (Nivel Intermedio, Reto y Parcial)}
+\begin{enumerate}
+  \setcounter{enumi}{7}
+  \item \textbf{[Intermedio] Ordenar cada fila:} Aplica Burbuja independiente a cada fila de una matriz \codigo{F x C}. \emph{Pista: \codigo{for i} afuera y Burbuja sobre la columna \codigo{j}.}
+  \item \textbf{[Intermedio] Sumar ambas diagonales sin repetir el centro:} Si \codigo{N} es impar, no cuentes dos veces \codigo{m[n/2][n/2]}. \emph{Pista: resta el centro si \codigo{n \% 2 != 0}.}
+  \item \textbf{[Intermedio] Rotar matriz cuadrada \texttt{90°} horario:} Copia \codigo{A} rotada en \codigo{R}. \emph{Pista: \codigo{R[j][n - 1 - i] = A[i][j]}.}
+  \item \textbf{[Reto] Punto de silla:} Halla celdas que sean mínimas en su fila y máximas en su columna. \emph{Pista: encuentra \codigo{minF} de la fila \codigo{i} y verifica su columna.}
+  \item \textbf{[Reto] Recorrido en espiral:} Imprime \codigo{F x C} en espiral horario. \emph{Pista: 4 límites \codigo{top, bottom, left, right}.}
+  \item \textbf{[Reto] Tablero de Buscaminas \texttt{5x5}:} Cuenta minas vecinas (\codigo{'*'}) alrededor de cada celda vacía (\codigo{'.'}). \emph{Pista: desplazamientos \codigo{di, dj} en \codigo{-1..1} validando bordes.}
+  \item \textbf{[Parcial] Reserva de vuelos \texttt{6x4}:} Matriz \codigo{char avion[6][4]} con Primera Clase (filas \codigo{0..1}, \$500) y Económica (filas \codigo{2..5}, \$200), reservas, cancelaciones y recaudo. \emph{Pista: suma \codigo{500} si \codigo{i <= 1}, \codigo{200} si \codigo{i >= 2}.}
+\end{enumerate}
+\end{ejercicio}
+
+% ============================================================================
+\section{Solucionario Paso a Paso de los 14 Ejercicios}
+% ============================================================================
+
+\begin{solucion}{Ejercicios 1 al 5}
+\textbf{1. Suma de dos matrices \texttt{A + B}:}
+\begin{lstlisting}[style=cppmonitoria]
+const int MAX = 20; int A[MAX][MAX], B[MAX][MAX], C[MAX][MAX], f, c;
+do { cin >> f >> c; } while (f<1||f>MAX||c<1||c>MAX);
+for (int i=0;i<f;i++) for (int j=0;j<c;j++) cin >> A[i][j];
+for (int i=0;i<f;i++) for (int j=0;j<c;j++) cin >> B[i][j];
+for (int i=0;i<f;i++) {
+    for (int j=0;j<c;j++) { C[i][j] = A[i][j] + B[i][j]; cout << C[i][j] << " "; }
+    cout << "\n";
+}
+\end{lstlisting}
+
+\textbf{2. Conteo de pares, impares y ceros:}
+\begin{lstlisting}[style=cppmonitoria]
+const int MAX = 15; int m[MAX][MAX], f, c, ceros=0, pares=0, impares=0;
+do { cin >> f >> c; } while (f<1||f>MAX||c<1||c>MAX);
+for (int i=0;i<f;i++) for (int j=0;j<c;j++) {
+    cin >> m[i][j];
+    if (m[i][j] == 0) ceros++;
+    else if (m[i][j] % 2 == 0) pares++;
+    else impares++;
+}
+cout << "Ceros: " << ceros << " | Pares: " << pares << " | Impares: " << impares << "\n";
+\end{lstlisting}
+
+\textbf{3. Matriz identidad \texttt{N x N}:}
+\begin{lstlisting}[style=cppmonitoria]
+const int MAX = 15; int id[MAX][MAX], n;
+do { cin >> n; } while (n<1||n>MAX);
+for (int i=0;i<n;i++) {
+    for (int j=0;j<n;j++) { id[i][j] = (i == j) ? 1 : 0; cout << id[i][j] << " "; }
+    cout << "\n";
+}
+\end{lstlisting}
+
+\textbf{4. Suma del borde:}
+\begin{lstlisting}[style=cppmonitoria]
+const int MAX = 20; int m[MAX][MAX], f, c, sumaBorde = 0;
+do { cin >> f >> c; } while (f<1||f>MAX||c<1||c>MAX);
+for (int i=0;i<f;i++) for (int j=0;j<c;j++) {
+    cin >> m[i][j];
+    if (i == 0 || i == f - 1 || j == 0 || j == c - 1) sumaBorde += m[i][j];
+}
+cout << "Suma borde: " << sumaBorde << "\n";
+\end{lstlisting}
+
+\textbf{5. Máximo por fila y mínimo por columna:}
+\begin{lstlisting}[style=cppmonitoria]
+const int MAX = 15; int m[MAX][MAX], maxF[MAX], minC[MAX], f, c;
+do { cin >> f >> c; } while (f<1||f>MAX||c<1||c>MAX);
+for (int i=0;i<f;i++) for (int j=0;j<c;j++) cin >> m[i][j];
+for (int i=0;i<f;i++) {
+    maxF[i] = m[i][0];
+    for (int j=1;j<c;j++) if (m[i][j] > maxF[i]) maxF[i] = m[i][j];
+    cout << "Max F" << i << ": " << maxF[i] << "\n";
+}
+for (int j=0;j<c;j++) {
+    minC[j] = m[0][j];
+    for (int i=1;i<f;i++) if (m[i][j] < minC[j]) minC[j] = m[i][j];
+    cout << "Min C" << j << ": " << minC[j] << "\n";
+}
+\end{lstlisting}
+\end{solucion}
+
+\begin{solucion}{Ejercicios 6 al 10}
+\textbf{6. Temperaturas semanales \texttt{7x3}:}
+\begin{lstlisting}[style=cppmonitoria]
+double temp[7][3];
+for (int i=0;i<7;i++) for (int j=0;j<3;j++) cin >> temp[i][j];
+double maxProm = -1e9, minT = temp[0][0]; int diaMax = 0, jorFria = 0;
+for (int i=0;i<7;i++) {
+    double p = (temp[i][0] + temp[i][1] + temp[i][2]) / 3.0;
+    if (p > maxProm) { maxProm = p; diaMax = i; }
+    for (int j=0;j<3;j++) if (temp[i][j] < minT) { minT = temp[i][j]; jorFria = j; }
+}
+cout << "Dia caluroso: " << diaMax << " | Jornada fria: " << jorFria << "\n";
+\end{lstlisting}
+
+\textbf{7. Verificar diagonal y triangular superior:}
+\begin{lstlisting}[style=cppmonitoria]
+const int MAX = 12; int m[MAX][MAX], n;
+do { cin >> n; } while (n<1||n>MAX);
+for (int i=0;i<n;i++) for (int j=0;j<n;j++) cin >> m[i][j];
+bool esDiag = true, esTriSup = true;
+for (int i=0;i<n;i++) for (int j=0;j<n;j++) {
+    if (i != j && m[i][j] != 0) esDiag = false;
+    if (i > j && m[i][j] != 0) esTriSup = false;
+}
+cout << "Diagonal: " << (esDiag?"SI":"NO") << " | TriSup: " << (esTriSup?"SI":"NO") << "\n";
+\end{lstlisting}
+
+\textbf{8. Ordenar cada fila:}
+\begin{lstlisting}[style=cppmonitoria]
+const int MAX = 20; int m[MAX][MAX], f, c;
+do { cin >> f >> c; } while (f<1||f>MAX||c<1||c>MAX);
+for (int i=0;i<f;i++) for (int j=0;j<c;j++) cin >> m[i][j];
+for (int i=0;i<f;i++)
+    for (int p=0;p<c-1;p++)
+        for (int j=0;j<c-1-p;j++)
+            if (m[i][j] > m[i][j+1]) { int aux=m[i][j]; m[i][j]=m[i][j+1]; m[i][j+1]=aux; }
+for (int i=0;i<f;i++) { for (int j=0;j<c;j++) cout << m[i][j] << " "; cout << "\n"; }
+\end{lstlisting}
+
+\textbf{9. Sumar ambas diagonales sin repetir el centro:}
+\begin{lstlisting}[style=cppmonitoria]
+const int MAX = 15; int m[MAX][MAX], n, suma = 0;
+do { cin >> n; } while (n<1||n>MAX);
+for (int i=0;i<n;i++) for (int j=0;j<n;j++) cin >> m[i][j];
+for (int i=0;i<n;i++) suma += m[i][i] + m[i][n - 1 - i];
+if (n % 2 != 0) suma -= m[n / 2][n / 2];
+cout << "Suma diagonales: " << suma << "\n";
+\end{lstlisting}
+
+\textbf{10. Rotar \texttt{90°} horario:}
+\begin{lstlisting}[style=cppmonitoria]
+const int MAX = 12; int A[MAX][MAX], R[MAX][MAX], n;
+do { cin >> n; } while (n<1||n>MAX);
+for (int i=0;i<n;i++) for (int j=0;j<n;j++) cin >> A[i][j];
+for (int i=0;i<n;i++) for (int j=0;j<n;j++) R[j][n - 1 - i] = A[i][j];
+for (int i=0;i<n;i++) { for (int j=0;j<n;j++) cout << R[i][j] << " "; cout << "\n"; }
+\end{lstlisting}
+\end{solucion}
+
+\begin{solucion}{Ejercicios 11 al 14}
+\textbf{11. Punto de silla:}
+\begin{lstlisting}[style=cppmonitoria]
+const int MAX = 15; int m[MAX][MAX], f, c;
+do { cin >> f >> c; } while (f<1||f>MAX||c<1||c>MAX);
+for (int i=0;i<f;i++) for (int j=0;j<c;j++) cin >> m[i][j];
+bool hay = false;
+for (int i=0;i<f;i++) {
+    int minF = m[i][0];
+    for (int j=1;j<c;j++) if (m[i][j] < minF) minF = m[i][j];
+    for (int j=0;j<c;j++) if (m[i][j] == minF) {
+        bool maxCol = true;
+        for (int k=0;k<f;k++) if (m[k][j] > m[i][j]) { maxCol = false; break; }
+        if (maxCol) { cout << "Silla (" << i << "," << j << ")=" << m[i][j] << "\n"; hay=true; }
+    }
+}
+if (!hay) cout << "Sin punto de silla.\n";
+\end{lstlisting}
+
+\textbf{12. Recorrido en espiral:}
+\begin{lstlisting}[style=cppmonitoria]
+const int MAX = 15; int m[MAX][MAX], f, c;
+do { cin >> f >> c; } while (f<1||f>MAX||c<1||c>MAX);
+for (int i=0;i<f;i++) for (int j=0;j<c;j++) cin >> m[i][j];
+int top=0, bottom=f-1, left=0, right=c-1;
+while (top <= bottom && left <= right) {
+    for (int j=left;j<=right;j++) cout << m[top][j] << " "; top++;
+    for (int i=top;i<=bottom;i++) cout << m[i][right] << " "; right--;
+    if (top <= bottom) { for (int j=right;j>=left;j--) cout << m[bottom][j] << " "; bottom--; }
+    if (left <= right) { for (int i=bottom;i>=top;i--) cout << m[i][left] << " "; left++; }
+}
+\end{lstlisting}
+
+\textbf{13. Tablero de Buscaminas \texttt{5x5}:}
+\begin{lstlisting}[style=cppmonitoria]
+char mapa[5][5]; int conteo[5][5] = {0};
+for (int i=0;i<5;i++) for (int j=0;j<5;j++) cin >> mapa[i][j];
+for (int i=0;i<5;i++) for (int j=0;j<5;j++) {
+    if (mapa[i][j] == '*') conteo[i][j] = -1;
+    else {
+        int minas = 0;
+        for (int di=-1;di<=1;di++) for (int dj=-1;dj<=1;dj++) {
+            int ni = i + di, nj = j + dj;
+            if (ni>=0 && ni<5 && nj>=0 && nj<5 && mapa[ni][nj] == '*') minas++;
+        }
+        conteo[i][j] = minas;
+    }
+}
+for (int i=0;i<5;i++) {
+    for (int j=0;j<5;j++) cout << (conteo[i][j]==-1 ? '*' : char('0'+conteo[i][j])) << " ";
+    cout << "\n";
+}
+\end{lstlisting}
+
+\textbf{14. Reserva de vuelos \texttt{6x4}:}
+\begin{lstlisting}[style=cppmonitoria]
+char avion[6][4];
+for (int i=0;i<6;i++) for (int j=0;j<4;j++) avion[i][j] = 'D';
+int op;
+do {
+    if (!(cin >> op)) break;
+    if (op == 1 || op == 2) {
+        int f, c; cin >> f >> c;
+        if (f>=0 && f<6 && c>=0 && c<4) {
+            if (op == 1 && avion[f][c] == 'D') avion[f][c] = 'O';
+            else if (op == 2 && avion[f][c] == 'O') avion[f][c] = 'D';
+        }
+    } else if (op == 3) {
+        int recaudo = 0;
+        for (int i=0;i<6;i++) {
+            for (int j=0;j<4;j++) { cout << avion[i][j] << " "; if (avion[i][j]=='O') recaudo += (i<=1?500:200); }
+            cout << "\n";
+        }
+        cout << "Recaudo: $" << recaudo << "\n";
+    }
+} while (op != 0);
+\end{lstlisting}
+\end{solucion}
+
+\end{document}

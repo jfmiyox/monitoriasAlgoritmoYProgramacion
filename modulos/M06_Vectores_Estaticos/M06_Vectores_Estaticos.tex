@@ -1,0 +1,633 @@
+\documentclass[11pt,letterpaper]{article}
+\usepackage{../../latex_common/estilo_monitoria}
+
+\begin{document}
+
+\portadamodulo{06}{Vectores Estáticos (Arreglos Unidimensionales)}{4.0 horas}{De casilleros fijos en memoria RAM al manejo completo con DFD, PSeInt y C++ estático}{%
+  \begin{itemize}
+    \item Comprender qué es un vector estático mediante la analogía de casilleros fijos numerados desde \codigo{0}.
+    \item Declarar e inicializar arreglos unidimensionales con capacidad máxima fija (\codigo{const int MAX}) y tamaño lógico \codigo{n} validado.
+    \item Evitar el uso no estándar de VLAs (\codigo{int v[n];}) y desbordamientos silenciosos (\codigo{vec[n]}).
+    \item Dominar los 8 patrones maestros: suma/promedio, conteo, mayor/menor con posición, búsqueda secuencial con bandera, inversión, rotación, inserción/eliminación y ordenamiento Burbuja con prueba de escritorio visual.
+    \item Resolver problemas completos aplicando Análisis EPS $\rightarrow$ PSeInt $\rightarrow$ C++ $\rightarrow$ Prueba de escritorio.
+  \end{itemize}
+}
+
+\tableofcontents
+\vspace{8pt}
+
+% ============================================================================
+\section{Explicado Para Tontos: ¿Qué es un Vector Estático?}
+% ============================================================================
+
+\begin{paratontos}{La analogía de los casilleros fijos en el pasillo}
+Imagina un \textbf{pasillo de la universidad con 100 casilleros metálicos atornillados a la pared}, numerados desde el \textbf{0 hasta el 99}:
+\begin{itemize}
+  \item El edificio construyó exactamente \textbf{100 casilleros físicos} (\codigo{MAX = 100}). No puedes derribar la pared para agregar un casillero 101 mientras corre el programa. Esa capacidad fija reservada de antemano se llama \textbf{espacio definido estático}.
+  \item Hoy llegaron apenas \textbf{5 estudiantes} (\codigo{n = 5}) a guardar sus notas. Ocupan los casilleros \codigo{0, 1, 2, 3, 4}.
+  \item Los casilleros del \codigo{5} al \codigo{99} siguen existiendo físicamente en la memoria RAM, pero están inactivos (tienen ``basura'' de memoria o ceros si los limpiaste al declarar el vector).
+  \item Todos los casilleros del mismo bloque guardan \textbf{datos del mismo tipo}: si declaras \codigo{double notas[100];}, cada casillero guarda un número real.
+\end{itemize}
+\end{paratontos}
+
+\imagenmodulo[0.96\linewidth]{mem_03_vector_estatico_1d.png}{Mapa en memoria RAM de un vector estático: capacidad física fija (\codigo{MAX}), tamaño lógico usado (\codigo{n}) y peligro de salir de rango.}
+
+% ============================================================================
+\section{Regla Crítica del Curso: ¡Solo Espacio Definido!}
+% ============================================================================
+
+En este curso trabajamos \textbf{exclusivamente con arreglos estáticos de tamaño definido} al momento de compilar. Existen dos formas válidas:
+
+\begin{enumerate}
+  \item \textbf{Tamaño fijo literal} (cuando la cantidad nunca cambia):
+\begin{lstlisting}[style=cppmonitoria]
+int notas[5];               // 5 casilleros fijos: indices 0, 1, 2, 3, 4
+double temperaturas[7];     // 7 dias de la semana: indices 0..6
+\end{lstlisting}
+  \item \textbf{Capacidad máxima fija (\codigo{const int MAX}) + tamaño lógico \codigo{n}} (el estándar en parciales):
+\begin{lstlisting}[style=cppmonitoria]
+const int MAX = 100;        // Capacidad fisica maxima fija
+int vec[MAX];               // Reserva 100 casilleros fijos en RAM
+int n;                      // Tamano logico: cuantos usaremos hoy
+
+do {
+    cout << "Cuantos datos ingresara (1 a " << MAX << "): ";
+    cin >> n;
+} while (n < 1 || n > MAX);
+\end{lstlisting}
+\end{enumerate}
+
+\begin{peligro}{¿Por qué NO hacemos \texttt{int v[n];} ni vectores dinámicos en este curso?}
+\begin{enumerate}
+  \item \textbf{No es C++ estándar:} Escribir \codigo{int v[n];} cuando \codigo{n} es una variable se llama \emph{VLA (Variable Length Array)}. \textbf{No forma parte del estándar ISO C++}: compiladores como MSVC lo rechazan y bajo banderas estrictas (\codigo{-Wvla}) genera error.
+  \item \textbf{Peligro de colapso en memoria:} Si el usuario digita \codigo{n = -5} o \codigo{n = 100000000}, intentar reservar memoria variable sin control desborda la pila (\emph{stack overflow}) y hace fallar el programa.
+  \item \textbf{Alcance pedagógico:} El uso de \codigo{std::vector}, memoria dinámica (\codigo{new}/\codigo{delete}, \codigo{malloc}) y punteros corresponde a cursos posteriores (Estructuras de Datos / POO). Aquí dominamos primero la lógica algorítmica segura con capacidad fija \codigo{MAX} y validación \codigo{1 <= n \&\& n <= MAX}.
+\end{enumerate}
+\end{peligro}
+
+% ============================================================================
+\section{Inicialización, PSeInt vs C++ y Trampas Clásicas}
+% ============================================================================
+
+\begin{lstlisting}[style=cppmonitoria]
+int a[5] = {10, 20, 30, 40, 50}; // Inicializacion completa
+int b[5] = {10, 20};             // b[0]=10, b[1]=20, b[2..4] quedan en 0
+int c[5] = {0};                  // Todos en 0 (ideal para contadores)
+int d[5] = {};                   // Todos en 0 (C++11 o superior)
+int e[]  = {4, 8, 15, 16};       // Compilador deduce tamano fijo 4 (estatico)
+\end{lstlisting}
+
+\begin{peligro}{Trampa Clásica \#1: Índices \texttt{0..n-1} en C++ vs \texttt{1..n} en PSeInt}
+\begin{itemize}
+  \item En \textbf{C++}, el primer casillero \textbf{SIEMPRE} es el índice \codigo{0} y el último usado es \codigo{n - 1}. Para \codigo{n = 5}, los índices válidos son \codigo{0, 1, 2, 3, 4}.
+  \item En \textbf{PSeInt} (configuración por defecto), los arreglos empiezan en \codigo{1} y llegan hasta \codigo{n} (\codigo{1, 2, 3, 4, 5}), salvo que actives \emph{``Utilizar índices en arreglos y cadenas en base 0''} en \emph{Configurar $\rightarrow$ Opciones del Lenguaje}.
+  \item En PSeInt estricto, \codigo{Dimension vec[100];} requiere un número literal entre corchetes; por eso escribimos el literal y guardamos \codigo{MAX <- 100;} para las validaciones.
+\end{itemize}
+\end{peligro}
+
+\begin{peligro}{Trampa Clásica \#2: Desbordamiento silencioso (\texttt{vec[n]} y \texttt{vec[-1]})}
+\begin{lstlisting}[style=cppmonitoria]
+for (int i = 0; i <= n; i++) {   // ERROR MORTAL: <= en vez de <
+    cin >> vec[i];               // Cuando i == n, escribe FUERA del arreglo!
+}
+\end{lstlisting}
+C++ \textbf{no detiene} el programa si lees o escribes en \codigo{vec[n]} o \codigo{vec[-1]}: simplemente corrompe variables vecinas en memoria RAM o produce un error fatal (\emph{Segmentation fault}). \textbf{Regla de oro:} usa \codigo{i < n} y valida todo índice \codigo{pos} con \codigo{0 <= pos \&\& pos < n}.
+\end{peligro}
+
+\begin{tablatraduccion}[Equivalencias rápidas para Vectores Estáticos]
+  Declarar capacidad 100 & Definir capacidad fija & Dimension v[100]; & const int MAX=100; int v[MAX]; \\
+  Primer elemento & Casillero inicial & v[1] (base 1 por defecto) & v[0] (siempre base 0) \\
+  Último elemento usado & Casillero \codigo{n} & v[n] & v[n - 1] \\
+  Lectura con ciclo Para & Ciclo Para + Leer & Para i <- 1 Hasta n Hacer & for (int i = 0; i < n; i++) \\
+\end{tablatraduccion}
+
+\imagenmodulo[0.96\linewidth]{dfd_05_vector_estatico_busqueda.png}{DFD completo de validación de tamaño \codigo{n}, carga de un vector estático y búsqueda secuencial con bandera.}
+
+% ============================================================================
+\section{Los 8 Patrones Maestros Obligatorios}
+% ============================================================================
+
+\begin{consejo}{Aprende estos 8 moldes de memoria}
+El 95\% de los puntos de parcial sobre arreglos 1D son combinaciones directas de los 8 patrones siguientes.
+\end{consejo}
+
+\subsection{Patrón 1: Suma y Promedio}
+\begin{lstlisting}[style=cppmonitoria]
+double suma = 0.0;
+for (int i = 0; i < n; i++) {
+    suma += vec[i];
+}
+double promedio = suma / n; // Si suma fuera int, usar static_cast<double>(suma) / n
+\end{lstlisting}
+
+\subsection{Patrón 2: Contar con Condición}
+\begin{lstlisting}[style=cppmonitoria]
+int aprobados = 0;
+for (int i = 0; i < n; i++) {
+    if (notas[i] >= 3.0) {
+        aprobados++;
+    }
+}
+\end{lstlisting}
+
+\subsection{Patrón 3: Mayor y Menor con su Posición}
+\begin{lstlisting}[style=cppmonitoria]
+int mayor = vec[0]; // NUNCA iniciar en 0! Podrian ser todos negativos
+int posMayor = 0;
+for (int i = 1; i < n; i++) {
+    if (vec[i] > mayor) {
+        mayor = vec[i];
+        posMayor = i;
+    }
+}
+\end{lstlisting}
+
+\subsection{Patrón 4: Búsqueda Secuencial con Bandera}
+\begin{lstlisting}[style=cppmonitoria]
+bool encontrado = false;
+int pos = -1;
+for (int i = 0; i < n; i++) {
+    if (vec[i] == buscado) {
+        encontrado = true;
+        pos = i;
+        break; // Termina apenas lo encuentra
+    }
+}
+// Evaluar encontrado AFUERA del for (nunca imprimir "No existe" dentro del ciclo)
+\end{lstlisting}
+
+\subsection{Patrón 5: Invertir un Arreglo \emph{In-Place}}
+Recorre solo hasta la mitad (\codigo{i < n / 2}) intercambiando extremos; si recorrieras hasta \codigo{n - 1}, ¡lo volverías a dejar igual!
+\begin{lstlisting}[style=cppmonitoria]
+for (int i = 0; i < n / 2; i++) {
+    int aux = vec[i];
+    vec[i] = vec[n - 1 - i];
+    vec[n - 1 - i] = aux;
+}
+\end{lstlisting}
+
+\subsection{Patrón 6: Rotar a la Izquierda y a la Derecha}
+\begin{lstlisting}[style=cppmonitoria]
+int pasos = k % n; // Evita vueltas completas inutiles
+// Rotar 1 paso a la izquierda (repetir 'pasos' veces):
+int primero = vec[0];
+for (int i = 0; i < n - 1; i++) vec[i] = vec[i + 1];
+vec[n - 1] = primero;
+
+// Rotar 1 paso a la derecha (repetir 'pasos' veces):
+int ultimo = vec[n - 1];
+for (int i = n - 1; i > 0; i--) vec[i] = vec[i - 1];
+vec[0] = ultimo;
+\end{lstlisting}
+
+\subsection{Patrón 7: Insertar y Eliminar en Arreglo de Capacidad \texttt{MAX}}
+\begin{lstlisting}[style=cppmonitoria]
+// Insertar 'valor' en indice 'pos' (verificando antes: n < MAX && 0 <= pos && pos <= n)
+for (int i = n; i > pos; i--) {
+    vec[i] = vec[i - 1];      // Desplaza hacia la DERECHA para abrir hueco
+}
+vec[pos] = valor;
+n++;
+
+// Eliminar elemento en 'pos' (verificando antes: n > 0 && 0 <= pos && pos < n)
+for (int i = pos; i < n - 1; i++) {
+    vec[i] = vec[i + 1];      // Desplaza hacia la IZQUIERDA para tapar hueco
+}
+n--;
+\end{lstlisting}
+
+\begin{center}
+\begin{tikzpicture}[scale=0.9, every node/.style={font=\sffamily\small}]
+  \node[font=\bfseries\sffamily\color{AzulMarino}, anchor=west] at (0,2.05) {Inserción en \texttt{pos=1} (desplazar hacia la derecha desde \texttt{n}):};
+  \foreach \x/\val in {0/10, 1/20, 2/30, 3/40, 4/?} {
+    \draw[thick, fill=AzulClaro, draw=AzulMarino] (\x*1.4,0.4) rectangle ++(1.2,0.7) node[pos=.5] {\texttt{\val}};
+    \node[below, font=\scriptsize\ttfamily, color=GrisTexto] at (\x*1.4+0.6,0.4) {[\x]};
+  }
+  \draw[-{Latex}, thick, NaranjaCalido] (4.8,1.15) to[bend left=35] (6.1,1.15);
+  \draw[-{Latex}, thick, NaranjaCalido] (3.4,1.15) to[bend left=35] (4.7,1.15);
+  \draw[-{Latex}, thick, NaranjaCalido] (2.0,1.15) to[bend left=35] (3.3,1.15);
+  \node[Turquesa, font=\bfseries\footnotesize] at (2.0,-0.25) {Entra nuevo valor en [1] y \texttt{n++}};
+\end{tikzpicture}
+\captionof{figure}{Sentido correcto del desplazamiento al insertar en un vector estático (de derecha a izquierda para no pisar datos).}
+\end{center}
+
+\subsection{Patrón 8: Ordenamiento Burbuja con Prueba de Escritorio Visual}
+\begin{lstlisting}[style=cppmonitoria]
+for (int pasada = 0; pasada < n - 1; pasada++) {
+    bool huboCambio = false;
+    for (int j = 0; j < n - 1 - pasada; j++) {
+        if (vec[j] > vec[j + 1]) {
+            int aux = vec[j];
+            vec[j] = vec[j + 1];
+            vec[j + 1] = aux;
+            huboCambio = true;
+        }
+    }
+    if (!huboCambio) break; // Optimizacion: si no hubo cambios, ya esta ordenado
+}
+\end{lstlisting}
+
+\begin{pruebaescritorio}{Ordenamiento Burbuja visual sobre \texttt{vec = [40, 10, 50, 20, 30]}}
+\begin{center}
+\small
+\renewcommand{\arraystretch}{1.25}
+\rowcolors{2}{GrisSuave}{white}
+\begin{tabularx}{\linewidth}{c X c c}
+  \rowcolor{AzulMarino}
+  \textcolor{white}{\textbf{Pasada}} & \textcolor{white}{\textbf{Comparaciones \texttt{j} (\texttt{vec[j]} vs \texttt{vec[j+1]})}} & \textcolor{white}{\textbf{Vector resultante}} & \textcolor{white}{\textbf{Fijo al final}} \\
+  Inicio & Estado inicial ingresado por el usuario & \texttt{[40, 10, 50, 20, 30]} & --- \\
+  1 & (40,10) swap, (40,50) ok, (50,20) swap, (50,30) swap & \texttt{[10, 40, 20, 30, 50]} & \texttt{50} \\
+  2 & (10,40) ok, (40,20) swap, (40,30) swap & \texttt{[10, 20, 30, 40, 50]} & \texttt{40, 50} \\
+  3 & (10,20) ok, (20,30) ok (\codigo{huboCambio = false}) & \texttt{[10, 20, 30, 40, 50]} & ¡Termina! \\
+\end{tabularx}
+\end{center}
+\end{pruebaescritorio}
+
+% ============================================================================
+\section{Ocho Problemas Resueltos Completos}
+% ============================================================================
+
+\subsection{Problema 1: Registro y Estadísticas de Notas de un Grupo}
+\begin{analisis}{Estadísticas de un grupo (\texttt{m06\_p01})}
+\begin{itemize}
+  \item \textbf{Entradas:} Cantidad \codigo{n} (\codigo{1 <= n <= 50}), arreglo estático \codigo{notas[50]} con notas en \codigo{[0.0, 5.0]}.
+  \item \textbf{Proceso:} Validar \codigo{n} y cada nota; sumar, contar aprobados (\codigo{>= 3.0}), hallar mayor y menor guardando su índice.
+  \item \textbf{Salidas:} Promedio general, mayor nota con índice, menor nota con índice y total de aprobados.
+\end{itemize}
+\end{analisis}
+
+\subsubsection*{PSeInt (\texttt{pseint/m06\_p01\_notas\_estadisticas.psc})}
+\lstinputlisting[style=pseintmonitoria]{pseint/m06_p01_notas_estadisticas.psc}
+
+\subsubsection*{C++ (\texttt{cpp/m06\_p01\_notas\_estadisticas.cpp})}
+\lstinputlisting[style=cppmonitoria]{cpp/m06_p01_notas_estadisticas.cpp}
+
+\begin{pruebaescritorio}{\texttt{n = 4}, \texttt{notas = \{2.5, 4.8, 3.0, 1.9\}}}
+\begin{center}
+\small
+\renewcommand{\arraystretch}{1.2}
+\rowcolors{2}{GrisSuave}{white}
+\begin{tabularx}{\linewidth}{c c c c X X}
+  \rowcolor{AzulMarino}
+  \textcolor{white}{\textbf{\texttt{i}}} & \textcolor{white}{\textbf{\texttt{notas[i]}}} & \textcolor{white}{\textbf{\texttt{suma}}} & \textcolor{white}{\textbf{\texttt{aprob}}} & \textcolor{white}{\textbf{\texttt{mayor (pos)}}} & \textcolor{white}{\textbf{\texttt{menor (pos)}}} \\
+  Init & --- & 0.0 & 0 & 2.5 (0) & 2.5 (0) \\
+  0 & 2.5 & 2.5 & 0 & 2.5 (0) & 2.5 (0) \\
+  1 & 4.8 & 7.3 & 1 & 4.8 (1) & 2.5 (0) \\
+  2 & 3.0 & 10.3 & 2 & 4.8 (1) & 2.5 (0) \\
+  3 & 1.9 & 12.2 & 2 & 4.8 (1) & 1.9 (3) \\
+\end{tabularx}
+\end{center}
+\textbf{Salida:} Promedio \codigo{3.05}, Mayor \codigo{4.80 (indice 1)}, Menor \codigo{1.90 (indice 3)}, Aprobados \codigo{2 de 4}.
+\end{pruebaescritorio}
+
+\subsection{Problema 2: Inventario de Papelería (Vectores Paralelos y Búsqueda)}
+\begin{analisis}{Vectores paralelos \texttt{codigos} y \texttt{precios} (\texttt{m06\_p02})}
+\begin{itemize}
+  \item \textbf{Entradas:} \codigo{n} (\codigo{1..40}), \codigo{codigos[40]}, \codigo{precios[40]} y \codigo{codigoBuscado}.
+  \item \textbf{Proceso:} Búsqueda secuencial con bandera booleana \codigo{encontrado} y salida temprana \codigo{break}.
+  \item \textbf{Salidas:} Índice y precio si se encuentra; mensaje de inexistencia si \codigo{!encontrado}.
+\end{itemize}
+\end{analisis}
+
+\subsubsection*{PSeInt (\texttt{pseint/m06\_p02\_busqueda\_inventario.psc})}
+\lstinputlisting[style=pseintmonitoria]{pseint/m06_p02_busqueda_inventario.psc}
+
+\subsubsection*{C++ (\texttt{cpp/m06\_p02\_busqueda\_inventario.cpp})}
+\lstinputlisting[style=cppmonitoria]{cpp/m06_p02_busqueda_inventario.cpp}
+
+\begin{pruebaescritorio}{\texttt{codigos=\{101, 102, 103\}}, \texttt{precios=\{2500, 4200, 1800\}}, \texttt{buscado=102}}
+En \codigo{i=0}: \codigo{101 != 102} sigue; en \codigo{i=1}: \codigo{102 == 102} activa \codigo{encontrado=true}, \codigo{pos=1} y ejecuta \codigo{break}. Imprime índice \codigo{1} y precio \codigo{\$4200.00}.
+\end{pruebaescritorio}
+
+\subsection{Problema 3: Verificar Capicúa e Invertir Arreglo \emph{In-Place}}
+\begin{analisis}{Comparación simétrica e inversión sin vector extra (\texttt{m06\_p03})}
+\begin{itemize}
+  \item \textbf{Entradas:} \codigo{n} (\codigo{1..50}) y \codigo{vec[50]}.
+  \item \textbf{Proceso:} Verificar \codigo{vec[i] == vec[n - 1 - i]} hasta \codigo{n / 2}; luego intercambiar cada pareja usando \codigo{aux}.
+  \item \textbf{Salidas:} Diagnóstico de capicúa y arreglo invertido.
+\end{itemize}
+\end{analisis}
+
+\subsubsection*{PSeInt (\texttt{pseint/m06\_p03\_invertir\_capicua.psc})}
+\lstinputlisting[style=pseintmonitoria]{pseint/m06_p03_invertir_capicua.psc}
+
+\subsubsection*{C++ (\texttt{cpp/m06\_p03\_invertir\_capicua.cpp})}
+\lstinputlisting[style=cppmonitoria]{cpp/m06_p03_invertir_capicua.cpp}
+
+\begin{pruebaescritorio}{\texttt{n=5}, \texttt{vec=\{10, 20, 30, 20, 10\}}}
+\codigo{n/2 = 2}. Para \codigo{i=0}: \codigo{vec[0]==vec[4]} (10=10); \codigo{i=1}: \codigo{vec[1]==vec[3]} (20=20) $\Rightarrow$ \codigo{esCapicua=true}. Al invertir sobre sí mismo conserva \codigo{[10, 20, 30, 20, 10]}.
+\end{pruebaescritorio}
+
+\subsection{Problema 4: Rotación Circular de Turnos (\texttt{k} Posiciones)}
+\begin{analisis}{Rotar izquierda o derecha optimizando \texttt{k \% n} (\texttt{m06\_p04})}
+\begin{itemize}
+  \item \textbf{Entradas:} \codigo{n} (\codigo{1..30}), \codigo{turnos[30]}, \codigo{direccion} (1 o 2), \codigo{k >= 0}.
+  \item \textbf{Proceso:} Calcular \codigo{pasos = k \% n}. Desplazar un paso a la vez guardando el extremo en \codigo{primero} o \codigo{ultimo}.
+  \item \textbf{Salidas:} Arreglo antes y después de la rotación.
+\end{itemize}
+\end{analisis}
+
+\subsubsection*{PSeInt (\texttt{pseint/m06\_p04\_rotar\_turnos.psc})}
+\lstinputlisting[style=pseintmonitoria]{pseint/m06_p04_rotar_turnos.psc}
+
+\subsubsection*{C++ (\texttt{cpp/m06\_p04\_rotar\_turnos.cpp})}
+\lstinputlisting[style=cppmonitoria]{cpp/m06_p04_rotar_turnos.cpp}
+
+\begin{pruebaescritorio}{\texttt{turnos=\{1, 2, 3, 4, 5\}}, derecha, \texttt{k=7}}
+\codigo{pasos = 7 \% 5 = 2}. Paso 1 $\rightarrow$ \texttt{[5, 1, 2, 3, 4]}; Paso 2 $\rightarrow$ \texttt{[4, 5, 1, 2, 3]}.
+\end{pruebaescritorio}
+
+\subsection{Problema 5: Gestor de Lista Estática (Insertar y Eliminar con \texttt{MAX=10})}
+\begin{analisis}{Capacidad fija \texttt{MAX=10} y tamaño lógico \texttt{n} (\texttt{m06\_p05})}
+\begin{itemize}
+  \item \textbf{Entradas:} \codigo{n} inicial (\codigo{0..10}), elementos, \codigo{opcion}, \codigo{pos} y \codigo{valor}.
+  \item \textbf{Proceso:} Validar \codigo{n < MAX} al insertar (desplazar derecha) y \codigo{n > 0} al eliminar (desplazar izquierda).
+  \item \textbf{Salidas:} Estado actualizado del vector y cupo usado.
+\end{itemize}
+\end{analisis}
+
+\subsubsection*{PSeInt (\texttt{pseint/m06\_p05\_insertar\_eliminar.psc})}
+\lstinputlisting[style=pseintmonitoria]{pseint/m06_p05_insertar_eliminar.psc}
+
+\subsubsection*{C++ (\texttt{cpp/m06\_p05\_insertar\_eliminar.cpp})}
+\lstinputlisting[style=cppmonitoria]{cpp/m06_p05_insertar_eliminar.cpp}
+
+\begin{pruebaescritorio}{\texttt{lista=[10, 20, 30]}, insertar 99 en \texttt{pos=1}, luego eliminar \texttt{pos=2}}
+Insertar 99 en 1: corre 30 a [3], 20 a [2], pone 99 en [1], \codigo{n=4} $\rightarrow$ \texttt{[10, 99, 20, 30]}. Eliminar pos 2: corre 30 a [2], \codigo{n=3} $\rightarrow$ \texttt{[10, 99, 30]}.
+\end{pruebaescritorio}
+
+\subsection{Problema 6: Ordenamiento Burbuja Paso a Paso}
+\begin{analisis}{Burbuja optimizado con trazado de pasadas (\texttt{m06\_p06})}
+\begin{itemize}
+  \item \textbf{Entradas:} \codigo{n} (\codigo{1..30}) y \codigo{puntajes[30]}.
+  \item \textbf{Proceso:} Comparar parejas adyacentes con bandera \codigo{huboCambio} e imprimir cada pasada.
+  \item \textbf{Salidas:} Evolución por pasada y vector ordenado final.
+\end{itemize}
+\end{analisis}
+
+\subsubsection*{PSeInt (\texttt{pseint/m06\_p06\_burbuja\_paso\_a\_paso.psc})}
+\lstinputlisting[style=pseintmonitoria]{pseint/m06_p06_burbuja_paso_a_paso.psc}
+
+\subsubsection*{C++ (\texttt{cpp/m06\_p06\_burbuja\_paso\_a\_paso.cpp})}
+\lstinputlisting[style=cppmonitoria]{cpp/m06_p06_burbuja_paso_a_paso.cpp}
+
+\begin{pruebaescritorio}{Ver tabla visual en la Sección 4.8}
+La tabla del Patrón 8 muestra la ejecución exacta de este programa sobre \texttt{[40, 10, 50, 20, 30]}.
+\end{pruebaescritorio}
+
+\subsection{Problema 7: Eliminar Duplicados y Contar Frecuencias}
+\begin{analisis}{Construcción de vectores \texttt{unicos} y \texttt{conteo} (\texttt{m06\_p07})}
+\begin{itemize}
+  \item \textbf{Entradas:} \codigo{n} (\codigo{1..50}) y \codigo{datos[50]}.
+  \item \textbf{Proceso:} Para cada elemento, buscar si ya está en \codigo{unicos[0..m-1]}; si está, sumar en \codigo{conteo}; si no, agregar al final e incrementar \codigo{m}.
+  \item \textbf{Salidas:} Tabla de valores únicos con su frecuencia.
+\end{itemize}
+\end{analisis}
+
+\subsubsection*{PSeInt (\texttt{pseint/m06\_p07\_filtrar\_sin\_duplicados.psc})}
+\lstinputlisting[style=pseintmonitoria]{pseint/m06_p07_filtrar_sin_duplicados.psc}
+
+\subsubsection*{C++ (\texttt{cpp/m06\_p07\_filtrar\_sin\_duplicados.cpp})}
+\lstinputlisting[style=cppmonitoria]{cpp/m06_p07_filtrar_sin_duplicados.cpp}
+
+\begin{pruebaescritorio}{\texttt{datos = \{7, 3, 7, 9, 3, 7\}}}
+Al finalizar: \codigo{m = 3}, \codigo{unicos = [7, 3, 9]} y \codigo{conteo = [3, 2, 1]}.
+\end{pruebaescritorio}
+
+\subsection{Problema 8: Fusión (\emph{Merge}) de Dos Vectores Estáticos Ordenados}
+\begin{analisis}{Mezcla lineal de dos arreglos ordenados (\texttt{m06\_p08})}
+\begin{itemize}
+  \item \textbf{Entradas:} \codigo{nA}, \codigo{A[30]}, \codigo{nB}, \codigo{B[30]} (previamente ordenados ascendentemente).
+  \item \textbf{Proceso:} Tres índices \codigo{i, j, k}. Copiar el menor entre \codigo{A[i]} y \codigo{B[j]} a \codigo{C[k]} y luego vaciar los sobrantes del arreglo que no terminó.
+  \item \textbf{Salidas:} Vector \codigo{C[60]} con \codigo{nA + nB} elementos ordenados.
+\end{itemize}
+\end{analisis}
+
+\subsubsection*{PSeInt (\texttt{pseint/m06\_p08\_mezcla\_dos\_arreglos.psc})}
+\lstinputlisting[style=pseintmonitoria]{pseint/m06_p08_mezcla_dos_arreglos.psc}
+
+\subsubsection*{C++ (\texttt{cpp/m06\_p08\_mezcla\_dos\_arreglos.cpp})}
+\lstinputlisting[style=cppmonitoria]{cpp/m06_p08_mezcla_dos_arreglos.cpp}
+
+\begin{pruebaescritorio}{\texttt{A=\{2, 5, 9\}}, \texttt{B=\{1, 3, 5, 12\}}}
+Secuencia en \codigo{C}: \codigo{1} (de B), \codigo{2} (de A), \codigo{3} (de B), \codigo{5} (de A), \codigo{5} (de B), \codigo{9} (de A, termina A), \codigo{12} (sobrante de B). Resultado: \texttt{[1, 2, 3, 5, 5, 9, 12]}.
+\end{pruebaescritorio}
+
+% ============================================================================
+\section{Catorce Ejercicios Propuestos (con Pistas)}
+% ============================================================================
+
+\begin{ejercicio}{1 al 7 (Nivel Básico e Intermedio)}
+\begin{enumerate}
+  \item \textbf{[Básico] Suma de pares e impares:} Lee \codigo{n} enteros (\codigo{MAX=50}) y calcula aparte la suma de valores pares y la de impares. \emph{Pista: evalúa \codigo{v[i] \% 2 == 0}, no el índice \codigo{i}.}
+  \item \textbf{[Básico] Desviación respecto al promedio:} Lee \codigo{n} estaturas (\codigo{MAX=40}), calcula el promedio y cuenta cuántas están por encima y por debajo. \emph{Pista: usa dos \codigo{for} secuenciales.}
+  \item \textbf{[Básico] Producto escalar:} Lee \codigo{n} (\codigo{MAX=25}) y dos vectores \codigo{A} y \codigo{B}; calcula $\sum_{i=0}^{n-1} A[i]\cdot B[i]$. \emph{Pista: acumula en un solo \codigo{for}.}
+  \item \textbf{[Básico] Segundo mayor (sin ordenar):} Dado \codigo{v[50]} (\codigo{2 <= n <= 50}), halla el mayor y el segundo mayor distinto. \emph{Pista: halla \codigo{mayor} primero y luego el máximo entre elementos \codigo{< mayor} con bandera.}
+  \item \textbf{[Intermedio] Separar positivos, negativos y ceros:} Clasifica \codigo{v[60]} en dos vectores estáticos \codigo{pos} y \codigo{neg} y cuenta los ceros. \emph{Pista: lleva \codigo{nPos} y \codigo{nNeg} independientes.}
+  \item \textbf{[Intermedio] Suma de vectores invertidos:} Genera \codigo{C[i] = A[i] + B[n - 1 - i]} (\codigo{MAX=30}). \emph{Pista: índice espejo \codigo{n - 1 - i}.}
+  \item \textbf{[Intermedio] Eliminar todas las ocurrencias de \texttt{x}:} Borra todo elemento igual a \codigo{x} preservando el orden. \emph{Pista: usa un índice de escritura compacto \codigo{j = 0}.}
+\end{enumerate}
+\end{ejercicio}
+
+\begin{ejercicio}{8 al 14 (Nivel Intermedio, Reto y Parcial)}
+\begin{enumerate}
+  \setcounter{enumi}{7}
+  \item \textbf{[Intermedio] Insertar manteniendo el orden:} En un vector ordenado (\codigo{n < 50}), inserta \codigo{x} en su posición correcta. \emph{Pista: desplaza a la derecha desde \codigo{n - 1} mientras \codigo{v[i] > x}.}
+  \item \textbf{[Intermedio] Búsqueda binaria:} En vector ordenado (\codigo{MAX=100}), busca \codigo{x} partiendo el intervalo (\codigo{izq}, \codigo{der}, \codigo{medio}). \emph{Pista: ajusta \codigo{izq = medio + 1} o \codigo{der = medio - 1}.}
+  \item \textbf{[Intermedio] Ordenamiento por Selección:} Ordena \codigo{n} reales (\codigo{MAX=40}) buscando el índice del mínimo en cada paso. \emph{Pista: un único intercambio al final del ciclo interno.}
+  \item \textbf{[Reto] Histograma de calificaciones (0 a 5):} Usa \codigo{freq[6] = \{0\}} para contar notas enteras de \codigo{0} a \codigo{5} y dibuja barras con asteriscos. \emph{Pista: \codigo{freq[nota]++}.}
+  \item \textbf{[Reto] Subarreglo consecutivo creciente más largo:} Halla longitud e índice inicial de la mayor racha donde \codigo{v[i] > v[i-1]}. \emph{Pista: reinicia \codigo{racha = 1} al romperse.}
+  \item \textbf{[Reto] Unión e intersección de conjuntos:} Dados dos vectores sin repetidos internos, construye \codigo{I[30]} y \codigo{U[60]}. \emph{Pista: busca cada \codigo{B[j]} dentro de \codigo{A}.}
+  \item \textbf{[Parcial] Polinomio evaluado y derivado:} Almacena coeficientes en \codigo{coef[21]} (grado \codigo{g <= 20}), evalúa $P(x_0)$ y calcula los coeficientes de $P'(x)$. \emph{Pista: \codigo{deriv[i - 1] = i * coef[i]}.}
+\end{enumerate}
+\end{ejercicio}
+
+% ============================================================================
+\section{Solucionario Paso a Paso de los 14 Ejercicios}
+% ============================================================================
+
+\begin{solucion}{Ejercicios 1 al 5}
+\textbf{1. Suma de pares e impares:}
+\begin{lstlisting}[style=cppmonitoria]
+const int MAX = 50; int v[MAX], n, sPar = 0, sImp = 0;
+do { cin >> n; } while (n < 1 || n > MAX);
+for (int i = 0; i < n; i++) {
+    cin >> v[i];
+    if (v[i] % 2 == 0) sPar += v[i]; else sImp += v[i];
+}
+cout << "Pares: " << sPar << " | Impares: " << sImp << "\n";
+\end{lstlisting}
+\emph{Prueba:} \texttt{\{4, 7, -2, 3\}} $\Rightarrow$ Pares: \codigo{2}, Impares: \codigo{10}.
+
+\textbf{2. Desviación respecto al promedio:}
+\begin{lstlisting}[style=cppmonitoria]
+const int MAX = 40; double est[MAX], suma = 0.0; int n, arriba = 0, abajo = 0;
+do { cin >> n; } while (n < 1 || n > MAX);
+for (int i = 0; i < n; i++) { cin >> est[i]; suma += est[i]; }
+double prom = suma / n;
+for (int i = 0; i < n; i++) {
+    if (est[i] > prom) arriba++; else if (est[i] < prom) abajo++;
+}
+cout << "Prom: " << prom << " | Encima: " << arriba << " | Debajo: " << abajo << "\n";
+\end{lstlisting}
+
+\textbf{3. Producto escalar:}
+\begin{lstlisting}[style=cppmonitoria]
+const int MAX = 25; double A[MAX], B[MAX], prod = 0.0; int n;
+do { cin >> n; } while (n < 1 || n > MAX);
+for (int i = 0; i < n; i++) cin >> A[i];
+for (int i = 0; i < n; i++) { cin >> B[i]; prod += A[i] * B[i]; }
+cout << "Producto escalar: " << prod << "\n";
+\end{lstlisting}
+
+\textbf{4. Segundo mayor:}
+\begin{lstlisting}[style=cppmonitoria]
+const int MAX = 50; int v[MAX], n;
+do { cin >> n; } while (n < 2 || n > MAX);
+for (int i = 0; i < n; i++) cin >> v[i];
+int mayor = v[0];
+for (int i = 1; i < n; i++) if (v[i] > mayor) mayor = v[i];
+bool haySeg = false; int seg = 0;
+for (int i = 0; i < n; i++) {
+    if (v[i] < mayor && (!haySeg || v[i] > seg)) { seg = v[i]; haySeg = true; }
+}
+if (haySeg) cout << "Mayor: " << mayor << " | Segundo: " << seg << "\n";
+else cout << "Todos iguales a " << mayor << "\n";
+\end{lstlisting}
+
+\textbf{5. Separar positivos, negativos y ceros:}
+\begin{lstlisting}[style=cppmonitoria]
+const int MAX = 60; int v[MAX], pos[MAX], neg[MAX], n, nPos = 0, nNeg = 0, ceros = 0;
+do { cin >> n; } while (n < 1 || n > MAX);
+for (int i = 0; i < n; i++) {
+    cin >> v[i];
+    if (v[i] > 0) pos[nPos++] = v[i];
+    else if (v[i] < 0) neg[nNeg++] = v[i];
+    else ceros++;
+}
+for (int i = 0; i < nPos; i++) cout << pos[i] << " ";
+cout << "\n";
+for (int i = 0; i < nNeg; i++) cout << neg[i] << " ";
+cout << "\nCeros: " << ceros << "\n";
+\end{lstlisting}
+\end{solucion}
+
+\begin{solucion}{Ejercicios 6 al 10}
+\textbf{6. Suma de vectores invertidos:}
+\begin{lstlisting}[style=cppmonitoria]
+const int MAX = 30; int A[MAX], B[MAX], C[MAX], n;
+do { cin >> n; } while (n < 1 || n > MAX);
+for (int i = 0; i < n; i++) cin >> A[i];
+for (int i = 0; i < n; i++) cin >> B[i];
+for (int i = 0; i < n; i++) { C[i] = A[i] + B[n - 1 - i]; cout << C[i] << " "; }
+\end{lstlisting}
+
+\textbf{7. Eliminar todas las ocurrencias de \texttt{x}:}
+\begin{lstlisting}[style=cppmonitoria]
+const int MAX = 50; int v[MAX], n, x, j = 0;
+do { cin >> n; } while (n < 1 || n > MAX);
+for (int i = 0; i < n; i++) cin >> v[i];
+cin >> x;
+for (int i = 0; i < n; i++) if (v[i] != x) v[j++] = v[i];
+n = j;
+for (int i = 0; i < n; i++) cout << v[i] << " ";
+\end{lstlisting}
+
+\textbf{8. Insertar manteniendo el orden:}
+\begin{lstlisting}[style=cppmonitoria]
+const int MAX = 50; int v[MAX], n, x;
+do { cin >> n; } while (n < 0 || n >= MAX);
+for (int i = 0; i < n; i++) cin >> v[i];
+cin >> x;
+int i = n - 1;
+while (i >= 0 && v[i] > x) { v[i + 1] = v[i]; i--; }
+v[i + 1] = x; n++;
+for (int k = 0; k < n; k++) cout << v[k] << " ";
+\end{lstlisting}
+
+\textbf{9. Búsqueda binaria:}
+\begin{lstlisting}[style=cppmonitoria]
+const int MAX = 100; int v[MAX], n, x;
+do { cin >> n; } while (n < 1 || n > MAX);
+for (int i = 0; i < n; i++) cin >> v[i];
+cin >> x;
+int izq = 0, der = n - 1, pos = -1;
+while (izq <= der) {
+    int medio = izq + (der - izq) / 2;
+    if (v[medio] == x) { pos = medio; break; }
+    else if (v[medio] < x) izq = medio + 1; else der = medio - 1;
+}
+cout << (pos != -1 ? "Encontrado en " : "No existe: ") << pos << "\n";
+\end{lstlisting}
+
+\textbf{10. Ordenamiento por Selección:}
+\begin{lstlisting}[style=cppmonitoria]
+const int MAX = 40; double v[MAX]; int n;
+do { cin >> n; } while (n < 1 || n > MAX);
+for (int i = 0; i < n; i++) cin >> v[i];
+for (int i = 0; i < n - 1; i++) {
+    int idxMin = i;
+    for (int j = i + 1; j < n; j++) if (v[j] < v[idxMin]) idxMin = j;
+    if (idxMin != i) { double aux = v[i]; v[i] = v[idxMin]; v[idxMin] = aux; }
+}
+for (int i = 0; i < n; i++) cout << v[i] << " ";
+\end{lstlisting}
+\end{solucion}
+
+\begin{solucion}{Ejercicios 11 al 14}
+\textbf{11. Histograma de calificaciones (0 a 5):}
+\begin{lstlisting}[style=cppmonitoria]
+const int MAX = 100; int notas[MAX], freq[6] = {0}, n;
+do { cin >> n; } while (n < 1 || n > MAX);
+for (int i = 0; i < n; i++) { do { cin >> notas[i]; } while (notas[i]<0||notas[i]>5); freq[notas[i]]++; }
+for (int k = 0; k <= 5; k++) {
+    cout << k << " (" << freq[k] << "): ";
+    for (int c = 0; c < freq[k]; c++) cout << "*";
+    cout << "\n";
+}
+\end{lstlisting}
+
+\textbf{12. Racha creciente más larga:}
+\begin{lstlisting}[style=cppmonitoria]
+const int MAX = 50; int v[MAX], n;
+do { cin >> n; } while (n < 1 || n > MAX);
+for (int i = 0; i < n; i++) cin >> v[i];
+int racha = 1, mejor = 1, ini = 0, mejorIni = 0;
+for (int i = 1; i < n; i++) {
+    if (v[i] > v[i - 1]) {
+        racha++;
+        if (racha > mejor) { mejor = racha; mejorIni = ini; }
+    } else { racha = 1; ini = i; }
+}
+cout << "Racha maxima: " << mejor << " desde indice " << mejorIni << "\n";
+\end{lstlisting}
+
+\textbf{13. Unión e intersección de conjuntos:}
+\begin{lstlisting}[style=cppmonitoria]
+const int MAX = 30; int A[MAX], B[MAX], I[MAX], U[2 * MAX], nA, nB, nI = 0, nU = 0;
+do { cin >> nA; } while (nA < 1 || nA > MAX);
+for (int i = 0; i < nA; i++) { cin >> A[i]; U[nU++] = A[i]; }
+do { cin >> nB; } while (nB < 1 || nB > MAX);
+for (int j = 0; j < nB; j++) cin >> B[j];
+for (int j = 0; j < nB; j++) {
+    bool esta = false;
+    for (int i = 0; i < nA; i++) if (B[j] == A[i]) { esta = true; break; }
+    if (esta) I[nI++] = B[j]; else U[nU++] = B[j];
+}
+cout << "Interseccion: " << nI << " | Union: " << nU << "\n";
+\end{lstlisting}
+
+\textbf{14. Evaluación y derivada de un polinomio:}
+\begin{lstlisting}[style=cppmonitoria]
+const int MAX_C = 21; double coef[MAX_C], deriv[MAX_C] = {0.0}, x0, eval = 0.0, pot = 1.0; int g;
+do { cin >> g; } while (g < 0 || g > 20);
+for (int i = 0; i <= g; i++) cin >> coef[i];
+cin >> x0;
+for (int i = 0; i <= g; i++) { eval += coef[i] * pot; pot *= x0; }
+cout << "P(" << x0 << ") = " << eval << "\nDerivada: ";
+if (g == 0) cout << "0\n";
+else for (int i = 1; i <= g; i++) { deriv[i-1] = i*coef[i]; cout << deriv[i-1] << "x^" << (i-1) << " "; }
+\end{lstlisting}
+\end{solucion}
+
+\end{document}

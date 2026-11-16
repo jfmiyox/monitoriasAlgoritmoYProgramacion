@@ -1,0 +1,316 @@
+\documentclass[11pt,letterpaper]{article}
+\usepackage{../../latex_common/estilo_monitoria}
+
+\begin{document}
+
+\portadamodulo{01}{Lógica y Diagramas de Flujo de Datos (DFD)}{3.0 horas}{%
+  Símbolos oficiales, las 7 Reglas de Oro, flujo secuencial, decisión simple (Sí/No) y prueba de escritorio%
+}{%
+  \begin{enumerate}
+    \item Reconocer e interpretar todos los \textbf{símbolos oficiales de un DFD} sin confundir entrada, proceso, decisión y salida.
+    \item Aplicar las \textbf{7 Reglas de Oro} para dibujar diagramas limpios, sin flechas sueltas ni callejones sin salida.
+    \item Convertir cualquier análisis \textbf{E-P-S} en un DFD \textbf{secuencial} o de \textbf{decisión simple (Sí/No)}.
+    \item Realizar una \textbf{prueba de escritorio} recorriendo cada flecha del DFD y llenando la tabla de variables.
+  \end{enumerate}
+}
+
+\tableofcontents
+\vspace{8pt}
+
+\section{Mapa Conceptual del Módulo}
+
+\begin{center}
+\begin{tikzpicture}[
+  caja/.style={rectangle, rounded corners=4pt, draw=AzulMarino, fill=AzulClaro, thick,
+               align=center, font=\sffamily\small, inner sep=6pt},
+  flecha/.style={-{Stealth[length=2.4mm]}, thick, color=Turquesa}
+]
+  \node[caja, fill=AzulMarino, text=white, text width=7.5cm] (eps) at (0, 0) {\textbf{ANÁLISIS E-P-S (Módulo 00)}};
+  \node[caja, fill=TurquesaClaro, draw=Turquesa, text width=11.5cm] (sim) at (0, -1.45) {\textbf{SÍMBOLOS OFICIALES DFD}: Óvalo (Inicio/Fin) $\bullet$ Paralelogramo (Leer/Mostrar) $\bullet$ Rectángulo (Proceso) $\bullet$ Rombo (Decisión)};
+  \node[caja, text width=5.6cm] (sec) at (-3.6, -3.1) {\textbf{Flujo Secuencial}\\Paso 1 $\rightarrow$ Paso 2 $\rightarrow$ Paso 3};
+  \node[caja, fill=NaranjaClaro, draw=NaranjaCalido, text width=5.8cm] (dec) at (3.6, -3.1) {\textbf{Decisión Simple (Sí / No)}\\Rama V y Rama F que \textbf{se vuelven a unir}};
+  \node[caja, fill=VerdeClaro, draw=VerdeExito, text width=11.5cm] (pe) at (0, -4.65) {\textbf{7 REGLAS DE ORO + PRUEBA DE ESCRITORIO} (Validación antes de pasar a PSeInt/C++)};
+
+  \draw[flecha] (eps) -- (sim);
+  \draw[flecha] (sim.south -| sec.north) -- (sec.north);
+  \draw[flecha] (sim.south -| dec.north) -- (dec.north);
+  \draw[flecha] (sec.south) -- (pe.north -| sec.south);
+  \draw[flecha] (dec.south) -- (pe.north -| dec.south);
+\end{tikzpicture}
+\end{center}
+
+\section{Explicado ``Para Tontos'': ¿Qué es un DFD?}
+
+\begin{paratontos}{El plano de la casa antes de pegar ladrillos}
+Imagina que vas a construir una casa. ¿Te lanzas de una vez a pegar ladrillos sin plano? ¡Jamás! Si lo haces sin plano, la puerta del baño termina dando a la calle.
+
+Un \textbf{DFD (Diagrama de Flujo de Datos / Flujograma)} es exactamente \textbf{el plano arquitectónico de tu programa}. En lugar de pelear con líneas de código en inglés, dibujas \textbf{cajitas con formas distintas} conectadas por \textbf{flechas} que muestran el camino que siguen los datos desde que \textbf{entran} hasta que \textbf{salen}.
+\begin{itemize}
+  \item \textbf{Ves la lógica de un vistazo:} Si olvidaste calcular algo o dejaste una rama abierta, el dibujo te lo muestra en 5 segundos.
+  \item \textbf{Cero peleas con puntos y comas:} Te enfocas 100\% en pensar el orden correcto.
+\end{itemize}
+\end{paratontos}
+
+\section{Todos los Símbolos Oficiales de un DFD}
+
+\imagenmodulo[0.95\linewidth]{dfd_00_simbolos_oficiales.png}{Guía visual completa de símbolos oficiales DFD y su traducción directa a PSeInt y C++.}
+
+Cada figura geométrica tiene una misión exclusiva. No metas una lectura dentro de un rectángulo ni una operación aritmética dentro de un rombo:
+
+\begin{center}
+\footnotesize
+\renewcommand{\arraystretch}{1.35}
+\rowcolors{2}{GrisSuave}{white}
+\begin{tabularx}{\linewidth}{>{\leavevmode\bfseries\sffamily\color{AzulMarino}\raggedright\arraybackslash}p{2.9cm} >{\leavevmode\raggedright\arraybackslash}p{2.8cm} >{\leavevmode\raggedright\arraybackslash}p{3.6cm} >{\leavevmode\ttfamily\scriptsize\raggedright\arraybackslash}X}
+  \rowcolor{AzulMarino}
+  \textcolor{white}{\textbf{Forma}} &
+  \textcolor{white}{\textbf{Nombre técnico}} &
+  \textcolor{white}{\textbf{Qué va adentro}} &
+  \textcolor{white}{\textbf{\sffamily Puente PSeInt / C++}} \\
+  Óvalo / Cápsula & Terminal (Inicio/Fin) & Solo \texttt{INICIO} o \texttt{FIN}. & Algoritmo / int main() \\
+  Paralelogramo (azul) o trapecio & Entrada / Lectura & \texttt{Leer: n1, n2} (solo nombres de variables). & Leer x; / cin >> x; \\
+  Rectángulo & Proceso / Asignación & Cálculos con flecha izquierda: \texttt{s <- a + b}. & s <- a+b; / s = a+b; \\
+  Rombo & Decisión (Sí / No) & Una pregunta booleana: \texttt{¿nota >= 3.0?}. & Si ... Entonces / if (...) \\
+  Paralelogramo (verde) o cono & Salida / Pantalla & Mensajes y variables: \texttt{Mostrar: "Total:", t}. & Escribir t; / cout << t; \\
+  Flecha ($\rightarrow$) & Línea de flujo & Indica el orden estricto paso a paso. & Orden vertical \\
+  Círculo pequeño & Conector & Une ramas de \texttt{Sí} y \texttt{No} antes de seguir. & FinSi / \} \\
+  Hexágono / Bucle \textit{(avance M05)} & Ciclo Mientras / Para & Repeticiones controladas (se dominan en el \textbf{M05}). & Mientras / Para / while / for \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{consejo}{¿Entrada y salida usan la misma figura?}
+En la norma ISO/ANSI, tanto \textbf{Leer} como \textbf{Mostrar} pueden usar el paralelogramo, diferenciándose por la palabra clave (\codigo{Leer:} frente a \codigo{Mostrar:}) y por el color (azul para entrada, verde para salida). En software escolar como \textit{FreeDFD} verás un trapecio para Leer y un cono curvo para Imprimir. Lo importante en un examen es escribir siempre \codigo{Leer:} o \codigo{Mostrar:} con total claridad.
+\end{consejo}
+
+\section{Las 7 Reglas de Oro de un DFD Impecable}
+
+\begin{enumerate}
+  \item \textbf{Un solo \codigo{INICIO} arriba y un \codigo{FIN} claro abajo.}
+  \item \textbf{Flujo de arriba hacia abajo y de izquierda a derecha:} Cero flechas sueltas o callejones sin salida.
+  \item \textbf{Una entrada y una salida en lecturas, procesos y salidas:} Un rectángulo jamás se divide en dos flechas; para dividir caminos existe el \textbf{rombo}.
+  \item \textbf{Todo rombo contiene una pregunta y tiene DOS salidas etiquetadas (\codigo{Sí} / \codigo{No}):} Nunca pongas una orden como \texttt{x <- 5} dentro de un rombo.
+  \item \textbf{Las ramas \codigo{Sí} y \codigo{No} siempre se vuelven a unir:} Ambas flechas convergen en un conector circular (o en el siguiente bloque común) antes de llegar a \codigo{FIN}.
+  \item \textbf{Variables consistentes:} Si leíste \codigo{precioBase}, no escribas después \codigo{preciobase}. Jamás uses una variable antes de leerla o asignarle un valor.
+  \item \textbf{Nunca entregues un DFD sin Prueba de Escritorio.}
+\end{enumerate}
+
+\begin{peligro}{Trampa clásica en bloques de lectura}
+No escribas \texttt{Leer: "Ingrese su edad", edad} dentro de un bloque de entrada. En el bloque \codigo{Leer} solo van los nombres de las variables (\codigo{Leer: edad}). Si deseas mostrar un letrero previo, coloca un bloque \codigo{Mostrar: "Ingrese su edad"} \textbf{antes} del \codigo{Leer}.
+\end{peligro}
+
+\section{Seis Problemas Resueltos Paso a Paso en DFD}
+
+\subsection{Problema 1 (Secuencial): Promedio de tres notas}
+\begin{analisis}{Problema 1 -- Promedio de calificaciones}
+Lee 3 notas (\codigo{n1}, \codigo{n2}, \codigo{n3}), calcula su suma y su promedio, y muestra el promedio.
+\begin{itemize}
+  \item \textbf{E:} \codigo{n1, n2, n3} \quad $\bullet$ \textbf{P:} \codigo{suma <- n1 + n2 + n3}; \codigo{promedio <- suma / 3.0} \quad $\bullet$ \textbf{S:} \codigo{promedio}.
+\end{itemize}
+\end{analisis}
+
+\imagenmodulo[0.52\linewidth]{dfd/dfd_p01_promedio_notas.png}{DFD Problema 1: Flujo secuencial para el promedio de tres notas.}
+
+\begin{pruebaescritorio}{Problema 1 -- Datos: n1=4.0, n2=3.5, n3=4.5}
+\begin{center}
+\footnotesize
+\begin{tabular}{c l c c c c c l}
+  \toprule
+  \textbf{Paso} & \textbf{Bloque DFD} & \textbf{n1} & \textbf{n2} & \textbf{n3} & \textbf{suma} & \textbf{promedio} & \textbf{Pantalla} \\
+  \midrule
+  1 & \texttt{Leer: n1, n2, n3} & \textbf{4.0} & \textbf{3.5} & \textbf{4.5} & -- & -- & -- \\
+  2 & \texttt{suma <- n1 + n2 + n3} & 4.0 & 3.5 & 4.5 & \textbf{12.0} & -- & -- \\
+  3 & \texttt{promedio <- suma / 3.0} & 4.0 & 3.5 & 4.5 & 12.0 & \textbf{4.0} & -- \\
+  4 & \texttt{Mostrar: promedio} & 4.0 & 3.5 & 4.5 & 12.0 & 4.0 & \texttt{Promedio = 4.0} \\
+  \bottomrule
+\end{tabular}
+\end{center}
+\end{pruebaescritorio}
+
+\imagenmodulo[0.90\linewidth]{dfd_01_suma_promedio.png}{Ficha visual integrada del Problema 1: DFD, análisis EPS, prueba de escritorio y puente a PSeInt/C++.}
+
+\subsection{Problema 2 (Secuencial): Área y perímetro de una cancha rectangular}
+\begin{analisis}{Problema 2 -- Dimensiones de cancha}
+Lee \codigo{largo} y \codigo{ancho} en metros, calcula cuánta grama cubre el \codigo{area} y cuánta malla requiere el \codigo{perimetro}.
+\begin{itemize}
+  \item \textbf{E:} \codigo{largo, ancho} \quad $\bullet$ \textbf{P:} \texttt{area <- largo * ancho}; \texttt{perimetro <- 2 * (largo + ancho)} \quad $\bullet$ \textbf{S:} \codigo{area, perimetro}.
+\end{itemize}
+\end{analisis}
+
+\imagenmodulo[0.54\linewidth]{dfd/dfd_p02_area_perimetro_cancha.png}{DFD Problema 2: Área y perímetro de un rectángulo.}
+
+\begin{pruebaescritorio}{Problema 2 -- Datos: largo=25, ancho=12}
+\begin{center}
+\scriptsize
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{c l c c c c l}
+  \toprule
+  \textbf{Paso} & \textbf{Bloque DFD} & \textbf{largo} & \textbf{ancho} & \textbf{area} & \textbf{perim.} & \textbf{Pantalla} \\
+  \midrule
+  1 & \texttt{Leer: largo, ancho} & \textbf{25} & \textbf{12} & -- & -- & -- \\
+  2 & \texttt{area <- largo * ancho} & 25 & 12 & \textbf{300} & -- & -- \\
+  3 & \texttt{perimetro <- 2*(largo+ancho)} & 25 & 12 & 300 & \textbf{74} & -- \\
+  4 & \texttt{Mostrar} & 25 & 12 & 300 & 74 & \texttt{Área: 300 m² / Perím.: 74 m} \\
+  \bottomrule
+\end{tabular}
+\end{center}
+\end{pruebaescritorio}
+
+\subsection{Problema 3 (Secuencial): Liquidación de salario neto (8\% descuento)}
+\begin{analisis}{Problema 3 -- Nómina básica}
+Lee \codigo{horas} trabajadas y \codigo{valorHora}. Calcula el salario \codigo{bruto}, un \codigo{descuento} fijo del 8\% (\codigo{0.08}) y el salario \codigo{neto}, y muestra los tres valores.
+\end{analisis}
+
+\imagenmodulo[0.54\linewidth]{dfd/dfd_p03_salario_neto.png}{DFD Problema 3: Salario bruto, descuento del 8\% y salario neto.}
+
+\begin{pruebaescritorio}{Problema 3 -- Datos: horas=15, valorHora=20000}
+\begin{center}
+\footnotesize
+\begin{tabular}{c l c c c c c}
+  \toprule
+  \textbf{Paso} & \textbf{Bloque DFD} & \textbf{horas} & \textbf{valorHora} & \textbf{bruto} & \textbf{descuento} & \textbf{neto} \\
+  \midrule
+  1 & \texttt{Leer: horas, valorHora} & \textbf{15} & \textbf{20000} & -- & -- & -- \\
+  2 & \texttt{bruto <- horas * valorHora} & 15 & 20000 & \textbf{300000} & -- & -- \\
+  3 & \texttt{descuento <- bruto * 0.08} & 15 & 20000 & 300000 & \textbf{24000} & -- \\
+  4 & \texttt{neto <- bruto - descuento} & 15 & 20000 & 300000 & 24000 & \textbf{276000} \\
+  \bottomrule
+\end{tabular}
+\end{center}
+\textbf{Salida:} \texttt{300000, 24000, 276000}.
+\end{pruebaescritorio}
+
+\subsection{Problema 4 (Decisión Simple Sí/No): ¿Aprueba o reprueba?}
+\begin{analisis}{Problema 4 -- Nota mínima 3.0}
+Lee \codigo{notaFinal}. Si \codigo{notaFinal >= 3.0}, muestra \texttt{"APROBADO"}; si no, muestra \texttt{"REPROBADO"}.
+\end{analisis}
+
+\imagenmodulo[0.72\linewidth]{dfd/dfd_p04_aprueba_materia.png}{DFD Problema 4: Decisión simple Sí/No con unión obligatoria de ramas.}
+
+\begin{pruebaescritorio}{Problema 4 -- Probamos la rama Sí (caso límite) y la rama No}
+\begin{itemize}
+  \item \textbf{Caso A (\codigo{notaFinal = 3.0}):} ¿\codigo{3.0 >= 3.0}? \textbf{Sí (V)} $\rightarrow$ rama izquierda $\rightarrow$ Pantalla: \texttt{APROBADO} $\rightarrow$ conector $\rightarrow$ \texttt{FIN}.
+  \item \textbf{Caso B (\codigo{notaFinal = 2.9}):} ¿\codigo{2.9 >= 3.0}? \textbf{No (F)} $\rightarrow$ rama derecha $\rightarrow$ Pantalla: \texttt{REPROBADO} $\rightarrow$ conector $\rightarrow$ \texttt{FIN}.
+\end{itemize}
+\end{pruebaescritorio}
+
+\subsection{Problema 5 (Decisión Simple Sí/No): Descuento en papelería}
+\begin{analisis}{Problema 5 -- 15\% por compras mayores a \$50.000}
+Si \codigo{montoCompra > 50000}, aplica \codigo{descuento <- montoCompra * 0.15}; si no, \codigo{descuento <- 0}. Luego calcula \codigo{totalPagar <- montoCompra - descuento} y muéstralos.
+\end{analisis}
+
+\imagenmodulo[0.64\linewidth]{dfd/dfd_p05_descuento_papeleria.png}{DFD Problema 5: El cálculo común se ubica después de unir las dos ramas.}
+
+\begin{pruebaescritorio}{Problema 5 -- Caso mayor a 50000 y caso límite exacto 50000}
+\begin{itemize}
+  \item \textbf{Caso A (\codigo{montoCompra = 80000}):} \codigo{80000 > 50000} es \textbf{Sí} $\rightarrow$ \codigo{descuento = 12000} $\rightarrow$ \codigo{totalPagar = 68000}.
+  \item \textbf{Caso B (\codigo{montoCompra = 50000}):} Como pide \textit{``supere \$50.000''} (\codigo{>}), \codigo{50000 > 50000} es \textbf{No} $\rightarrow$ \codigo{descuento = 0} $\rightarrow$ \codigo{totalPagar = 50000}.
+\end{itemize}
+\end{pruebaescritorio}
+
+\subsection{Problema 6 (Decisión Anidada Simple): Mayor de dos números con empate}
+\begin{analisis}{Problema 6 -- Comparación completa de \texttt{a} y \texttt{b}}
+Lee \codigo{a} y \codigo{b}. Primer rombo: \codigo{¿a > b?}. Si \textbf{No}, un segundo rombo pregunta \codigo{¿b > a?}; si tampoco se cumple, por descarte son iguales.
+\end{analisis}
+
+\imagenmodulo[0.80\linewidth]{dfd/dfd_p06_mayor_dos_numeros.png}{DFD Problema 6: Dos rombos encadenados para cubrir mayor, menor y empate.}
+
+\begin{pruebaescritorio}{Problema 6 -- Probamos las 3 rutas posibles}
+\begin{itemize}
+  \item \textbf{Caso 1 (\codigo{a=18, b=7}):} \codigo{18 > 7} (Sí) $\rightarrow$ \texttt{El mayor es: 18}.
+  \item \textbf{Caso 2 (\codigo{a=4, b=12}):} \codigo{4 > 12} (No) $\rightarrow$ \codigo{12 > 4} (Sí) $\rightarrow$ \texttt{El mayor es: 12}.
+  \item \textbf{Caso 3 (\codigo{a=9, b=9}):} \codigo{9 > 9} (No) $\rightarrow$ \codigo{9 > 9} (No) $\rightarrow$ \texttt{Son iguales}.
+\end{itemize}
+\end{pruebaescritorio}
+
+\subsection{Bonus Visual: Decisiones anidadas para el mayor de tres números (A, B, C)}
+Una vez dominas comparar dos números, un reto clásico de parcial es encontrar el mayor entre tres valores (\codigo{A}, \codigo{B}, \codigo{C}) manejando empates con \codigo{>=}. Observa cómo todas las ramas terminan uniéndose antes de mostrar el resultado:
+
+\imagenmodulo[0.92\linewidth]{dfd_02_mayor_tres_numeros.png}{Árbol completo de decisiones Sí/No para hallar el mayor de tres números (A, B, C).}
+
+\section{Consejos de Monitoría y Errores Clásicos en DFD}
+
+\begin{consejo}{Tres reglas prácticas del monitor}
+\begin{enumerate}
+  \item \textbf{Dibuja primero en lápiz:} Usa conector circular con letra (\codigo{A}) si te quedas sin hoja.
+  \item \textbf{Factoriza lo repetido después del rombo:} Si ambas ramas calculan \codigo{total <- monto - desc}, ponlo una sola vez después de unir las ramas.
+  \item \textbf{Prueba todas las ramas:} Una prueba de escritorio que solo recorre la rama \codigo{Sí} deja la mitad del diagrama sin verificar.
+\end{enumerate}
+\end{consejo}
+
+\begin{peligro}{Errores clásicos en DFD y su traducción a futuros errores en C++}
+\begin{itemize}
+  \item \textbf{Usar una variable sin leerla ni asignarla:} En DFD calculas \codigo{area <- base * altura} sin haber leído \codigo{altura}. En C++, el compilador te gritará: \texttt{'altura' was not declared in this scope} (o calculará basura de la memoria).
+  \item \textbf{Escribir la asignación al revés:} Poner \codigo{a + b <- suma} en vez de \codigo{suma <- a + b}. En C++ da: \texttt{error: lvalue required as left operand of assignment}.
+  \item \textbf{Rombo con una sola salida o sin etiquetas \codigo{Sí}/\codigo{No}.}
+\end{itemize}
+\end{peligro}
+
+\section{Ejercicios Propuestos (Con Pistas del Monitor)}
+
+Dibuja el DFD en tu cuaderno y realiza la prueba de escritorio de cada uno:
+
+\begin{ejercicio}{1 -- Área y perímetro del cuadrado}
+Lee el lado \codigo{L} de un cuadrado, calcula \codigo{area} y \codigo{perimetro} y muéstralos. \textit{Pista: dos rectángulos de proceso en secuencia.}
+\end{ejercicio}
+
+\begin{ejercicio}{2 -- Dólares a pesos}
+Lee una cantidad en dólares (\codigo{usd}) y la tasa de cambio del día (\codigo{tasaPeso}), calcula los pesos y muéstralos. \textit{Pista: la tasa cambia cada día, por eso sí es entrada.}
+\end{ejercicio}
+
+\begin{ejercicio}{3 -- Área del triángulo}
+Lee \codigo{base} y \codigo{altura}, calcula \codigo{(base * altura) / 2.0} y muéstralo. \textit{Pista: usa paréntesis.}
+\end{ejercicio}
+
+\begin{ejercicio}{4 -- Producto con IVA fijo del 19\%}
+Lee \codigo{precioBase} y calcula el IVA del 19\% y el \codigo{precioTotal}. \textit{Pista: \texttt{0.19} es constante fija.}
+\end{ejercicio}
+
+\begin{ejercicio}{5 -- Positivo o cero frente a Negativo}
+Lee un entero \codigo{n}. Muestra \texttt{"POSITIVO o CERO"} si \codigo{n >= 0}, o \texttt{"NEGATIVO"} si no. \textit{Pista: un rombo y une las ramas antes de FIN.}
+\end{ejercicio}
+
+\begin{ejercicio}{6 -- Edad mínima para votar}
+Lee \codigo{edad}. Si \codigo{edad >= 18} muestra \texttt{"Puede votar"}; si no, calcula \codigo{faltan <- 18 - edad} y muestra cuántos años le faltan. \textit{Pista: rectángulo + salida dentro de la rama No.}
+\end{ejercicio}
+
+\begin{ejercicio}{7 -- Tarifa de parqueadero}
+Cobra \$3.000/h si te quedas 3 horas o menos, o \$2.500/h para todas las horas si te quedas más de 3 horas. Lee \codigo{horas} y muestra \codigo{totalPagar}. \textit{Pista: elige \texttt{tarifa} en el rombo, une ramas y multiplica fuera.}
+\end{ejercicio}
+
+\begin{ejercicio}{8 -- División segura}
+Lee \codigo{dividendo} y \codigo{divisor}. Si \codigo{divisor != 0} muestra la división; si no, muestra un mensaje de error. \textit{Pista: el rombo protege antes de dividir.}
+\end{ejercicio}
+
+\begin{ejercicio}{9 -- Caza el error en DFD secuencial}
+Un alumno dibujó: \texttt{INICIO -> Leer: precio -> desc <- precio * porc -> total <- precio - desc -> Mostrar: total -> FIN}. Encuentra qué falla y corrígelo. \textit{Pista: ¿de dónde salió \texttt{porc}?}
+\end{ejercicio}
+
+\begin{ejercicio}{10 -- Caza los 3 errores en DFD de decisión}
+Un compañero dibujó un rombo \codigo{¿edad >= 18?}, sacó la rama \codigo{Sí} hacia \texttt{Mostrar: "Mayor"} y a \texttt{FIN}, dejó vacío el lado \codigo{No}, y además metió \texttt{res <- edad * 2} dentro de un óvalo. Enumera los 3 errores. \textit{Pista: revisa Reglas 3, 4 y 5 + tabla de símbolos.}
+\end{ejercicio}
+
+\section{Solucionario Paso a Paso (Ejercicios 1 al 10)}
+
+\begin{solucion}{Ejercicios 1 al 5}
+\begin{enumerate}
+  \item \textbf{Cuadrado:} \texttt{Leer: L} $\rightarrow$ \texttt{area <- L*L} $\rightarrow$ \texttt{perimetro <- 4*L} $\rightarrow$ \texttt{Mostrar}. Prueba \codigo{L=5}: \codigo{area=25, perimetro=20}.
+  \item \textbf{Dólares:} \texttt{Leer: usd, tasaPeso} $\rightarrow$ \texttt{pesos <- usd * tasaPeso} $\rightarrow$ \texttt{Mostrar: pesos}. Prueba \codigo{50, 4200}: \codigo{210000}.
+  \item \textbf{Triángulo:} \texttt{Leer: base, altura} $\rightarrow$ \texttt{area <- (base*altura)/2.0} $\rightarrow$ \texttt{Mostrar}. Prueba \codigo{7, 5}: \codigo{17.5}.
+  \item \textbf{IVA 19\%:} \texttt{Leer: precioBase} $\rightarrow$ \texttt{iva <- precioBase*0.19} $\rightarrow$ \texttt{total <- precioBase+iva} $\rightarrow$ \texttt{Mostrar}. Prueba \codigo{10000}: \codigo{iva=1900, total=11900}.
+  \item \textbf{Signo de \texttt{n}:} \texttt{Leer: n} $\rightarrow$ \texttt{¿n >= 0?}: Sí $\rightarrow$ \texttt{"POSITIVO o CERO"}; No $\rightarrow$ \texttt{"NEGATIVO"} $\rightarrow$ conector $\rightarrow$ \texttt{FIN}. Prueba \codigo{0}: Sí; \codigo{-4}: No.
+\end{enumerate}
+\end{solucion}
+
+\begin{solucion}{Ejercicios 6 al 10}
+\begin{enumerate}
+  \setcounter{enumi}{5}
+  \item \textbf{Votar:} \texttt{Leer: edad} $\rightarrow$ \texttt{¿edad >= 18?}: Sí $\rightarrow$ \texttt{"Puede votar"}; No $\rightarrow$ \texttt{faltan <- 18 - edad} $\rightarrow$ \texttt{Mostrar: faltan}. Prueba \codigo{15}: faltan \codigo{3}.
+  \item \textbf{Parqueadero:} \texttt{Leer: horas} $\rightarrow$ \texttt{¿horas <= 3?}: Sí $\rightarrow$ \texttt{tarifa <- 3000}; No $\rightarrow$ \texttt{tarifa <- 2500}. Luego de unir ramas: \texttt{totalPagar <- horas * tarifa} $\rightarrow$ \texttt{Mostrar}. Prueba: \codigo{3h} $\rightarrow$ \$9000; \codigo{4h} $\rightarrow$ \$10000.
+  \item \textbf{División segura:} \texttt{Leer: dividendo, divisor} $\rightarrow$ \texttt{¿divisor != 0?}: Sí $\rightarrow$ \texttt{c <- dividendo / divisor} $\rightarrow$ \texttt{Mostrar: c}; No $\rightarrow$ \texttt{Mostrar: "Error"}. Prueba \codigo{(10, 0)}: Error.
+  \item \textbf{DFD secuencial roto:} (1) Se usó \codigo{porc} sin haberlo leído ni asignado antes; (2) si se ingresa como entero (ej. 15), falta dividir por 100. Corrección: \texttt{Leer: precio, porc} y \texttt{desc <- precio * (porc / 100.0)}.
+  \item \textbf{DFD decisión roto:} (1) Falta rama \texttt{No} en el rombo (Regla 4); (2) no hay conector de unión hacia \texttt{FIN} (Regla 5); (3) metió un cálculo dentro de un óvalo (el óvalo es exclusivo para \texttt{INICIO}/\texttt{FIN}; las asignaciones van en rectángulo).
+\end{enumerate}
+\end{solucion}
+
+\end{document}

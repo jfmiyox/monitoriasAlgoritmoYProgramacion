@@ -1,0 +1,420 @@
+\documentclass[11pt,letterpaper]{article}
+\usepackage{../../latex_common/estilo_monitoria}
+
+\begin{document}
+
+\portadamodulo{00}{Algoritmos para Tontos (Pensar Antes de Teclar)}{2.5 horas}{%
+  Lógica cotidiana, modelo Entrada--Proceso--Salida (E-P-S), Método de los 5 Pasos y prueba de escritorio en papel%
+}{%
+  \begin{enumerate}
+    \item Perderle el miedo a la palabra \textbf{algoritmo} y entender exactamente cómo ``piensa'' una computadora.
+    \item Leer cualquier enunciado de clase o parcial y separar sus piezas con el modelo \textbf{E-P-S} y el diccionario de palabras clave.
+    \item Aplicar el \textbf{Método de los 5 Pasos del Monitor} para resolver problemas cotidianos y matemáticos sin quedarse en blanco frente al teclado.
+    \item Ejecutar una \textbf{prueba de escritorio en papel} para cazar errores de lógica antes de escribir una sola línea de código.
+  \end{enumerate}
+}
+
+\tableofcontents
+\vspace{8pt}
+
+\section{Mapa Conceptual del Módulo}
+
+Antes de entrar en materia, mira la ruta completa que vas a recorrer hoy. El secreto de los mejores programadores no está en teclear rápido, sino en seguir este mapa de pensamiento ordenado antes de tocar el computador:
+
+\begin{center}
+\begin{tikzpicture}[
+  node distance=0.55cm,
+  caja/.style={rectangle, rounded corners=4pt, draw=AzulMarino, fill=AzulClaro, thick,
+               text width=0.78\linewidth, align=center, font=\sffamily\small, inner sep=7pt},
+  flecha/.style={-{Stealth[length=2.5mm]}, thick, color=Turquesa}
+]
+  \node[caja, fill=AzulMarino, text=white] (n0) {\textbf{ENUNCIADO DEL PROBLEMA} (En español, a veces largo o confuso)};
+  \node[caja, below=of n0] (n1) {\textbf{Paso 1: Leer con lupa y subrayar} (datos variables, constantes y reglas ocultas)};
+  \node[caja, below=of n1, fill=TurquesaClaro, draw=Turquesa] (n2) {\textbf{Paso 2: Modelo E-P-S (La Licuadora)} \\ \texttt{ENTRADAS} $\longrightarrow$ \texttt{PROCESO} $\longrightarrow$ \texttt{SALIDAS}};
+  \node[caja, below=of n2] (n3) {\textbf{Paso 3: Elegir la estructura lógica} (Secuencia $\mid$ Decisión Sí/No $\mid$ Ciclo)};
+  \node[caja, below=of n3, fill=NaranjaClaro, draw=NaranjaCalido] (n4) {\textbf{Paso 4: Prueba de escritorio en papel} (Simular con datos normales y casos tramposos)};
+  \node[caja, below=of n4, fill=VerdeClaro, draw=VerdeExito] (n5) {\textbf{Paso 5: Traducción futura} $\longrightarrow$ DFD (M01) $\longrightarrow$ PSeInt (M02) $\longrightarrow$ C++ (M02+)};
+
+  \draw[flecha] (n0) -- (n1);
+  \draw[flecha] (n1) -- (n2);
+  \draw[flecha] (n2) -- (n3);
+  \draw[flecha] (n3) -- (n4);
+  \draw[flecha] (n4) -- (n5);
+\end{tikzpicture}
+\end{center}
+
+\section{Explicado ``Para Tontos'': ¿Qué es un Algoritmo?}
+
+\imagenmodulo[0.86\linewidth]{ilus_01_algoritmo_receta.jpg}{Un algoritmo es simplemente una receta ordenada paso a paso para darle instrucciones exactas a la computadora.}
+
+\begin{paratontos}{¿De qué va esto sin palabras raras?}
+Si alguien te dice \textit{``diseña un algoritmo eficiente''}, suena a película de ciencia ficción o a fórmula de la NASA. Respira tranquilo: \textbf{tú ya usas algoritmos todos los días desde que eras niño}.
+
+Un \textbf{algoritmo} es simplemente una \textbf{lista ordenada, finita y sin ambigüedades de pasos} para lograr un objetivo o resolver un problema.
+\begin{itemize}
+  \item \textbf{Ordenada:} El orden importa. No puedes ponerte los zapatos antes que las medias.
+  \item \textbf{Finita:} Tiene que terminar en algún momento. Si un paso te manda en círculos para siempre, nunca acabas.
+  \item \textbf{Sin ambigüedades:} Cero adivinanzas. No le digas a un robot \textit{``échale sal al gusto''}, porque el robot te preguntará: \textit{``¿qué es gusto? ¿1 gramo o medio kilo?''}.
+\end{itemize}
+\end{paratontos}
+
+\subsection{El secreto mejor guardado: la computadora es un ``Genio Literal''}
+
+Imagina que tienes un asistente súper veloz capaz de hacer un millón de sumas por segundo, pero \textbf{tiene cero sentido común}. Si le dices:
+\textit{``Unta mantequilla en el pan''},
+y no le dijiste primero \textit{``abre la nevera, saca la mantequilla, toma un cuchillo, destapa el recipiente...''}, el genio literal aplastará el pan contra el frasco cerrado de mantequilla y te mirará orgulloso diciendo: \textit{``¡Misión cumplida!''}.
+
+\begin{consejo}{La regla mental del monitor}
+Programar \textbf{NO} es ser un genio de las matemáticas; programar es \textbf{aprender a darle instrucciones tan claras y ordenadas a un robot literal, que sea imposible que se equivoque}.
+\end{consejo}
+
+\section{Cinco Analogías Completas de la Vida Real}
+
+Para que el concepto quede grabado con plastilina, analicemos cinco situaciones cotidianas exactamente como las piensa un programador.
+
+\subsection{Analogía 1: Preparar un café con leche por la mañana (Secuencia estricta)}
+\begin{itemize}
+  \item \textbf{Objetivo:} Obtener una taza de café con leche caliente.
+  \item \textbf{Entradas (ingredientes):} Agua, café instantáneo, leche, azúcar, taza, cuchara, hervidor.
+  \item \textbf{Pasos del algoritmo:}
+    \begin{enumerate}
+      \item Inicio.
+      \item Poner a calentar el agua en el hervidor hasta que hierva.
+      \item Colocar la taza limpia sobre la mesa.
+      \item Agregar 1 cucharadita de café en la taza.
+      \item Verter el agua caliente hasta llenar $3/4$ de la taza.
+      \item Agregar leche hasta completar la taza y 1 cucharadita de azúcar.
+      \item Revolver con la cuchara durante 10 segundos.
+      \item Entregar la taza lista (\textbf{Salida}) y Fin.
+    \end{enumerate}
+  \item \textbf{¿Qué pasa si cambias el orden?} Si viertes el agua caliente antes de colocar la taza (intercambias pasos 3 y 5), terminas con la mesa quemada y la taza vacía. En programación, el orden de las líneas lo cambia todo.
+\end{itemize}
+
+\subsection{Analogía 2: Pedir una hamburguesa por una app de domicilios (Decisiones)}
+\begin{itemize}
+  \item \textbf{Objetivo:} Recibir tu comida en casa pagando correctamente.
+  \item \textbf{Entradas:} Dirección de entrega, restaurante elegido, producto, método de pago y saldo disponible.
+  \item \textbf{Pasos del algoritmo:}
+    \begin{enumerate}
+      \item Inicio $\rightarrow$ Abrir la app e ingresar dirección.
+      \item \textbf{Decisión 1:} ¿El restaurante está abierto? Si \textbf{No}, mostrar ``Restaurante cerrado'' y terminar; si \textbf{Sí}, continuar.
+      \item Agregar la hamburguesa al carrito y elegir pago (tarjeta o efectivo).
+      \item \textbf{Decisión 2:} ¿Pagas con tarjeta y tienes saldo suficiente? Si \textbf{Sí}, confirmar pedido y descontar dinero; si \textbf{No}, pedir otro método o cancelar.
+      \item Esperar al domiciliario, recibir pedido (\textbf{Salida}) y Fin.
+    \end{enumerate}
+  \item \textbf{Lección clave:} Los algoritmos reales no siempre van en línea recta; toman caminos distintos según una condición de \textbf{Sí} o \textbf{No}.
+\end{itemize}
+
+\subsection{Analogía 3: Retirar dinero en un cajero automático (Seguridad y repetición)}
+\begin{itemize}
+  \item \textbf{Objetivo:} Sacar efectivo sin entregar dinero de más ni permitir fraudes.
+  \item \textbf{Entradas:} Tarjeta débito, clave PIN, monto a retirar, saldo de la cuenta.
+  \item \textbf{Pasos del algoritmo:}
+    \begin{enumerate}
+      \item Inicio $\rightarrow$ Insertar tarjeta e iniciar un contador de intentos en \codigo{0}.
+      \item Pedir al usuario que digite su PIN de 4 dígitos.
+      \item Si el PIN es correcto, pasar al paso 5. Si es incorrecto, sumar \codigo{1} al contador.
+      \item Si el contador es menor que \codigo{3}, volver al paso 2; si llegó a \codigo{3}, retener tarjeta y terminar por seguridad.
+      \item Leer el monto solicitado. \textbf{Decisión:} ¿El monto es menor o igual al saldo \textbf{Y} múltiplo de \$10.000? Si \textbf{Sí}, restar del saldo y entregar billetes y recibo (\textbf{Salidas}); si \textbf{No}, mostrar error.
+      \item Devolver la tarjeta y Fin.
+    \end{enumerate}
+  \item \textbf{Lección clave:} Aquí ves \textbf{las 3 grandes piezas} de la programación juntas: \textbf{secuencia}, \textbf{decisión} y \textbf{ciclo/repetición} (intentar el PIN hasta 3 veces).
+\end{itemize}
+
+\subsection{Analogía 4: Armar un mueble o figura LEGO con instructivo (Orden y variables)}
+\begin{itemize}
+  \item \textbf{Objetivo:} Construir la silla exactamente igual a la foto de la caja.
+  \item \textbf{Entradas:} Bolsas de piezas etiquetadas (A, B, C), tornillos, destornillador y manual.
+  \item \textbf{Pasos:} Contar que estén todas las piezas $\rightarrow$ Seguir el bloque 1 antes del bloque 2 $\rightarrow$ Repetir el ajuste para las 4 patas (ciclo de 4 veces) $\rightarrow$ Verificar estabilidad.
+  \item \textbf{Lección clave:} El manual numera las bolsas para no usar una pieza que todavía no sacaste. En programación, si multiplicas una variable antes de leer su valor, es como atornillar una pata invisible.
+\end{itemize}
+
+\subsection{Analogía 5: Hacer la maleta para un viaje según el clima (Ciclos + Decisiones)}
+\begin{itemize}
+  \item \textbf{Objetivo:} Empacar la ropa exacta para 4 días.
+  \item \textbf{Entradas:} Días del viaje (\codigo{4}), pronóstico del clima (\texttt{"lluvioso"} o \texttt{"soleado"}).
+  \item \textbf{Pasos:} Abrir maleta $\rightarrow$ \textbf{Repetir 4 veces}: meter 1 camiseta y 1 par de medias $\rightarrow$ \textbf{Decisión}: ¿va a llover? Si \textbf{Sí}, meter paraguas y chaqueta impermeable; si \textbf{No}, meter gorra y bloqueador $\rightarrow$ Cerrar maleta (\textbf{Salida}).
+  \item \textbf{Lección clave:} Un ciclo (\textit{``repetir N veces''}) evita escribir cuatro veces la misma orden. Si un proceso ocurre 100 veces, usas un ciclo.
+\end{itemize}
+
+\section{Cómo Analizar Problemas Desde Cero: El Modelo E-P-S}
+
+Cuando un profesor te entrega un enunciado largo en un parcial, el error número uno del estudiante novato es abrir el computador de inmediato y empezar a teclear sin entender qué le pidieron. \textbf{Antes de pensar en código, piensa como una licuadora:}
+
+\begin{center}
+\begin{tikzpicture}[
+  bloque/.style={rectangle, rounded corners=5pt, thick, minimum height=1.35cm, text width=4.2cm, align=center, font=\sffamily\small},
+  flecha/.style={-{Stealth[length=3mm]}, ultra thick, color=AzulMarino}
+]
+  \node[bloque, draw=Turquesa, fill=TurquesaClaro] (e) {\textbf{\color{Turquesa}1. ENTRADAS (E)}\\Datos que vienen de afuera\\(teclado / ingredientes)};
+  \node[bloque, right=1.0cm of e, draw=NaranjaCalido, fill=NaranjaClaro] (p) {\textbf{\color{NaranjaCalido}2. PROCESO (P)}\\Fórmulas, cálculos y\\decisiones internas};
+  \node[bloque, right=1.0cm of p, draw=VerdeExito, fill=VerdeClaro] (s) {\textbf{\color{VerdeExito}3. SALIDAS (S)}\\Resultados finales que\\ve el usuario en pantalla};
+  \draw[flecha] (e) -- (p);
+  \draw[flecha] (p) -- (s);
+\end{tikzpicture}
+\end{center}
+
+\begin{consejo}{Lee de atrás hacia adelante si te bloqueas}
+Empieza identificando \textbf{la SALIDA} (\textit{¿qué me piden mostrar al final?}). Luego pregúntate: \textit{``¿Qué fórmula o condición produce esa salida?''} (ese es tu \textbf{PROCESO}). Por último pregúntate: \textit{``¿Qué datos variables le faltan a esa fórmula?''} (esas son tus \textbf{ENTRADAS}).
+\end{consejo}
+
+\subsection{Diccionario Detective: Palabras Clave en los Enunciados}
+
+Cuando leas un enunciado de taller o parcial, busca estas pistas como un detective:
+
+\begin{center}
+\small
+\renewcommand{\arraystretch}{1.3}
+\rowcolors{2}{GrisSuave}{white}
+\begin{tabularx}{\linewidth}{>{\leavevmode\raggedright\arraybackslash}p{5.5cm} >{\leavevmode\bfseries\sffamily\color{AzulMarino}\raggedright\arraybackslash}p{3.0cm} >{\leavevmode\raggedright\arraybackslash}X}
+  \rowcolor{AzulMarino}
+  \textcolor{white}{\textbf{Si el enunciado dice...}} &
+  \textcolor{white}{\textbf{Suele ser...}} &
+  \textcolor{white}{\textbf{Qué significa en tu diseño}} \\
+  \textit{``Leer'', ``Ingresar'', ``Pedir al usuario'', ``Digitar'', ``Capturar'', ``Dado un número...''} & ENTRADA & Creas una variable (cajita) y pides ese valor al usuario por teclado. \\
+  \textit{``Calcular'', ``Determinar'', ``Sumar'', ``Promediar'', ``Aplicar descuento'', ``Convertir'', ``Verificar si...''} & PROCESO & Aquí van tus operaciones aritméticas o tus decisiones (\textit{Si... entonces}). \\
+  \textit{``Mostrar'', ``Imprimir'', ``Escribir en pantalla'', ``Reportar'', ``Desplegar'', ``Indicar si...''} & SALIDA & Es el mensaje o valor numérico final que aparece en la consola. \\
+  \textit{``El IVA es del 19\%'', ``1 hora = 60 min'', ``Se aprueba con 3.0 o más''} & CONSTANTE / REGLA FIJA & \textbf{¡NO se pide por teclado!} Ya te lo dio fijo el enunciado para tu proceso. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{peligro}{Pedir constantes por teclado}
+Muchos estudiantes leen: \textit{``Calcule el total a pagar aplicando un IVA del 19\%''} y le piden al usuario que digite el \codigo{19\%}. \textbf{¡Incorrecto!} Si el problema ya fija el 19\%, ese dato es una constante del proceso, no una entrada. Solo pides por teclado lo que cambia entre un usuario y otro (el precio del producto).
+\end{peligro}
+
+\section{El Método de los 5 Pasos del Monitor}
+
+\imagenmodulo[0.95\linewidth]{met_01_cinco_pasos_analisis.png}{Infografía del Método de los 5 Pasos del Monitor: analiza y prueba en papel antes de abrir el editor.}
+
+Cada vez que tengas un ejercicio enfrente —desde hoy hasta tu examen final— aplica esta receta en orden estricto:
+
+\begin{enumerate}
+  \item \textbf{Paso 1 -- Leer con lupa y subrayar:} Lee dos veces. Subraya los datos que cambian (entradas), las constantes fijas, las reglas (\textit{``si ocurre...''}) y lo que te piden entregar.
+  \item \textbf{Paso 2 -- Armar la Tabla E-P-S y bautizar variables:} Anota Entradas, Proceso y Salidas, y pon nombres claros (\codigo{precioProducto}, \codigo{notaFinal}; jamás \codigo{x1} o \codigo{cosa}).
+  \item \textbf{Paso 3 -- Elegir la estructura lógica:} ¿Pasos en fila? $\rightarrow$ \textbf{Secuencia}. ¿Hay un ``si pasa X''? $\rightarrow$ \textbf{Decisión}. ¿Hay que repetir algo? $\rightarrow$ \textbf{Ciclo}.
+  \item \textbf{Paso 4 -- Hacer la Prueba de Escritorio en papel:} Inventa datos fáciles, simula cada línea en una tabla y prueba también un \textbf{caso tramposo} (un \codigo{0}, un valor exacto en el límite o un negativo).
+  \item \textbf{Paso 5 -- Traducir a DFD, PSeInt o C++:} El código es solo la traducción final; el 80\% del éxito ocurre en los pasos 1 al 4.
+\end{enumerate}
+
+\imagenmodulo[0.86\linewidth]{ilus_03_puente_dfd_pseint_cpp.jpg}{Cuando los pasos 1 al 4 están claros en papel, traducir a DFD, PSeInt y C++ se vuelve un puente natural.}
+
+\section{Método de los 5 Pasos Aplicado a 4 Problemas Completos}
+
+\subsection{Problema 1 (Cotidiano): Repartir la cuenta de una pizza entre amigos}
+\begin{analisis}{Enunciado -- La pizza del viernes}
+Un grupo de amigos pide una pizza a domicilio. El programa debe recibir el valor de la pizza, el valor del domicilio, el porcentaje de propina (por ejemplo \codigo{10} para 10\%) y la cantidad de amigos que pagan. Calcula el total de la cuenta (aplicando la propina sobre pizza + domicilio) y muestra cuánto debe poner cada amigo en partes iguales.
+\end{analisis}
+
+\begin{itemize}
+  \item \textbf{Paso 1 (Subrayar):} Entradas variables: valor pizza, valor domicilio, porcentaje propina, cantidad de amigos. Salidas: total de la cuenta y cuota por amigo.
+  \item \textbf{Paso 2 (Tabla E-P-S):}
+    \begin{itemize}
+      \item \textbf{Entradas:} \codigo{valorPizza}, \codigo{valorDomicilio}, \codigo{porcPropina}, \codigo{numAmigos}.
+      \item \textbf{Proceso:} \texttt{subtotal = valorPizza + valorDomicilio};\\
+            \texttt{propina = subtotal * (porcPropina / 100.0)}; \texttt{totalCuenta = subtotal + propina};\\
+            \texttt{cuotaAmigo = totalCuenta / numAmigos} (suponiendo \codigo{numAmigos > 0}).
+      \item \textbf{Salidas:} \codigo{totalCuenta}, \codigo{cuotaAmigo}.
+    \end{itemize}
+  \item \textbf{Paso 3 (Estructura):} \textbf{Secuencial} (un cálculo tras otro).
+\end{itemize}
+
+\begin{pruebaescritorio}{Problema 1 -- Datos: pizza=45000, domicilio=5000, propina=10\%, amigos=5}
+\begin{center}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.25}
+\begin{tabular}{c l c c c c c c c c}
+  \toprule
+  \textbf{Paso} & \textbf{Acción} & \textbf{vPizza} & \textbf{vDom} & \textbf{\%Prop} & \textbf{amigos} & \textbf{subtotal} & \textbf{propina} & \textbf{total} & \textbf{cuota} \\
+  \midrule
+  1 & Leer entradas & 45000 & 5000 & 10 & 5 & -- & -- & -- & -- \\
+  2 & Calcular subtotal & 45000 & 5000 & 10 & 5 & \textbf{50000} & -- & -- & -- \\
+  3 & Calcular propina & 45000 & 5000 & 10 & 5 & 50000 & \textbf{5000} & -- & -- \\
+  4 & Calcular totalCuenta & 45000 & 5000 & 10 & 5 & 50000 & 5000 & \textbf{55000} & -- \\
+  5 & Calcular cuotaAmigo & 45000 & 5000 & 10 & 5 & 50000 & 5000 & 55000 & \textbf{11000} \\
+  \bottomrule
+\end{tabular}
+\end{center}
+\textbf{Salida en pantalla:} Total de la cuenta: \$55000 $\mid$ Cuota por amigo: \$11000.
+\end{pruebaescritorio}
+
+\textbf{Paso 5 (Plan en español):} Leer las 4 entradas $\rightarrow$ calcular \codigo{subtotal}, \codigo{propina}, \codigo{totalCuenta} y\\
+\codigo{cuotaAmigo} $\rightarrow$ mostrar \codigo{totalCuenta} y \codigo{cuotaAmigo}.
+
+\subsection{Problema 2 (Cotidiano con Decisión): ¿Me alcanza para ir al cine?}
+\begin{analisis}{Enunciado -- Salida al cine}
+La boleta de cine cuesta \$18.000 fijos, pero si pides un combo debes sumar su precio. Lee cuánto dinero tienes ahorrado (\codigo{dineroDisponible}) y el precio del combo (\codigo{precioCombo}). Calcula el costo total y dime si te alcanza el dinero (indicando cuánto te sobra o cuánto te falta).
+\end{analisis}
+
+\begin{itemize}
+  \item \textbf{Paso 1:} Constante oculta: \texttt{PRECIO\_ENTRADA = 18000} (no se pide por teclado).
+  \item \textbf{Paso 2 (E-P-S):} Entradas: \codigo{dineroDisponible}, \codigo{precioCombo}.\\
+        \textbf{Proceso:} \texttt{costoTotal = 18000 + precioCombo}.\\
+        Si \texttt{dineroDisponible >= costoTotal}, \texttt{sobrante = dineroDisponible - costoTotal};\\
+        si no, \texttt{faltante = costoTotal - dineroDisponible}.\\
+        \textbf{Salidas:} \codigo{costoTotal} y mensaje con sobrante/faltante.
+  \item \textbf{Paso 3 (Estructura):} \textbf{Secuencia + Decisión Simple} (observa que usamos \codigo{>=}: si tienes el dinero exacto, sí te alcanza y te sobra \$0).
+\end{itemize}
+
+\begin{pruebaescritorio}{Problema 2 -- Probamos ambos caminos}
+\begin{itemize}
+  \item \textbf{Caso A (Alcanza):} \texttt{dineroDisponible = 50000}, \texttt{precioCombo = 24000}.\\
+        \texttt{costoTotal = 18000 + 24000 = 42000}. ¿\texttt{50000 >= 42000}? \textbf{Sí} $\rightarrow$ \texttt{sobrante = 8000}.\\
+        \textit{Pantalla:} \texttt{Costo: \$42000. ¡Sí te alcanza! Te sobran \$8000.}
+  \item \textbf{Caso B (No alcanza):} \texttt{dineroDisponible = 40000}, \texttt{precioCombo = 25000}.\\
+        \texttt{costoTotal = 43000}. ¿\texttt{40000 >= 43000}? \textbf{No} $\rightarrow$ \texttt{faltante = 3000}.\\
+        \textit{Pantalla:} \texttt{Costo: \$43000. No te alcanza. Te faltan \$3000.}
+\end{itemize}
+\end{pruebaescritorio}
+
+\subsection{Problema 3 (Académico): Nota definitiva ponderada y aprobación}
+\begin{analisis}{Enunciado -- Tres cortes universitarios}
+El Primer Corte vale 30\%, el Segundo Corte vale 30\% y el Tercer Corte vale 40\%. Se aprueba con \codigo{3.0} o más. Lee las tres notas, calcula la definitiva y muestra si el estudiante fue \texttt{"APROBADO"} o \texttt{"REPROBADO"}.
+\end{analisis}
+
+\begin{itemize}
+  \item \textbf{Paso 2 (E-P-S):} Entradas: \codigo{nota1}, \codigo{nota2}, \codigo{nota3}.\\
+        \textbf{Proceso:} \texttt{definitiva = nota1*0.30 + nota2*0.30 + nota3*0.40};\\
+        evaluar \codigo{definitiva >= 3.0}.\\
+        \textbf{Salidas:} \codigo{definitiva} y estado.
+  \item \textbf{Paso 3:} \textbf{Secuencia + Decisión Simple} con \codigo{>= 3.0}.
+\end{itemize}
+
+\begin{pruebaescritorio}{Problema 3 -- Incluye caso borde exacto 3.0}
+\begin{itemize}
+  \item \textbf{Caso A (Normal):} \codigo{nota1 = 2.0, nota2 = 3.0, nota3 = 4.0} $\rightarrow$ \codigo{definitiva = 0.60 + 0.90 + 1.60 = 3.10} $\rightarrow$ \codigo{3.10 >= 3.0} (V) $\rightarrow$ \texttt{APROBADO}.
+  \item \textbf{Caso B (Caso límite):} \codigo{3.0, 3.0, 3.0} $\rightarrow$ \codigo{definitiva = 3.00} $\rightarrow$ \codigo{3.00 >= 3.0} (V) $\rightarrow$ \texttt{APROBADO}. (Si hubieras puesto \codigo{> 3.0}, habría reprobado injustamente.)
+  \item \textbf{Caso C (Reprueba):} \codigo{2.5, 2.5, 3.2} $\rightarrow$ \codigo{definitiva = 0.75 + 0.75 + 1.28 = 2.78} $\rightarrow$ \codigo{2.78 >= 3.0} (F) $\rightarrow$ \texttt{REPROBADO}.
+\end{itemize}
+\end{pruebaescritorio}
+
+\subsection{Problema 4 (Física básica): Tiempo de viaje en carretera}
+\begin{analisis}{Enunciado -- Bus intermunicipal}
+Conocida la distancia en kilómetros (\codigo{distanciaKm}) y la velocidad promedio en km/h (\codigo{velocidadKmH}), calcula cuánto tarda el viaje en \textbf{horas} y en \textbf{minutos}. Valida que la velocidad sea mayor a cero.
+\end{analisis}
+
+\begin{itemize}
+  \item \textbf{Paso 2 (E-P-S):} Entradas: \codigo{distanciaKm}, \codigo{velocidadKmH}. Proceso: si \codigo{velocidadKmH > 0}, calcular \codigo{tiempoHoras = distanciaKm / velocidadKmH} y \codigo{tiempoMinutos = tiempoHoras * 60.0}; si no, reportar error. Salidas: \codigo{tiempoHoras} y \codigo{tiempoMinutos} (o mensaje de error).
+  \item \textbf{Paso 3:} \textbf{Decisión Simple de validación + Secuencia}.
+\end{itemize}
+
+\begin{pruebaescritorio}{Problema 4 -- Caso normal y caso tramposo velocidad = 0}
+\begin{itemize}
+  \item \textbf{Caso A:} \codigo{distanciaKm = 150}, \codigo{velocidadKmH = 60}. Como \codigo{60 > 0} (V) $\rightarrow$ \codigo{tiempoHoras = 150 / 60 = 2.5} h; \codigo{tiempoMinutos = 2.5 * 60 = 150} min.
+  \item \textbf{Caso B (Tramposo):} \codigo{distanciaKm = 150}, \codigo{velocidadKmH = 0}. Como \codigo{0 > 0} (F) $\rightarrow$ \textit{Pantalla:} \texttt{Error: la velocidad debe ser mayor a cero.} ¡Evitamos explotar por división entre cero!
+\end{itemize}
+\end{pruebaescritorio}
+
+\section{Consejos de Monitoría y Errores Clásicos}
+
+\begin{consejo}{Hábitos que garantizan pasar el primer parcial}
+\begin{enumerate}
+  \item \textbf{No abras el editor los primeros 5 minutos:} Si no puedes explicar el problema en papel con el Método de los 5 Pasos, todavía no estás listo para programar.
+  \item \textbf{Bautiza bien tus cajas:} Usa \codigo{precioNeto} o \codigo{edadUsuario}, jamás \codigo{x1} o \codigo{a}.
+  \item \textbf{Pregunta siempre por el caso cero y el empate:} Prueba tus fórmulas con \codigo{0}, con números exactamente en el límite y con valores iguales.
+\end{enumerate}
+\end{consejo}
+
+\begin{peligro}{Los 5 errores clásicos de principiante (y spoiler de C++)}
+\begin{enumerate}
+  \item \textbf{Confundir asignación con igualdad:} En matemáticas \codigo{x = x + 1} no tiene sentido; en programación \codigo{x <- x + 1} significa \textit{``toma el valor actual de x, súmale 1 y guárdalo encima en x''}.
+  \item \textbf{Olvidar paréntesis:} Escribir \codigo{a + b + c / 3} divide primero \codigo{c / 3} y daña el promedio. Debe ser \codigo{(a + b + c) / 3}.
+  \item \textbf{Leer por teclado la salida:} Si te piden calcular el área de un triángulo, \textbf{no} hagas \codigo{Leer area}; pide \codigo{base} y \codigo{altura}.
+  \item \textbf{Saltarse la prueba de escritorio:} Creer que ``a ojo'' funciona y descubrir en el parcial que multiplicaste donde tocaba dividir.
+  \item \textbf{Tenerle miedo a los errores rojos de C++:} Cuando llegues al Módulo 02 y el compilador te diga en inglés cosas como \texttt{expected ';' before ...} o \texttt{was not declared in this scope}, recuerda que solo significa \textit{``olvidaste un punto y coma en la línea anterior''} o \textit{``usaste una caja sin crearla primero''}. ¡En el M02 tendrás el diccionario completo!
+\end{enumerate}
+\end{peligro}
+
+\section{Ejercicios Propuestos (Lógica y Análisis)}
+
+Resuelve estos \textbf{8 ejercicios en papel} aplicando el Método de los 5 Pasos completo antes de consultar el solucionario al final del módulo.
+
+\begin{ejercicio}{1 -- Receta escalable de panqueques}
+Una receta para \textbf{4 personas} requiere 2 huevos, 200 g de harina y 300 ml de leche. Diseña el algoritmo que reciba cuántas personas van a desayunar y calcule cuántos huevos, gramos de harina y ml de leche necesitas.
+\end{ejercicio}
+
+\begin{ejercicio}{2 -- El estudiante distraído (Detective E-P-S)}
+Para el enunciado \textit{``Calcular el precio final de un pantalón sabiendo que tiene un descuento fijo del 20\% sobre su precio original''}, un estudiante puso como entradas: \codigo{precioOriginal}, \codigo{descuento = 20}, \codigo{precioFinal}. Identifica sus errores y escribe la tabla E-P-S y el algoritmo correctos.
+\end{ejercicio}
+
+\begin{ejercicio}{3 -- Conversión de horas}
+Dado un número entero de horas (ejemplo \codigo{5}), calcula a cuántos minutos y a cuántos segundos equivale.
+\end{ejercicio}
+
+\begin{ejercicio}{4 -- Cambio o faltante en la tienda}
+Un cliente compra un producto de precio \codigo{P} y paga con un billete \codigo{B}. Diseña el análisis y algoritmo para saber si alcanza y cuánto cambio entregarle, o cuánto dinero le falta.
+\end{ejercicio}
+
+\begin{ejercicio}{5 -- Intercambio de vasos (Jugo y Agua)}
+Tienes \codigo{vasoA = "Jugo"} y \codigo{vasoB = "Agua"}. Escribe el algoritmo paso a paso para intercambiar sus contenidos sin perder ninguno (pista: usa una tercera variable auxiliar) y haz su prueba de escritorio.
+\end{ejercicio}
+
+\begin{ejercicio}{6 -- Edad y mayoría de edad}
+Dado el año de nacimiento de una persona y el año actual, calcula su edad aproximada e indica si es mayor de edad (\codigo{>= 18} años) o menor de edad.
+\end{ejercicio}
+
+\begin{ejercicio}{7 -- Cazar el error en la prueba de escritorio}
+Un compañero escribió: \texttt{1. Leer a, b} $\rightarrow$ \texttt{2. promedio <- a + b / 2} $\rightarrow$ \texttt{3. Escribir promedio}. Realiza la prueba de escritorio con \codigo{a = 10} y \codigo{b = 20}, encuentra por qué falla y corrígelo.
+\end{ejercicio}
+
+\begin{ejercicio}{8 -- Consumo de gasolina en moto}
+Conoces la distancia de un viaje en km, cuántos kilómetros rinde la moto por galón y el precio de un galón. Calcula cuántos galones consumirás y cuánto dinero gastarás en gasolina.
+\end{ejercicio}
+
+\section{Solucionario Explicado Paso a Paso}
+
+\begin{solucion}{Ejercicios 1 al 4}
+\textbf{Ejercicio 1 (Panqueques):}
+\begin{itemize}
+  \item \textbf{E-P-S:} Entrada: \codigo{personas}. Proceso: \codigo{factor = personas / 4.0}, \codigo{huevos = 2 * factor}, \codigo{harinaGr = 200 * factor}, \codigo{lecheMl = 300 * factor}. Salidas: \codigo{huevos}, \codigo{harinaGr}, \codigo{lecheMl}.
+  \item \textbf{Prueba (\codigo{personas = 6}):} \codigo{factor = 1.5} $\rightarrow$ \codigo{huevos = 3.0}, \codigo{harinaGr = 300}, \codigo{lecheMl = 450}.
+\end{itemize}
+
+\textbf{Ejercicio 2 (Estudiante distraído):}
+\begin{itemize}
+  \item \textbf{Errores:} (1) Pidió \codigo{descuento = 20} como entrada cuando el 20\% es constante fija; (2) puso \codigo{precioFinal} como entrada cuando es la \textbf{salida}.
+  \item \textbf{Corrección:} Entrada: \codigo{precioOriginal}. Proceso: \codigo{descuento = precioOriginal * 0.20}, \codigo{precioFinal = precioOriginal - descuento}. Prueba con \codigo{100000}: \codigo{descuento = 20000}, \codigo{precioFinal = 80000}.
+\end{itemize}
+
+\textbf{Ejercicio 3 (Horas a minutos y segundos):}
+\begin{itemize}
+  \item \textbf{E-P-S:} Entrada: \codigo{horas}. Proceso: \codigo{minutos = horas * 60}, \codigo{segundos = minutos * 60}. Salidas: \codigo{minutos}, \codigo{segundos}.
+  \item \textbf{Prueba (\codigo{horas = 5}):} \codigo{minutos = 300}, \codigo{segundos = 18000}.
+\end{itemize}
+
+\textbf{Ejercicio 4 (Cambio en tienda):}
+\begin{itemize}
+  \item \textbf{E-P-S:} Entradas: \codigo{precioProducto}, \codigo{pagoCliente}. Proceso: si \codigo{pagoCliente >= precioProducto}, \codigo{cambio = pagoCliente - precioProducto}; si no, \codigo{faltante = precioProducto - pagoCliente}.
+  \item \textbf{Prueba:} Con \codigo{P = 12500, B = 20000} $\rightarrow$ \codigo{cambio = 7500}. Con \codigo{P = 12500, B = 10000} $\rightarrow$ \codigo{faltante = 2500}.
+\end{itemize}
+\end{solucion}
+
+\begin{solucion}{Ejercicios 5 al 8}
+\textbf{Ejercicio 5 (Intercambio de vasos):} Si haces \codigo{vasoA <- vasoB} directo, pierdes el jugo. Usa \codigo{vasoExtra}:
+\begin{enumerate}
+  \item \codigo{vasoExtra <- vasoA} \textit{(guarda ``Jugo'')}
+  \item \codigo{vasoA <- vasoB} \textit{(ahora vasoA tiene ``Agua'')}
+  \item \codigo{vasoB <- vasoExtra} \textit{(ahora vasoB tiene ``Jugo'')}
+\end{enumerate}
+
+\textbf{Ejercicio 6 (Edad y mayoría de edad):}
+\begin{itemize}
+  \item \textbf{E-P-S:} Entradas: \codigo{anioNacimiento}, \codigo{anioActual}. Proceso: \texttt{edad = anioActual - anioNacimiento}; si \texttt{edad >= 18} $\rightarrow$ ``Mayor de edad'', si no $\rightarrow$ ``Menor de edad''.
+  \item \textbf{Prueba:} \codigo{2008} y \codigo{2026} $\rightarrow$ \texttt{edad = 18} $\rightarrow$ ``Mayor de edad''. \codigo{2010} y \codigo{2026} $\rightarrow$ \codigo{16} $\rightarrow$ ``Menor de edad''.
+\end{itemize}
+
+\textbf{Ejercicio 7 (Error en promedio):}
+\begin{itemize}
+  \item \textbf{Prueba defectuosa (\texttt{a = 10, b = 20}):} Primero divide \texttt{20 / 2 = 10}, luego suma \texttt{10 + 10 = 20} (¡falso, el promedio es 15!).
+  \item \textbf{Corrección:} \texttt{promedio <- (a + b) / 2.0} $\rightarrow$ \texttt{(10 + 20) / 2.0 = 15.0}.
+\end{itemize}
+
+\textbf{Ejercicio 8 (Gasolina en moto):}
+\begin{itemize}
+  \item \textbf{E-P-S:} Entradas: \codigo{distanciaKm}, \codigo{kmPorGalon}, \codigo{precioGalon}. Proceso: \codigo{galones = distanciaKm / kmPorGalon}, \codigo{costo = galones * precioGalon}.
+  \item \textbf{Prueba (\codigo{240 km}, \codigo{120 km/gal}, \codigo{\$15500}):} \codigo{galones = 2.0}, \codigo{costo = \$31000}.
+\end{itemize}
+\end{solucion}
+
+\end{document}

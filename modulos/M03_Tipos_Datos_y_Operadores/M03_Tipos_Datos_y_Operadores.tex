@@ -1,0 +1,663 @@
+\documentclass[11pt,letterpaper]{article}
+\usepackage{../../latex_common/estilo_monitoria}
+
+\begin{document}
+
+\portadamodulo{03}{Tipos de Datos, Memoria RAM y Operadores}{3.0 horas}{De los casilleros en RAM al cálculo exacto sin trampas en C++}{
+\begin{itemize}
+  \item Visualizar una variable como un casillero etiquetado en la memoria RAM con tipo, nombre y contenido.
+  \item Elegir adecuadamente entre \codigo{int}, \codigo{float}, \codigo{double}, \codigo{char}, \codigo{bool} y \codigo{string}.
+  \item Leer textos completos con espacios usando \codigo{getline(cin, texto)} y limpiar el buffer con \codigo{cin.ignore()}.
+  \item Declarar constantes con \codigo{const} para eliminar números mágicos en algoritmos y parciales.
+  \item Distinguir entre división entera (\codigo{5 / 2 == 2}) y real (\codigo{5.0 / 2 == 2.5}), y dominar el operador módulo (\codigo{\%} / \codigo{MOD}).
+  \item Aplicar precedencia de operadores y conversión explícita (\codigo{static\_cast<double>}) en fórmulas reales.
+\end{itemize}
+}
+
+\tableofcontents
+\vspace{6pt}
+
+\section{La Memoria RAM Explicada ``Para Tontos''}
+
+\begin{paratontos}{¿Qué es realmente una variable en la RAM?}
+Imagina que la memoria \textbf{RAM} de tu computador es un enorme edificio lleno de \textbf{casilleros metálicos}. Cuando tu programa arranca, el sistema operativo te presta casilleros para guardar tus datos mientras el programa corre. Para no perderte, cada vez que declaras una variable ocurren tres cosas:
+\begin{enumerate}
+  \item \textbf{Eliges el tamaño de caja (Tipo):} No guardas un número entero en el mismo tipo de caja que una frase larga o un precio con decimales.
+  \item \textbf{Pegas una etiqueta (Identificador):} En lugar de memorizar la dirección física \codigo{0x7ffe4b}, la bautizas \codigo{edad}, \codigo{precio} o \codigo{promedio}.
+  \item \textbf{Metes un valor inicial (Inicialización):} Si abres un casillero en C++ sin darle valor (\codigo{int x;}), adentro habrá \emph{basura} del programa anterior. ¡Por eso siempre inicializamos (\codigo{int x = 0;})!
+\end{enumerate}
+\end{paratontos}
+
+\imagenmodulo[0.86\linewidth]{ilus_02_variables_ram.jpg}{Analogía visual de la memoria RAM: cada tipo de dato reserva un contenedor adaptado a su información.}
+
+\begin{consejo}{Nombre de la variable vs. Contenido}
+No confundas el letrero del casillero con lo que hay dentro.
+\begin{itemize}
+  \item \codigo{cout << "edad";} imprime literalmente la palabra \textbf{edad}.
+  \item \codigo{cout << edad;} abre el casillero llamado \codigo{edad} y muestra el número que guarda (por ejemplo, \textbf{19}).
+\end{itemize}
+\end{consejo}
+
+\newpage
+\section{Tipos de Datos Fundamentales (PSeInt vs C++)}
+
+\imagenmodulo[0.95\linewidth]{mem_01_variables_ram.png}{Mapa visual de tipos de datos en RAM: tamaño, ejemplos válidos, errores comunes y 3 reglas de oro.}
+
+\begin{center}
+  \small
+  \captionof{table}{Tipos de datos esenciales en el curso (Módulo 03)}
+  \renewcommand{\arraystretch}{1.35}
+  \rowcolors{2}{GrisSuave}{white}
+  \begin{tabularx}{\linewidth}{>{\ttfamily\bfseries\color{AzulMarino}}l >{\ttfamily}l X >{\centering\arraybackslash}p{1.6cm} >{\ttfamily\footnotesize}l}
+    \rowcolor{AzulMarino}
+    \textcolor{white}{\textbf{\sffamily C++}} & \textcolor{white}{\textbf{\sffamily PSeInt}} & \textcolor{white}{\textbf{\sffamily Qué guarda exactamente}} & \textcolor{white}{\textbf{\sffamily Bytes}} & \textcolor{white}{\textbf{\sffamily Ejemplo válido}} \\
+    int & Entero & Enteros sin decimales (positivos, negativos o cero). & 4 & int hijos = 2; \\
+    float & Real & Decimales de precisión sencilla (6--7 dígitos). & 4 & float t = 36.5f; \\
+    double & Real & \textbf{El favorito del curso.} Decimales de alta precisión (15 dígitos). & 8 & double nota = 4.25; \\
+    char & Caracter & Un único símbolo entre \textbf{comillas simples}. & 1 & char grupo = 'A'; \\
+    bool & Logico & Solo \codigo{true} (1) o \codigo{false} (0). & 1 & bool activo = true; \\
+    string & Cadena & Texto de 0 o más caracteres entre \textbf{comillas dobles}. Requiere \codigo{<string>}. & Var. & string nom = "Ana"; \\
+    \bottomrule
+  \end{tabularx}
+\end{center}
+
+\begin{peligro}{Errores clásicos con tipos básicos}
+\begin{itemize}
+  \item \textbf{Guardar decimales en un \codigo{int}:} Si escribes \codigo{int x = 4.99;}, C++ \textbf{no redondea}; corta el decimal y guarda \codigo{4}.
+  \item \textbf{Comillas simples vs. dobles:} \codigo{char letra = "A";} da error de compilación. Un \codigo{char} lleva \textbf{comillas simples} (\codigo{'A'}) y solo admite un carácter.
+  \item \textbf{Imprimir un \codigo{bool}:} Por defecto \codigo{cout} imprime \codigo{1} o \codigo{0}. Si quieres ver \texttt{true} o \texttt{false}, antepone \codigo{boolalpha}: \codigo{cout << boolalpha << activo;}.
+\end{itemize}
+\end{peligro}
+
+\section{Lectura de Texto: \texorpdfstring{\codigo{cin >>}}{cin >>} vs. \texorpdfstring{\codigo{getline()}}{getline()} y \texorpdfstring{\codigo{cin.ignore()}}{cin.ignore()}}
+
+\begin{paratontos}{El fantasma del Enter (\textbackslash n) en el teclado}
+El operador \codigo{cin >> nombre;} se detiene apenas encuentra un \textbf{espacio}. Si escribes \texttt{Laura Sofia}, solo lee \texttt{"Laura"} y deja \texttt{"Sofia"} botado en el buffer del teclado. Para leer frases o nombres completos con espacios se usa \codigo{getline(cin, nombreCompleto);}.
+
+\medskip
+\textbf{¡Pero cuidado!} Si justo antes leíste un número con \codigo{cin >> codigo;}, cuando presionaste \textbf{Enter} quedó un carácter invisible de salto de línea (\codigo{\textbackslash n}) atrapado en el teclado. Si llamas directo a \codigo{getline}, este ve ese \codigo{\textbackslash n} sobrante y se salta la pregunta dejando el texto vacío.
+\end{paratontos}
+
+\begin{lstlisting}[style=cppmonitoria, caption={Patrón seguro para mezclar cin y getline en C++}]
+int codigo = 0;
+string nombreCompleto;
+
+cout << "Codigo: ";
+cin >> codigo;
+cin.ignore(); // Obligatorio: limpia el '\n' que dejo cin >> codigo!
+
+cout << "Nombre completo: ";
+getline(cin, nombreCompleto);
+\end{lstlisting}
+
+\begin{consejo}{¿Cuándo pongo \texttt{cin.ignore()}?}
+Coloca \codigo{cin.ignore();} \textbf{únicamente} cuando vayas a llamar a \codigo{getline(cin, ...)} después de haber usado \codigo{cin >>} (ya sea leyendo un \codigo{int}, \codigo{double} o \codigo{char}). Si dos \codigo{getline} van seguidos, \textbf{no} pongas \codigo{cin.ignore()} entre ellos porque borrarías la primera letra del segundo texto.
+\end{consejo}
+
+\newpage
+\section{Constantes (\texorpdfstring{\codigo{const}}{const}) y Operadores Aritméticos}
+
+Una constante es una caja sellada con candado al nacer: \codigo{const double TASA\_IVA = 0.19;}. Si por accidente intentas cambiarla después, el compilador te detendrá y evitará errores silenciosos. Además, elimina ``números mágicos'' en tus fórmulas.
+
+\begin{tablatraduccion}[Operadores aritméticos y constantes: DFD $\leftrightarrow$ PSeInt $\leftrightarrow$ C++]
+  Constante simbólica & Asignación inicial & TASA\_IVA <- 0.19; & const double TASA\_IVA = 0.19; \\
+  División real & \codigo{a / b} & a / b & 5.0 / 2 o static\_cast<double>(a) / b \\
+  División entera & \codigo{trunc(a / b)} & trunc(a / b) & a / b \ (ambos int) \\
+  Módulo (residuo) & \codigo{a MOD b} & a MOD b & a \% b \ (solo enteros!) \\
+  Asignación compuesta & Proceso \codigo{x <- x + 5} & x <- x + 5; & x += 5; \ (o -=, *=, /=, \%=) \\
+  Incremento en 1 & Proceso \codigo{c <- c + 1} & c <- c + 1; & c++; \ (o ++c;) \\
+\end{tablatraduccion}
+
+\section{División Entera vs. Real, Módulo y Precedencia}
+
+\begin{peligro}{La trampa mortal de \texttt{5 / 2} y \texttt{1 / 2} en C++}
+En PSeInt el operador \codigo{/} \textbf{siempre} devuelve un número \codigo{Real} (\codigo{5 / 2 = 2.5}), por lo que para obtener cociente entero debes usar \codigo{trunc(5 / 2)}.
+En \textbf{C++}, en cambio, si ambos lados de \codigo{/} son enteros, ¡C++ corta la parte decimal sin avisar!
+\begin{itemize}
+  \item \codigo{5 / 2} vale \textbf{\codigo{2}} (NO \codigo{2.5}).
+  \item \codigo{1 / 2 * aceleracion * t * t} vale \textbf{\codigo{0}} siempre, porque \codigo{1 / 2 == 0}. Escribe \codigo{0.5} o \codigo{1.0 / 2.0}.
+  \item \codigo{(9 / 5) * celsius + 32} falla gravemente porque \codigo{9 / 5 == 1}. Escribe \codigo{(9.0 / 5.0)}.
+\end{itemize}
+\end{peligro}
+
+\subsection{El superpoder del módulo (\texorpdfstring{\codigo{\%} / \codigo{MOD}}{\% / MOD})}
+El operador módulo devuelve el \textbf{residuo exacto} de la división entera (por ejemplo, \codigo{17 \% 5 == 2}, porque $5 \times 3 = 15$ y sobran $2$). Sus usos estrella en parciales son:
+\begin{enumerate}
+  \item \textbf{Paridad y múltiplos:} \codigo{n \% 2 == 0} (par), \codigo{n \% k == 0} (múltiplo de $k$).
+  \item \textbf{Desglose de dinero o tiempo:} Cociente con \codigo{/} para billetes o horas; residuo con \codigo{\%} para lo que falta repartir.
+  \item \textbf{Extracción de dígitos:} \codigo{numero \% 10} saca el último dígito; \codigo{numero / 10} elimina el último dígito.
+\end{enumerate}
+Recuerda que en C++, \codigo{\%} funciona \textbf{exclusivamente} con números enteros.
+
+\subsection{Precedencia de operadores y casting explícito}
+El orden de evaluación de mayor a menor prioridad es:
+\begin{center}
+  \textbf{1. Paréntesis \codigo{()}} $\longrightarrow$ \textbf{2. Signo unario / \codigo{static\_cast}} $\longrightarrow$ \textbf{3. \codigo{*}, \codigo{/}, \codigo{\%}} $\longrightarrow$ \textbf{4. \codigo{+}, \codigo{-}} $\longrightarrow$ \textbf{5. \codigo{=}, \codigo{+=}}
+\end{center}
+Para dividir dos variables enteras \codigo{suma} y \codigo{n} sin perder decimales, convierte explícitamente \emph{antes} de dividir:
+\begin{lstlisting}[style=cppmonitoria, caption={Uso correcto vs. incorrecto de static\_cast}]
+int suma = 17, n = 4;
+double mal_1 = suma / n;                        // 4.0 (dividio enteros primero!)
+double mal_2 = static_cast<double>(suma / n);   // 4.0 (convirtio cuando ya era tarde!)
+double bien  = static_cast<double>(suma) / n;   // 4.25 (convierte suma a 17.0 antes de dividir)
+\end{lstlisting}
+
+\section{Siete Problemas Resueltos Paso a Paso}
+
+% ---------------- P01 ----------------
+\subsection{Problema 1: Desglose Óptimo de Billetes en Cajero Automático}
+\textbf{Enunciado:} Dado un monto entero de dinero en pesos (ej. \texttt{188500}), calcula la menor cantidad de billetes de \texttt{\$50.000}, \texttt{\$20.000}, \texttt{\$10.000}, \texttt{\$5.000}, \texttt{\$2.000} y \texttt{\$1.000}, más el sobrante en monedas.
+
+\begin{analisis}{Desglose de billetes (EPS)}
+\begin{itemize}
+  \item \textbf{Entradas:} \codigo{monto} (entero positivo).
+  \item \textbf{Proceso:} Guardar \codigo{resto = monto}. De mayor a menor denominación: calcular cantidad con división entera y actualizar \codigo{resto} con el residuo (\codigo{\%=} o \codigo{MOD}).
+  \item \textbf{Salidas:} \codigo{b50, b20, b10, b5, b2, b1} y \codigo{sobrante}.
+\end{itemize}
+\end{analisis}
+
+\lstinputlisting[style=pseintmonitoria, caption={PSeInt --- p01\_desglose\_billetes.psc}]{pseint/p01_desglose_billetes.psc}
+\lstinputlisting[style=cppmonitoria, caption={C++ --- p01\_desglose\_billetes.cpp}]{cpp/p01_desglose_billetes.cpp}
+
+\begin{pruebaescritorio}{Entrada \texttt{monto = 188500}}
+\centering\small
+\begin{tabular}{c l l r}
+\toprule
+\textbf{Paso} & \textbf{Operación} & \textbf{Resultado billetes} & \textbf{\codigo{resto} final} \\
+\midrule
+1 & Inicio (\codigo{resto = monto}) & --- & 188500 \\
+2 & \codigo{188500 / 50000} y \codigo{\% 50000} & \codigo{b50 = 3} & 38500 \\
+3 & \codigo{38500 / 20000} y \codigo{\% 20000} & \codigo{b20 = 1} & 18500 \\
+4 & \codigo{18500 / 10000} y \codigo{\% 10000} & \codigo{b10 = 1} & 8500 \\
+5 & \codigo{8500 / 5000} y \codigo{\% 5000} & \codigo{b5 = 1} & 3500 \\
+6 & \codigo{3500 / 2000} y \codigo{\% 2000} & \codigo{b2 = 1} & 1500 \\
+7 & \codigo{1500 / 1000} y \codigo{\% 1000} & \codigo{b1 = 1} & \codigo{sobrante = 500} \\
+\bottomrule
+\end{tabular}
+\end{pruebaescritorio}
+
+% ---------------- P02 ----------------
+\subsection{Problema 2: Conversión de Segundos a Horas, Minutos y Segundos}
+\textbf{Enunciado:} Lee una cantidad entera de segundos totales (ej. \texttt{3725}) y conviértela a horas, minutos y segundos.
+
+\begin{analisis}{Conversor de tiempo (EPS)}
+\begin{itemize}
+  \item \textbf{Entradas:} \codigo{totalSegundos} (\codigo{int}). Constantes: \codigo{SEG\_POR\_HORA = 3600}, \codigo{SEG\_POR\_MIN = 60}.
+  \item \textbf{Proceso:} \codigo{horas = totalSegundos / 3600}, \codigo{resto = totalSegundos \% 3600}, \codigo{minutos = resto / 60}, \codigo{segundos = resto \% 60}.
+  \item \textbf{Salidas:} \codigo{horas}, \codigo{minutos}, \codigo{segundos}.
+\end{itemize}
+\end{analisis}
+
+\lstinputlisting[style=pseintmonitoria, caption={PSeInt --- p02\_conversion\_tiempo.psc}]{pseint/p02_conversion_tiempo.psc}
+\lstinputlisting[style=cppmonitoria, caption={C++ --- p02\_conversion\_tiempo.cpp}]{cpp/p02_conversion_tiempo.cpp}
+
+\begin{pruebaescritorio}{Entrada \texttt{totalSegundos = 3725}}
+\centering\small
+\begin{tabular}{l l r}
+\toprule
+\textbf{Variable} & \textbf{Expresión evaluada} & \textbf{Valor} \\
+\midrule
+\codigo{horas} & \codigo{3725 / 3600} & 1 \\
+\codigo{resto} & \codigo{3725 \% 3600} & 125 \\
+\codigo{minutos} & \codigo{125 / 60} & 2 \\
+\codigo{segundos} & \codigo{125 \% 60} & 5 \\
+\bottomrule
+\end{tabular}
+\end{pruebaescritorio}
+
+% ---------------- P03 ----------------
+\subsection{Problema 3: Promedio Ponderado con Nombre Completo}
+\textbf{Enunciado:} Lee el código numérico del estudiante, su nombre completo con espacios y tres notas (30\%, 30\%, 40\%). Calcula e imprime su definitiva con dos decimales.
+
+\begin{analisis}{Boletín académico (EPS)}
+\begin{itemize}
+  \item \textbf{Entradas:} \codigo{codigo} (\codigo{int}), \codigo{nombreCompleto} (\codigo{string}), \codigo{nota1, nota2, nota3} (\codigo{double}).
+  \item \textbf{Proceso:} Usar \codigo{cin.ignore()} tras leer \codigo{codigo} para no arruinar \codigo{getline(cin, nombreCompleto)}. Multiplicar cada nota por su constante de peso.
+  \item \textbf{Salidas:} Código, nombre y definitiva con \codigo{fixed << setprecision(2)}.
+\end{itemize}
+\end{analisis}
+
+\lstinputlisting[style=pseintmonitoria, caption={PSeInt --- p03\_promedio\_ponderado.psc}]{pseint/p03_promedio_ponderado.psc}
+\lstinputlisting[style=cppmonitoria, caption={C++ --- p03\_promedio\_ponderado.cpp}]{cpp/p03_promedio_ponderado.cpp}
+
+\begin{pruebaescritorio}{Entrada: \texttt{2026101}, \texttt{"Laura Sofia Perez"}, notas \texttt{4.2}, \texttt{3.8}, \texttt{4.5}}
+\centering\small
+\begin{tabular}{l l l}
+\toprule
+\textbf{Paso} & \textbf{Operación / Buffer} & \textbf{Resultado} \\
+\midrule
+1 & \codigo{cin >> codigo} & \codigo{codigo = 2026101} (deja \texttt{\textbackslash n}) \\
+2 & \codigo{cin.ignore()} & Limpia el \texttt{\textbackslash n} sobrante \\
+3 & \codigo{getline(cin, nombreCompleto)} & \texttt{"Laura Sofia Perez"} \\
+4 & \codigo{4.2*0.30 + 3.8*0.30 + 4.5*0.40} & \codigo{1.26 + 1.14 + 1.80 = 4.20} \\
+\bottomrule
+\end{tabular}
+\end{pruebaescritorio}
+
+% ---------------- P04 ----------------
+\subsection{Problema 4: Física Básica (MRUV y Energía Cinética)}
+\textbf{Enunciado:} Dadas la masa $m$ (kg), velocidad inicial $v_0$ (m/s), aceleración $a$ ($\text{m/s}^2$) y tiempo $t$ (s), calcula distancia $d = v_0 t + \frac{1}{2}at^2$, velocidad final $v_f = v_0 + at$ (en m/s y km/h) y energía cinética $E_c = \frac{1}{2}mv_f^2$.
+
+\begin{analisis}{Cinemática MRUV (EPS)}
+\begin{itemize}
+  \item \textbf{Entradas:} \codigo{masa}, \codigo{vInicial}, \codigo{aceleracion}, \codigo{tiempo} (\codigo{double}).
+  \item \textbf{Proceso:} Evitar \codigo{1/2} (da 0 en C++); escribir \codigo{0.5}. Multiplicar $v_f$ por \codigo{FACTOR\_KMH = 3.6}.
+  \item \textbf{Salidas:} Distancia, velocidad final (m/s y km/h) y energía cinética.
+\end{itemize}
+\end{analisis}
+
+\lstinputlisting[style=pseintmonitoria, caption={PSeInt --- p04\_fisica\_mru\_energia.psc}]{pseint/p04_fisica_mru_energia.psc}
+\lstinputlisting[style=cppmonitoria, caption={C++ --- p04\_fisica\_mru\_energia.cpp}]{cpp/p04_fisica_mru_energia.cpp}
+
+\begin{pruebaescritorio}{Entrada: \texttt{masa = 10}, \texttt{vInicial = 5}, \texttt{aceleracion = 2}, \texttt{tiempo = 4}}
+\centering\small
+\begin{tabular}{l l r}
+\toprule
+\textbf{Variable} & \textbf{Cálculo} & \textbf{Valor} \\
+\midrule
+\codigo{distancia} & \codigo{5*4 + 0.5*2*4*4 = 20 + 16} & 36.00 m \\
+\codigo{vFinal} & \codigo{5 + 2*4} & 13.00 m/s \\
+\codigo{vFinalKmh} & \codigo{13 * 3.6} & 46.80 km/h \\
+\codigo{energiaCinetica} & \codigo{0.5 * 10 * 13 * 13} & 845.00 J \\
+\bottomrule
+\end{tabular}
+\end{pruebaescritorio}
+
+% ---------------- P05 ----------------
+\subsection{Problema 5: Ficha Médica e Índice de Masa Corporal (IMC)}
+\textbf{Enunciado:} Lee el sexo (\codigo{char}), si hace deporte (\codigo{bool}), peso en kg (\codigo{double}) y estatura en centímetros enteros (\codigo{int}). Convierte la estatura a metros con \emph{casting} explícito y calcula el IMC.
+
+\begin{analisis}{Cálculo de IMC con casting (EPS)}
+\begin{itemize}
+  \item \textbf{Entradas:} \codigo{sexo} (\codigo{char}), \codigo{haceDeporte} (\codigo{bool}), \codigo{pesoKg} (\codigo{double}), \codigo{estaturaCm} (\codigo{int}).
+  \item \textbf{Proceso:} Convertir con \codigo{static\_cast<double>(estaturaCm) / 100.0} para evitar que \codigo{175 / 100} dé \codigo{1}. Calcular \codigo{imc = pesoKg / (estaturaM * estaturaM)}.
+  \item \textbf{Salidas:} Ficha con \codigo{boolalpha}, estatura en metros e IMC a 2 decimales.
+\end{itemize}
+\end{analisis}
+
+\lstinputlisting[style=pseintmonitoria, caption={PSeInt --- p05\_calculo\_imc.psc}]{pseint/p05_calculo_imc.psc}
+\lstinputlisting[style=cppmonitoria, caption={C++ --- p05\_calculo\_imc.cpp}]{cpp/p05_calculo_imc.cpp}
+
+\begin{pruebaescritorio}{Entrada: \texttt{sexo='M'}, \texttt{haceDeporte=1}, \texttt{pesoKg=68.5}, \texttt{estaturaCm=175}}
+\centering\small
+\begin{tabular}{l l l}
+\toprule
+\textbf{Variable} & \textbf{Evaluación} & \textbf{Salida} \\
+\midrule
+\codigo{haceDeporte} & \codigo{1} con \codigo{boolalpha} & \texttt{true} \\
+\codigo{estaturaM} & \codigo{static\_cast<double>(175) / 100.0} & 1.75 m \\
+\codigo{imc} & \codigo{68.5 / (1.75 * 1.75) = 68.5 / 3.0625} & 22.37 \\
+\bottomrule
+\end{tabular}
+\end{pruebaescritorio}
+
+% ---------------- P06 ----------------
+\subsection{Problema 6: Factura Comercial con Descuento e IVA}
+\textbf{Enunciado:} Solicita categoría (\codigo{char}), nombre del producto (\codigo{string}), precio unitario (\codigo{double}), cantidad (\codigo{int}) y porcentaje de descuento (\codigo{double}). Calcula subtotal, descuento, base gravable, IVA (19\%) y total.
+
+\begin{analisis}{Tirilla comercial (EPS)}
+\begin{itemize}
+  \item \textbf{Entradas:} \codigo{categoria}, \codigo{producto}, \codigo{precioUnitario}, \codigo{cantidad}, \codigo{porcDescuento}. Constante: \codigo{TASA\_IVA = 0.19}.
+  \item \textbf{Proceso:} \codigo{cin.ignore()} tras \codigo{categoria}. Aplicar descuento antes del IVA: \codigo{base = subtotal - descuento}, \codigo{iva = base * TASA\_IVA}, \codigo{total = base + iva}.
+  \item \textbf{Salidas:} Tirilla detallada a 2 decimales.
+\end{itemize}
+\end{analisis}
+
+\lstinputlisting[style=pseintmonitoria, caption={PSeInt --- p06\_factura\_iva.psc}]{pseint/p06_factura_iva.psc}
+\lstinputlisting[style=cppmonitoria, caption={C++ --- p06\_factura\_iva.cpp}]{cpp/p06_factura_iva.cpp}
+
+\begin{pruebaescritorio}{Entrada: \texttt{'A'}, \texttt{"Cuaderno Profesional"}, \texttt{12000}, \texttt{3}, \texttt{10\%}}
+\centering\small
+\begin{tabular}{l l r}
+\toprule
+\textbf{Concepto} & \textbf{Cálculo} & \textbf{Valor} \\
+\midrule
+\codigo{subtotal} & \codigo{12000 * 3} & \$36000.00 \\
+\codigo{descuento} & \codigo{36000 * (10 / 100.0)} & \$3600.00 \\
+\codigo{baseGravable} & \codigo{36000 - 3600} & \$32400.00 \\
+\codigo{valorIva} & \codigo{32400 * 0.19} & \$6156.00 \\
+\codigo{totalPagar} & \codigo{32400 + 6156} & \$38556.00 \\
+\bottomrule
+\end{tabular}
+\end{pruebaescritorio}
+
+% ---------------- P07 ----------------
+\subsection{Problema 7: Extracción e Inversión de Dígitos (4 Cifras)}
+\textbf{Enunciado:} Dado un número entero positivo de 4 cifras (ej. \texttt{4829}), extrae sus cuatro dígitos por separado, calcula su suma y construye el número invertido (\texttt{9284}).
+
+\begin{analisis}{Descomposición posicional base 10 (EPS)}
+\begin{itemize}
+  \item \textbf{Entradas:} \codigo{numero} (\codigo{int} de 4 cifras).
+  \item \textbf{Proceso:} \codigo{dMiles = numero / 1000}; \codigo{dCentenas = (numero / 100) \% 10}; \codigo{dDecenas = (numero / 10) \% 10}; \codigo{dUnidades = numero \% 10}. Reconstruir \codigo{invertido = dUnidades*1000 + dDecenas*100 + dCentenas*10 + dMiles}.
+  \item \textbf{Salidas:} Cuatro dígitos, suma e invertido.
+\end{itemize}
+\end{analisis}
+
+\lstinputlisting[style=pseintmonitoria, caption={PSeInt --- p07\_digitos\_numero.psc}]{pseint/p07_digitos_numero.psc}
+\lstinputlisting[style=cppmonitoria, caption={C++ --- p07\_digitos\_numero.cpp}]{cpp/p07_digitos_numero.cpp}
+
+\begin{pruebaescritorio}{Entrada \texttt{numero = 4829}}
+\centering\small
+\begin{tabular}{l l r}
+\toprule
+\textbf{Variable} & \textbf{Operación} & \textbf{Valor} \\
+\midrule
+\codigo{dMiles} & \codigo{4829 / 1000} & 4 \\
+\codigo{dCentenas} & \codigo{(4829 / 100) \% 10 = 48 \% 10} & 8 \\
+\codigo{dDecenas} & \codigo{(4829 / 10) \% 10 = 482 \% 10} & 2 \\
+\codigo{dUnidades} & \codigo{4829 \% 10} & 9 \\
+\codigo{sumaDigitos} & \codigo{4 + 8 + 2 + 9} & 23 \\
+\codigo{invertido} & \codigo{9*1000 + 2*100 + 8*10 + 4} & 9284 \\
+\bottomrule
+\end{tabular}
+\end{pruebaescritorio}
+
+\section{Doce Ejercicios Propuestos (Taller Práctico)}
+
+Resuelve cada problema de forma \textbf{puramente secuencial} (sin condicionales ni ciclos todavía), trazando primero su análisis EPS y prueba de escritorio.
+
+\begin{ejercicio}{1. Conversor Térmico}
+Lee una temperatura en grados Celsius (\codigo{double}) y muéstrala convertida a Fahrenheit ($F = \frac{9}{5}C + 32$) y Kelvin ($K = C + 273.15$).\\
+\textbf{Pista del Monitor:} ¡Cuidado con \codigo{9 / 5} en C++! Usa \codigo{9.0 / 5.0} y define \codigo{const double OFFSET\_KELVIN = 273.15;}.
+\end{ejercicio}
+
+\begin{ejercicio}{2. Reparto Exacto de Dulces}
+Se tienen \codigo{D} dulces enteros para repartir equitativamente entre \codigo{N} niños (\codigo{int}). Muestra cuántos recibe cada niño y cuántos sobran en la bolsa.\\
+\textbf{Pista del Monitor:} División entera \codigo{/} para el reparto y módulo \codigo{\%} para el sobrante.
+\end{ejercicio}
+
+\begin{ejercicio}{3. Colilla de Nómina}
+Lee el documento (\codigo{int}), el nombre completo del empleado (\codigo{string}), su salario base (\codigo{double}) y cantidad de horas extras (\codigo{int}, pagadas a \texttt{\$12.500} constantes). Descuenta 4\% de salud y 4\% de pensión sobre el devengado.\\
+\textbf{Pista del Monitor:} No olvides \codigo{cin.ignore()} entre el documento y \codigo{getline}.
+\end{ejercicio}
+
+\begin{ejercicio}{4. Área de un Trapecio}
+Lee base mayor $B$, base menor $b$ y altura $h$ como \codigo{double}, y calcula $A = \frac{(B + b)\cdot h}{2}$.\\
+\textbf{Pista del Monitor:} Sin paréntesis en \codigo{(B + b)}, C++ multiplicará primero \codigo{b * h}.
+\end{ejercicio}
+
+\begin{ejercicio}{5. Calendario Simplificado}
+Dado un total de días enteros (ej. \texttt{800}), calcula cuántos años completos (de 365 días), semanas completas (de 7 días) y días sueltos representa.\\
+\textbf{Pista del Monitor:} Mismo patrón encadenado que el conversor de segundos: primero \codigo{/ 365} y \codigo{\% 365}, luego \codigo{/ 7} y \codigo{\% 7}.
+\end{ejercicio}
+
+\begin{ejercicio}{6. Intercambio de Casilleros (Swap)}
+Lee dos enteros \codigo{a} y \codigo{b}, muéstralos antes del intercambio, intercambia sus valores usando una variable auxiliar \codigo{aux} y muéstralos después. \emph{Reto extra:} hazlo sin auxiliar usando sumas y restas.\\
+\textbf{Pista del Monitor:} Si haces \codigo{a = b;} antes de respaldar \codigo{a} en \codigo{aux}, pierdes el dato original.
+\end{ejercicio}
+
+\begin{ejercicio}{7. Predicción de Precedencia (En Papel y Comprobación)}
+Dados \codigo{int x = 7, y = 2;} y \codigo{double z = 3.0;}, predice el valor exacto y tipo resultante de:\\
+a) \codigo{x / y + z} \quad b) \codigo{static\_cast<double>(x) / y} \quad c) \codigo{x \% y * 4 + 1} \quad d) \codigo{(x + y) / 2}\\
+\textbf{Pista del Monitor:} Identifica primero qué parejas de operandos son ambos \codigo{int}.
+\end{ejercicio}
+
+\begin{ejercicio}{8. Distancia Euclidiana entre Dos Puntos}
+Lee las coordenadas $(x_1, y_1)$ y $(x_2, y_2)$ como \codigo{double} y calcula $d = \sqrt{(x_2 - x_1)^2 + (y_2 - y_1)^2}$.\\
+\textbf{Pista del Monitor:} Incluye \codigo{<cmath>} para usar \codigo{sqrt(...)}.
+\end{ejercicio}
+
+\begin{ejercicio}{9. Cuenta de Restaurante entre Amigos}
+Lee el valor de la cuenta (\codigo{double}), el porcentaje de propina (\codigo{double}, ej. \texttt{10}) y la cantidad de amigos (\codigo{int}). Calcula el total y cuánto paga cada persona.\\
+\textbf{Pista del Monitor:} Usa \codigo{static\_cast<double>(amigos)} en la división para reforzar el hábito del casting.
+\end{ejercicio}
+
+\begin{ejercicio}{10. Ficha de Paciente Veterinario}
+Lee la edad en años (\codigo{int}), nombre completo de la mascota (\codigo{string}), inicial del tamaño (\codigo{char}), si tiene vacunas al día (\codigo{bool}: 1/0) y peso en kg (\codigo{double}). Imprime la ficha con \codigo{boolalpha} y 1 decimal.\\
+\textbf{Pista del Monitor:} Revisa dónde va \codigo{cin.ignore()} para no perder el nombre de la mascota.
+\end{ejercicio}
+
+\begin{ejercicio}{11. Inversión de Extremos en 3 Cifras}
+Dado un entero positivo de 3 cifras (ej. \texttt{378}), intercambia la centena con la unidad (\texttt{873}) y calcula el producto de sus 3 dígitos.\\
+\textbf{Pista del Monitor:} Extrae \codigo{c = n / 100}, \codigo{d = (n / 10) \% 10}, \codigo{u = n \% 10}.
+\end{ejercicio}
+
+\begin{ejercicio}{12. Costo de Viaje por Kilómetro}
+Lee distancia recorrida (km) y galones consumidos (\codigo{double}). Con la constante \codigo{PRECIO\_GALON = 15800.0}, calcula el rendimiento (km/galón), costo total y costo por kilómetro.\\
+\textbf{Pista del Monitor:} Costo por kilómetro = \codigo{costoTotal / distancia}.
+\end{ejercicio}
+
+\section{Solucionario Completo Paso a Paso}
+
+\begin{solucion}{Ejercicio 1 --- Conversor Térmico}
+\textbf{EPS:} Entrada \codigo{celsius}. Proceso: \codigo{f = (9.0 / 5.0) * c + 32.0}, \codigo{k = c + 273.15}.\\
+\textbf{Prueba de escritorio (\codigo{c = 25.0}):} $F = 1.8 \times 25.0 + 32.0 = 77.00^\circ\text{F}$; $K = 25.0 + 273.15 = 298.15\text{ K}$.
+\end{solucion}
+\begin{lstlisting}[style=cppmonitoria]
+#include <iostream>
+#include <iomanip>
+using namespace std;
+int main() {
+    const double OFFSET_KELVIN = 273.15;
+    double celsius = 0.0;
+    cout << "Temperatura en Celsius: ";
+    cin >> celsius;
+    double fahrenheit = (9.0 / 5.0) * celsius + 32.0;
+    double kelvin = celsius + OFFSET_KELVIN;
+    cout << fixed << setprecision(2);
+    cout << "Fahrenheit: " << fahrenheit << " F | Kelvin: " << kelvin << " K" << endl;
+    return 0;
+}
+\end{lstlisting}
+
+\begin{solucion}{Ejercicio 2 --- Reparto Exacto de Dulces}
+\textbf{EPS:} Entradas \codigo{dulces, ninos} (\codigo{int}). Salidas: \codigo{porNino = dulces / ninos}, \codigo{sobran = dulces \% ninos}.\\
+\textbf{Prueba de escritorio (\codigo{dulces = 47, ninos = 6}):} \codigo{porNino = 7}, \codigo{sobran = 5} ($6 \times 7 + 5 = 47$).
+\end{solucion}
+\begin{lstlisting}[style=cppmonitoria]
+#include <iostream>
+using namespace std;
+int main() {
+    int dulces = 0, ninos = 1;
+    cout << "Cantidad de dulces y cantidad de ninos: ";
+    cin >> dulces >> ninos;
+    int porNino = dulces / ninos;
+    int sobran = dulces % ninos;
+    cout << "Cada nino recibe: " << porNino << " | Sobran: " << sobran << endl;
+    return 0;
+}
+\end{lstlisting}
+
+\begin{solucion}{Ejercicio 3 --- Colilla de Nómina}
+\textbf{EPS:} Entradas \codigo{doc, nombre, salarioBase, horasExtra}. Devengado = \codigo{salarioBase + horasExtra * 12500.0}; descuentos de 4\% salud y 4\% pensión.\\
+\textbf{Prueba de escritorio (\codigo{salario = 1500000, extras = 4}):} Devengado \texttt{\$1550000.00}, salud \texttt{\$62000.00}, pensión \texttt{\$62000.00}, neto \texttt{\$1426000.00}.
+\end{solucion}
+\begin{lstlisting}[style=cppmonitoria]
+#include <iostream>
+#include <string>
+#include <iomanip>
+using namespace std;
+int main() {
+    const double VALOR_EXTRA = 12500.0, PORC_SALUD = 0.04, PORC_PENSION = 0.04;
+    int doc = 0, horasExtra = 0;
+    string nombre;
+    double salarioBase = 0.0;
+    cout << "Documento: "; cin >> doc;
+    cin.ignore();
+    cout << "Nombre completo: "; getline(cin, nombre);
+    cout << "Salario base y horas extra: "; cin >> salarioBase >> horasExtra;
+    double devengado = salarioBase + (horasExtra * VALOR_EXTRA);
+    double neto = devengado - (devengado * PORC_SALUD) - (devengado * PORC_PENSION);
+    cout << fixed << setprecision(2);
+    cout << "Empleado: " << nombre << " | Devengado: $" << devengado << " | Neto: $" << neto << endl;
+    return 0;
+}
+\end{lstlisting}
+
+\begin{solucion}{Ejercicio 4 --- Área de un Trapecio}
+\textbf{EPS:} Entradas \codigo{B, b, h}. Proceso: \codigo{area = ((B + b) * h) / 2.0}.\\
+\textbf{Prueba de escritorio (\codigo{B = 10, b = 6, h = 4}):} $(16 \times 4) / 2.0 = 32.00$.
+\end{solucion}
+\begin{lstlisting}[style=cppmonitoria]
+#include <iostream>
+#include <iomanip>
+using namespace std;
+int main() {
+    double baseMayor = 0.0, baseMenor = 0.0, altura = 0.0;
+    cout << "Base mayor, base menor y altura: ";
+    cin >> baseMayor >> baseMenor >> altura;
+    double area = ((baseMayor + baseMenor) * altura) / 2.0;
+    cout << fixed << setprecision(2) << "Area del trapecio: " << area << endl;
+    return 0;
+}
+\end{lstlisting}
+
+\begin{solucion}{Ejercicio 5 --- Calendario Simplificado}
+\textbf{EPS:} Entrada \codigo{totalDias}. Proceso: \codigo{anios = totalDias / 365}, \codigo{resto = totalDias \% 365}, \codigo{semanas = resto / 7}, \codigo{dias = resto \% 7}.\\
+\textbf{Prueba de escritorio (\codigo{totalDias = 800}):} \codigo{anios = 2}, \codigo{resto = 70}, \codigo{semanas = 10}, \codigo{dias = 0}.
+\end{solucion}
+\begin{lstlisting}[style=cppmonitoria]
+#include <iostream>
+using namespace std;
+int main() {
+    const int DIAS_ANIO = 365, DIAS_SEMANA = 7;
+    int totalDias = 0;
+    cout << "Total de dias: "; cin >> totalDias;
+    int anios = totalDias / DIAS_ANIO;
+    int resto = totalDias % DIAS_ANIO;
+    int semanas = resto / DIAS_SEMANA;
+    int dias = resto % DIAS_SEMANA;
+    cout << anios << " anio(s), " << semanas << " semana(s), " << dias << " dia(s)." << endl;
+    return 0;
+}
+\end{lstlisting}
+
+\begin{solucion}{Ejercicio 6 --- Intercambio de Casilleros (Swap)}
+\textbf{EPS:} Entradas \codigo{a, b}. Proceso: \codigo{aux = a; a = b; b = aux;}. Sin auxiliar: \codigo{a = a + b; b = a - b; a = a - b;}.\\
+\textbf{Prueba de escritorio (\codigo{a = 12, b = 99}):} \codigo{aux = 12} $\rightarrow$ \codigo{a = 99} $\rightarrow$ \codigo{b = 12}.
+\end{solucion}
+\begin{lstlisting}[style=cppmonitoria]
+#include <iostream>
+using namespace std;
+int main() {
+    int a = 0, b = 0;
+    cout << "Ingrese a y b: "; cin >> a >> b;
+    int aux = a;
+    a = b;
+    b = aux;
+    cout << "Despues del intercambio: a=" << a << ", b=" << b << endl;
+    return 0;
+}
+\end{lstlisting}
+
+\begin{solucion}{Ejercicio 7 --- Predicción de Precedencia (\texttt{x = 7, y = 2, z = 3.0})}
+\centering\small
+\begin{tabular}{l l l}
+\toprule
+\textbf{Expresión} & \textbf{Evaluación paso a paso} & \textbf{Resultado} \\
+\midrule
+a) \codigo{x / y + z} & \codigo{7 / 2 = 3} (entero), luego \codigo{3 + 3.0} & \codigo{6.0} (\codigo{double}) \\
+b) \codigo{static\_cast<double>(x) / y} & \codigo{7.0 / 2} & \codigo{3.5} (\codigo{double}) \\
+c) \codigo{x \% y * 4 + 1} & \codigo{7 \% 2 = 1}, \codigo{1 * 4 = 4}, \codigo{4 + 1} & \codigo{5} (\codigo{int}) \\
+d) \codigo{(x + y) / 2} & \codigo{9 / 2} (ambos enteros!) & \codigo{4} (\codigo{int}) \\
+\bottomrule
+\end{tabular}
+\end{solucion}
+
+\begin{solucion}{Ejercicio 8 --- Distancia Euclidiana entre Dos Puntos}
+\textbf{EPS:} Entradas \codigo{x1, y1, x2, y2}. Proceso: \codigo{dx = x2 - x1}, \codigo{dy = y2 - y1}, \codigo{d = sqrt(dx*dx + dy*dy)}.\\
+\textbf{Prueba de escritorio (\codigo{(1,2)} y \codigo{(4,6)}):} \codigo{dx = 3}, \codigo{dy = 4}, $\sqrt{9 + 16} = 5.00$.
+\end{solucion}
+\begin{lstlisting}[style=cppmonitoria]
+#include <iostream>
+#include <cmath>
+#include <iomanip>
+using namespace std;
+int main() {
+    double x1 = 0.0, y1 = 0.0, x2 = 0.0, y2 = 0.0;
+    cout << "Punto 1 (x1 y1) y Punto 2 (x2 y2): ";
+    cin >> x1 >> y1 >> x2 >> y2;
+    double dx = x2 - x1, dy = y2 - y1;
+    double distancia = sqrt(dx * dx + dy * dy);
+    cout << fixed << setprecision(2) << "Distancia: " << distancia << endl;
+    return 0;
+}
+\end{lstlisting}
+
+\begin{solucion}{Ejercicio 9 --- Cuenta de Restaurante entre Amigos}
+\textbf{EPS:} Entradas \codigo{cuenta}, \codigo{porcPropina}, \codigo{amigos}. Proceso: \texttt{total = cuenta + cuenta * (porcPropina / 100.0)}, \texttt{porPersona = total / static\_cast<double>(amigos)}.\\
+\textbf{Prueba de escritorio (\codigo{100000, 10\%, 4 amigos}):} \codigo{total = 110000.00}, \codigo{porPersona = 27500.00}.
+\end{solucion}
+\begin{lstlisting}[style=cppmonitoria]
+#include <iostream>
+#include <iomanip>
+using namespace std;
+int main() {
+    double cuenta = 0.0, porcPropina = 0.0;
+    int amigos = 1;
+    cout << "Cuenta, % propina y amigos: ";
+    cin >> cuenta >> porcPropina >> amigos;
+    double total = cuenta + cuenta * (porcPropina / 100.0);
+    double porPersona = total / static_cast<double>(amigos);
+    cout << fixed << setprecision(2);
+    cout << "Total: $" << total << " | Por persona: $" << porPersona << endl;
+    return 0;
+}
+\end{lstlisting}
+
+\begin{solucion}{Ejercicio 10 --- Ficha de Paciente Veterinario}
+\textbf{EPS:} Entradas \codigo{edad, nombre, tamano, vacunado, peso}. Clave: \codigo{cin.ignore()} tras \codigo{edad}.\\
+\textbf{Prueba de escritorio (\codigo{3, "Max Luna", 'M', 1, 14.5}):} Imprime \texttt{Mascota: Max Luna | Edad: 3 | Tamano: M | Vacunado: true | Peso: 14.5 kg}.
+\end{solucion}
+\begin{lstlisting}[style=cppmonitoria]
+#include <iostream>
+#include <string>
+#include <iomanip>
+using namespace std;
+int main() {
+    int edad = 0; string nombre; char tamano = ' '; bool vacunado = false; double peso = 0.0;
+    cout << "Edad (anios): "; cin >> edad;
+    cin.ignore();
+    cout << "Nombre mascota: "; getline(cin, nombre);
+    cout << "Tamano (P/M/G), vacunado (1/0) y peso (kg): ";
+    cin >> tamano >> vacunado >> peso;
+    cout << fixed << setprecision(1);
+    cout << "Mascota: " << nombre << " | Edad: " << edad
+         << " | Tamano: " << tamano << " | Vacunado: " << boolalpha << vacunado
+         << " | Peso: " << peso << " kg" << endl;
+    return 0;
+}
+\end{lstlisting}
+
+\begin{solucion}{Ejercicio 11 --- Inversión de Extremos en 3 Cifras}
+\textbf{EPS:} Entrada \codigo{n}. Proceso: \codigo{c = n / 100}, \codigo{d = (n / 10) \% 10}, \codigo{u = n \% 10}, \codigo{invertido = u * 100 + d * 10 + c}, \codigo{producto = c * d * u}.\\
+\textbf{Prueba de escritorio (\codigo{n = 378}):} \codigo{c = 3, d = 7, u = 8}; \codigo{invertido = 873}; \codigo{producto = 168}.
+\end{solucion}
+\begin{lstlisting}[style=cppmonitoria]
+#include <iostream>
+using namespace std;
+int main() {
+    int n = 0;
+    cout << "Numero de 3 cifras: "; cin >> n;
+    int c = n / 100, d = (n / 10) % 10, u = n % 10;
+    int invertido = u * 100 + d * 10 + c;
+    int producto = c * d * u;
+    cout << "Invertido: " << invertido << " | Producto: " << producto << endl;
+    return 0;
+}
+\end{lstlisting}
+
+\begin{solucion}{Ejercicio 12 --- Costo de Viaje por Kilómetro}
+\textbf{EPS:} Entradas \codigo{km, galones}. Constante: \codigo{PRECIO\_GALON = 15800.0}.\\
+\textbf{Prueba de escritorio (\codigo{km = 300, galones = 8}):} Rendimiento \texttt{37.50 km/gal}, costo total \texttt{\$126400.00}, costo/km \texttt{\$421.33}.
+\end{solucion}
+\begin{lstlisting}[style=cppmonitoria]
+#include <iostream>
+#include <iomanip>
+using namespace std;
+int main() {
+    const double PRECIO_GALON = 15800.0;
+    double km = 0.0, galones = 0.0;
+    cout << "Distancia (km) y galones consumidos: ";
+    cin >> km >> galones;
+    double rendimiento = km / galones;
+    double costoTotal = galones * PRECIO_GALON;
+    double costoPorKm = costoTotal / km;
+    cout << fixed << setprecision(2);
+    cout << "Rendimiento: " << rendimiento << " km/gal | Total: $"
+         << costoTotal << " | Costo/km: $" << costoPorKm << endl;
+    return 0;
+}
+\end{lstlisting}
+
+\end{document}

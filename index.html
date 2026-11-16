@@ -1,0 +1,2267 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Monitoría Algoritmos y Programación (30h) · DFD → PSeInt → C++ Estático</title>
+  <style>
+    :root {
+      --navy: #1E3A5F;
+      --navy-dark: #0F172A;
+      --teal: #0D9488;
+      --teal-dark: #0F766E;
+      --teal-soft: #CCFBF1;
+      --orange: #EA580C;
+      --orange-soft: #FFEDD5;
+      --red: #DC2626;
+      --red-soft: #FEE2E2;
+      --green: #16A34A;
+      --green-soft: #DCFCE7;
+      --violet: #7C3AED;
+      --violet-soft: #EDE9FE;
+      --blue-soft: #EBF5FF;
+      --bg: #F8FAFC;
+      --surface: #FFFFFF;
+      --border: #CBD5E1;
+      --border-soft: #E2E8F0;
+      --text: #1E293B;
+      --muted: #475569;
+      --radius-lg: 16px;
+      --radius-md: 11px;
+      --radius-sm: 7px;
+      --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+      --shadow-md: 0 8px 24px rgba(15, 23, 42, 0.08);
+      --shadow-lg: 0 18px 40px rgba(15, 23, 42, 0.14);
+      --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      --font-mono: "DejaVu Sans Mono", "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a {
+      color: inherit;
+    }
+
+    img {
+      max-width: 100%;
+      display: block;
+    }
+
+    code, pre {
+      font-family: var(--font-mono);
+    }
+
+    .container {
+      width: min(1240px, 92vw);
+      margin-inline: auto;
+    }
+
+    /* Sticky Top Nav */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      background: rgba(15, 23, 42, 0.96);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      color: #F8FAFC;
+    }
+
+    .topbar-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      min-height: 64px;
+      padding-block: 0.45rem;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      text-decoration: none;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      font-size: 1.02rem;
+    }
+
+    .brand-mark {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--teal), var(--navy));
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      display: grid;
+      place-items: center;
+      font-family: var(--font-mono);
+      font-size: 0.88rem;
+      font-weight: 800;
+      color: #FFFFFF;
+      flex-shrink: 0;
+    }
+
+    .brand small {
+      display: block;
+      font-weight: 500;
+      font-size: 0.74rem;
+      color: #94A3B8;
+      letter-spacing: 0;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      flex-wrap: wrap;
+    }
+
+    .nav-links a {
+      text-decoration: none;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: #CBD5E1;
+      padding: 0.42rem 0.72rem;
+      border-radius: 8px;
+      transition: background 0.16s, color 0.16s;
+    }
+
+    .nav-links a:hover,
+    .nav-links a:focus-visible {
+      background: rgba(255, 255, 255, 0.12);
+      color: #FFFFFF;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+    }
+
+    .progress-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      background: rgba(13, 148, 136, 0.2);
+      border: 1px solid rgba(20, 184, 166, 0.45);
+      color: #99F6E4;
+      padding: 0.34rem 0.7rem;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.45rem;
+      border-radius: 9px;
+      padding: 0.54rem 0.95rem;
+      font-size: 0.87rem;
+      font-weight: 700;
+      text-decoration: none;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: transform 0.14s ease, background 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
+      font-family: inherit;
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+    }
+
+    .btn-primary {
+      background: var(--teal);
+      color: #FFFFFF;
+      box-shadow: 0 4px 14px rgba(13, 148, 136, 0.28);
+    }
+
+    .btn-primary:hover {
+      background: var(--teal-dark);
+    }
+
+    .btn-navy {
+      background: var(--navy);
+      color: #FFFFFF;
+    }
+
+    .btn-navy:hover {
+      background: #162B47;
+    }
+
+    .btn-outline {
+      background: var(--surface);
+      color: var(--navy);
+      border-color: var(--border);
+    }
+
+    .btn-outline:hover {
+      border-color: var(--navy);
+      background: #F1F5F9;
+    }
+
+    .btn-ghost-light {
+      background: rgba(255, 255, 255, 0.1);
+      color: #FFFFFF;
+      border-color: rgba(255, 255, 255, 0.22);
+    }
+
+    .btn-ghost-light:hover {
+      background: rgba(255, 255, 255, 0.18);
+    }
+
+    .btn-sm {
+      padding: 0.4rem 0.72rem;
+      font-size: 0.8rem;
+      border-radius: 7px;
+    }
+
+    /* Hero */
+    .hero {
+      background: linear-gradient(135deg, #0F172A 0%, #1E3A5F 58%, #0F5257 100%);
+      color: #FFFFFF;
+      padding-block: 3rem 2.75rem;
+      border-bottom: 4px solid var(--teal);
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.88fr;
+      gap: 2.2rem;
+      align-items: center;
+    }
+
+    .hero-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.76rem;
+      font-weight: 700;
+      padding: 0.26rem 0.65rem;
+      border-radius: 999px;
+      letter-spacing: 0.01em;
+    }
+
+    .badge-teal { background: var(--teal); color: #FFFFFF; }
+    .badge-orange { background: var(--orange); color: #FFFFFF; }
+    .badge-navy { background: var(--navy); color: #FFFFFF; }
+    .badge-soft-teal { background: var(--teal-soft); color: #115E59; }
+    .badge-soft-orange { background: var(--orange-soft); color: #9A3412; }
+    .badge-soft-red { background: var(--red-soft); color: #991B1B; }
+    .badge-soft-green { background: var(--green-soft); color: #166534; }
+    .badge-soft-violet { background: var(--violet-soft); color: #5B21B6; }
+    .badge-soft-blue { background: var(--blue-soft); color: var(--navy); }
+
+    .hero h1 {
+      margin: 0 0 0.8rem;
+      font-size: clamp(1.85rem, 3.1vw, 2.75rem);
+      line-height: 1.15;
+      letter-spacing: -0.025em;
+    }
+
+    .hero p.lead {
+      margin: 0 0 1.25rem;
+      font-size: 1.03rem;
+      color: #E2E8F0;
+      max-width: 62ch;
+    }
+
+    .rule-banner {
+      background: rgba(15, 23, 42, 0.55);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-left: 4px solid var(--orange);
+      border-radius: var(--radius-md);
+      padding: 0.78rem 0.95rem;
+      font-size: 0.86rem;
+      color: #F1F5F9;
+      margin-bottom: 1.35rem;
+    }
+
+    .rule-banner strong {
+      color: #FDBA74;
+    }
+
+    .hero-cta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.7rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .hero-stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.75rem;
+    }
+
+    .stat-box {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: var(--radius-md);
+      padding: 0.7rem 0.8rem;
+    }
+
+    .stat-box .num {
+      display: block;
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: #5EEAD4;
+      line-height: 1.2;
+    }
+
+    .stat-box .lbl {
+      font-size: 0.76rem;
+      color: #CBD5E1;
+    }
+
+    .hero-card {
+      background: rgba(255, 255, 255, 0.97);
+      color: var(--text);
+      border-radius: var(--radius-lg);
+      padding: 0.9rem;
+      box-shadow: var(--shadow-lg);
+      border: 1px solid rgba(255, 255, 255, 0.35);
+    }
+
+    .hero-card img {
+      width: 100%;
+      border-radius: 11px;
+      aspect-ratio: 16 / 10;
+      object-fit: cover;
+      background: #E2E8F0;
+      cursor: zoom-in;
+    }
+
+    .hero-card-cap {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.6rem;
+      padding-top: 0.7rem;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+
+    /* Section chrome */
+    section.section {
+      padding-block: 2.7rem;
+    }
+
+    section.section-alt {
+      background: #F1F5F9;
+      border-top: 1px solid var(--border-soft);
+      border-bottom: 1px solid var(--border-soft);
+    }
+
+    .section-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .section-head h2 {
+      margin: 0 0 0.25rem;
+      font-size: clamp(1.35rem, 2.2vw, 1.85rem);
+      color: var(--navy);
+      letter-spacing: -0.02em;
+    }
+
+    .section-head p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+      max-width: 68ch;
+    }
+
+    /* Filter pills */
+    .pill-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      align-items: center;
+    }
+
+    .pill-btn {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--muted);
+      padding: 0.42rem 0.85rem;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.15s ease;
+    }
+
+    .pill-btn:hover {
+      border-color: var(--teal);
+      color: var(--navy);
+    }
+
+    .pill-btn.active {
+      background: var(--navy);
+      color: #FFFFFF;
+      border-color: var(--navy);
+    }
+
+    /* Search Engine */
+    .search-shell {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .search-controls {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 0.8rem;
+      margin-bottom: 0.9rem;
+    }
+
+    .search-input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .search-input-wrap span.icon {
+      position: absolute;
+      left: 0.95rem;
+      color: var(--muted);
+      pointer-events: none;
+      font-size: 1rem;
+    }
+
+    #searchInput {
+      width: 100%;
+      padding: 0.72rem 2.5rem 0.72rem 2.45rem;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-size: 0.96rem;
+      font-family: inherit;
+      color: var(--text);
+      background: #FFFFFF;
+      transition: border-color 0.16s, box-shadow 0.16s;
+    }
+
+    #searchInput:focus {
+      outline: none;
+      border-color: var(--teal);
+      box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.16);
+    }
+
+    #clearSearchBtn {
+      position: absolute;
+      right: 0.55rem;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      font-size: 1rem;
+      cursor: pointer;
+      padding: 0.25rem 0.45rem;
+      border-radius: 6px;
+      display: none;
+    }
+
+    #clearSearchBtn:hover {
+      background: #E2E8F0;
+      color: var(--navy-dark);
+    }
+
+    #searchModuleSelect {
+      padding: 0.72rem 0.9rem;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--navy);
+      background: #FFFFFF;
+      cursor: pointer;
+    }
+
+    .search-meta {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
+      margin-top: 0.85rem;
+      margin-bottom: 1rem;
+      font-size: 0.84rem;
+      color: var(--muted);
+    }
+
+    .search-results {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+      gap: 0.9rem;
+    }
+
+    .search-card {
+      background: #FFFFFF;
+      border: 1px solid var(--border-soft);
+      border-left: 4px solid var(--teal);
+      border-radius: var(--radius-md);
+      padding: 0.95rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 0.65rem;
+      transition: transform 0.14s ease, box-shadow 0.14s ease;
+    }
+
+    .search-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .search-card[data-kind="trampa"] { border-left-color: var(--red); }
+    .search-card[data-kind="consejo"] { border-left-color: var(--orange); }
+    .search-card[data-kind="patron"] { border-left-color: var(--navy); }
+    .search-card[data-kind="simulacro"] { border-left-color: var(--violet); }
+    .search-card[data-kind="ejercicio"] { border-left-color: var(--teal); }
+
+    .search-card h3 {
+      margin: 0.35rem 0 0.25rem;
+      font-size: 0.98rem;
+      color: var(--navy-dark);
+      line-height: 1.3;
+    }
+
+    .search-card p {
+      margin: 0;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .search-card code.snippet {
+      display: inline-block;
+      margin-top: 0.4rem;
+      background: #F1F5F9;
+      border: 1px solid var(--border-soft);
+      padding: 0.18rem 0.45rem;
+      border-radius: 5px;
+      font-size: 0.77rem;
+      color: var(--navy);
+      word-break: break-word;
+    }
+
+    .card-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      padding-top: 0.45rem;
+      border-top: 1px dashed var(--border-soft);
+    }
+
+    /* Module Grid */
+    .modules-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(345px, 1fr));
+      gap: 1.15rem;
+    }
+
+    .module-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.2rem;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .module-card::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 5px;
+      background: linear-gradient(90deg, var(--navy), var(--teal));
+    }
+
+    .module-card.stage-control::before {
+      background: linear-gradient(90deg, var(--teal), var(--orange));
+    }
+
+    .module-card.stage-estructuras::before {
+      background: linear-gradient(90deg, var(--violet), var(--navy));
+    }
+
+    .module-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .module-code {
+      font-family: var(--font-mono);
+      font-weight: 800;
+      font-size: 0.85rem;
+      color: #FFFFFF;
+      background: var(--navy);
+      padding: 0.24rem 0.62rem;
+      border-radius: 7px;
+    }
+
+    .module-meta {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+
+    .module-card h3 {
+      margin: 0;
+      font-size: 1.12rem;
+      color: var(--navy-dark);
+      line-height: 1.3;
+    }
+
+    .module-card p.desc {
+      margin: 0;
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
+
+    .topic-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+    }
+
+    .chip {
+      background: #F1F5F9;
+      border: 1px solid var(--border-soft);
+      color: #334155;
+      border-radius: 6px;
+      padding: 0.16rem 0.5rem;
+      font-size: 0.76rem;
+      font-weight: 600;
+    }
+
+    .module-btns {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    details.files-drawer {
+      border-top: 1px solid var(--border-soft);
+      padding-top: 0.65rem;
+      margin-top: auto;
+    }
+
+    details.files-drawer summary {
+      cursor: pointer;
+      font-size: 0.83rem;
+      font-weight: 700;
+      color: var(--navy);
+      user-select: none;
+      list-style: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    details.files-drawer summary::-webkit-details-marker {
+      display: none;
+    }
+
+    details.files-drawer summary::after {
+      content: "▾";
+      font-size: 0.9rem;
+      color: var(--teal);
+      transition: transform 0.16s ease;
+    }
+
+    details.files-drawer[open] summary::after {
+      transform: rotate(180deg);
+    }
+
+    .file-list {
+      margin: 0.65rem 0 0;
+      padding: 0;
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.34rem;
+      max-height: 220px;
+      overflow-y: auto;
+    }
+
+    .file-link {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      padding: 0.32rem 0.52rem;
+      border-radius: 6px;
+      background: #F8FAFC;
+      border: 1px solid var(--border-soft);
+      font-size: 0.78rem;
+      text-decoration: none;
+      color: var(--text);
+      transition: background 0.14s, border-color 0.14s;
+    }
+
+    .file-link:hover {
+      background: var(--blue-soft);
+      border-color: var(--teal);
+    }
+
+    .file-tag {
+      font-family: var(--font-mono);
+      font-size: 0.69rem;
+      font-weight: 800;
+      padding: 0.1rem 0.36rem;
+      border-radius: 4px;
+      text-transform: uppercase;
+      flex-shrink: 0;
+    }
+
+    .tag-cpp { background: var(--blue-soft); color: var(--navy); }
+    .tag-psc { background: var(--orange-soft); color: #9A3412; }
+    .tag-dfd { background: var(--teal-soft); color: #0F766E; }
+
+    /* Fichas Resumen */
+    .fichas-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(265px, 1fr));
+      gap: 1.15rem;
+    }
+
+    .ficha-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .ficha-thumb-wrap {
+      background: #E2E8F0;
+      aspect-ratio: 4 / 3;
+      overflow: hidden;
+      position: relative;
+      cursor: zoom-in;
+      border-bottom: 1px solid var(--border-soft);
+    }
+
+    .ficha-thumb-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top center;
+      transition: transform 0.25s ease;
+    }
+
+    .ficha-thumb-wrap:hover img {
+      transform: scale(1.03);
+    }
+
+    .ficha-body {
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.55rem;
+      flex: 1;
+    }
+
+    .ficha-body h3 {
+      margin: 0;
+      font-size: 1rem;
+      color: var(--navy-dark);
+    }
+
+    .ficha-body p {
+      margin: 0;
+      font-size: 0.84rem;
+      color: var(--muted);
+      flex: 1;
+    }
+
+    /* Visual Gallery */
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(235px, 1fr));
+      gap: 0.95rem;
+    }
+
+    .gallery-card {
+      background: var(--surface);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .gallery-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .gallery-thumb {
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      background: #FFFFFF;
+      border: none;
+      border-bottom: 1px solid var(--border-soft);
+      padding: 0;
+      cursor: zoom-in;
+      overflow: hidden;
+    }
+
+    .gallery-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      background: #FFFFFF;
+    }
+
+    .gallery-thumb.cover img {
+      object-fit: cover;
+    }
+
+    .gallery-cap {
+      padding: 0.7rem 0.8rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .gallery-cap strong {
+      font-size: 0.86rem;
+      color: var(--navy-dark);
+      line-height: 1.3;
+    }
+
+    .gallery-cap span {
+      font-size: 0.77rem;
+      color: var(--muted);
+    }
+
+    /* 30h Checklist */
+    .checklist-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .progress-bar-header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.8rem;
+      margin-bottom: 0.8rem;
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 14px;
+      background: #E2E8F0;
+      border-radius: 999px;
+      overflow: hidden;
+      margin-bottom: 1.2rem;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--teal), var(--green));
+      border-radius: 999px;
+      transition: width 0.25s ease;
+    }
+
+    .sessions-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 0.75rem;
+    }
+
+    .session-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      padding: 0.82rem 0.9rem;
+      border: 1.5px solid var(--border-soft);
+      border-radius: var(--radius-md);
+      background: #F8FAFC;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+
+    .session-item:hover {
+      border-color: var(--teal);
+      background: #FFFFFF;
+    }
+
+    .session-item.done {
+      background: #F0FDF4;
+      border-color: #86EFAC;
+    }
+
+    .session-item input[type="checkbox"] {
+      width: 19px;
+      height: 19px;
+      margin-top: 2px;
+      accent-color: var(--teal);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .session-info h4 {
+      margin: 0 0 0.2rem;
+      font-size: 0.92rem;
+      color: var(--navy-dark);
+    }
+
+    .session-info p {
+      margin: 0;
+      font-size: 0.81rem;
+      color: var(--muted);
+    }
+
+    .session-item.done .session-info h4 {
+      text-decoration: line-through;
+      color: #166534;
+    }
+
+    .exam-checklist-box {
+      margin-top: 1.4rem;
+      border: 1px solid #FDBA74;
+      background: #FFF7ED;
+      border-radius: var(--radius-md);
+      padding: 0.95rem 1.1rem;
+    }
+
+    .exam-checklist-box summary {
+      cursor: pointer;
+      font-weight: 800;
+      color: #9A3412;
+      font-size: 0.95rem;
+    }
+
+    .anti-panic-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 0.5rem;
+      margin-top: 0.85rem;
+    }
+
+    .anti-panic-item {
+      display: flex;
+      gap: 0.55rem;
+      align-items: flex-start;
+      background: #FFFFFF;
+      border: 1px solid #FED7AA;
+      border-radius: 8px;
+      padding: 0.55rem 0.65rem;
+      font-size: 0.82rem;
+      cursor: pointer;
+    }
+
+    .anti-panic-item input {
+      margin-top: 3px;
+      accent-color: var(--orange);
+    }
+
+    /* Lightbox */
+    .lightbox {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      background: rgba(15, 23, 42, 0.88);
+      backdrop-filter: blur(5px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1.2rem;
+    }
+
+    .lightbox.open {
+      display: flex;
+    }
+
+    .lightbox-dialog {
+      background: #FFFFFF;
+      border-radius: var(--radius-lg);
+      max-width: min(1060px, 95vw);
+      max-height: 92vh;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .lightbox-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0.8rem 1.1rem;
+      background: var(--navy-dark);
+      color: #FFFFFF;
+    }
+
+    .lightbox-title {
+      font-size: 0.96rem;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    .lightbox-stage {
+      background: #F1F5F9;
+      flex: 1;
+      overflow: auto;
+      display: grid;
+      place-items: center;
+      padding: 1rem;
+      min-height: 300px;
+    }
+
+    .lightbox-stage img {
+      max-height: 68vh;
+      width: auto;
+      border-radius: 8px;
+      box-shadow: var(--shadow-md);
+      background: #FFFFFF;
+      transition: transform 0.2s ease;
+    }
+
+    .lightbox-stage.zoomed img {
+      max-height: none;
+      width: min(1400px, 160%);
+      max-width: none;
+    }
+
+    .lightbox-footer {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      padding: 0.75rem 1.1rem;
+      border-top: 1px solid var(--border-soft);
+      background: #FFFFFF;
+      font-size: 0.84rem;
+      color: var(--muted);
+    }
+
+    .lightbox-nav {
+      display: flex;
+      gap: 0.45rem;
+      flex-wrap: wrap;
+    }
+
+    /* Footer */
+    footer.footer {
+      background: var(--navy-dark);
+      color: #CBD5E1;
+      padding-block: 2rem;
+      font-size: 0.86rem;
+      border-top: 4px solid var(--teal);
+    }
+
+    .footer-inner {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .empty-state {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 2rem 1rem;
+      background: #F8FAFC;
+      border: 1px dashed var(--border);
+      border-radius: var(--radius-md);
+      color: var(--muted);
+    }
+
+    .mobile-menu-btn {
+      display: none;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      color: #FFFFFF;
+      border-radius: 8px;
+      padding: 0.4rem 0.65rem;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    @media (max-width: 960px) {
+      .hero-grid {
+        grid-template-columns: 1fr;
+      }
+      .hero-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .nav-links {
+        display: none;
+        width: 100%;
+        padding-top: 0.5rem;
+      }
+      .nav-links.open {
+        display: flex;
+      }
+      .topbar-inner {
+        flex-wrap: wrap;
+      }
+      .mobile-menu-btn {
+        display: inline-flex;
+      }
+      .search-controls {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .modules-grid,
+      .sessions-grid,
+      .search-results {
+        grid-template-columns: 1fr;
+      }
+      .nav-actions .btn-book-label {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <a href="#inicio" class="brand">
+        <span class="brand-mark">C++</span>
+        <span>
+          Monitoría Algoritmos 30h
+          <small>DFD → PSeInt → C++ Estático</small>
+        </span>
+      </a>
+
+      <button type="button" class="mobile-menu-btn" id="mobileMenuBtn" aria-expanded="false" aria-controls="mainNav">
+        ☰ Menú
+      </button>
+
+      <nav class="nav-links" id="mainNav" aria-label="Navegación principal">
+        <a href="#buscador">Buscador</a>
+        <a href="#modulos">Módulos (M00–M08)</a>
+        <a href="#fichas">Fichas Resumen</a>
+        <a href="#galeria">Galería Visual</a>
+        <a href="#ruta30h">Checklist 30h</a>
+      </nav>
+
+      <div class="nav-actions">
+        <a href="#ruta30h" class="progress-pill" id="navProgressPill" title="Avance guardado localmente">
+          <span>✓</span>
+          <span id="navProgressText">0.0 / 30.0 h</span>
+        </a>
+        <a href="LIBRO_COMPLETO_MONITORIA_30H.pdf" target="_blank" rel="noopener" class="btn btn-primary btn-sm">
+          <span>📖</span><span class="btn-book-label">Libro Completo PDF</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- HERO -->
+    <section class="hero" id="inicio">
+      <div class="container hero-grid">
+        <div>
+          <div class="hero-badges">
+            <span class="badge badge-teal">CURSO COMPLETO · 30.0 HORAS</span>
+            <span class="badge badge-orange">15 SESIONES × 2.0 H</span>
+          </div>
+          <h1>Algoritmos y Programación Desde Cero Hasta Matrices Estáticas</h1>
+          <p class="lead">
+            Material pedagógico diseñado para estudiantes de primer semestre: explicación "con plastilina",
+            análisis E-P-S antes de programar, pruebas de escritorio paso a paso, puente guiado entre
+            <strong>DFD, PSeInt y C++ básico</strong> y dos simulacros completos de parcial con solucionario.
+          </p>
+
+          <div class="rule-banner">
+            <strong>Alcance estricto garantizado:</strong> todo el código usa exclusivamente variables simples,
+            condicionales, ciclos, funciones básicas y <strong>vectores/matrices estáticos con capacidad fija
+            (<code>const int MAX</code>)</strong>. Cero punteros, cero <code>new/delete</code> y cero <code>std::vector</code>.
+          </div>
+
+          <div class="hero-cta">
+            <a href="LIBRO_COMPLETO_MONITORIA_30H.pdf" target="_blank" rel="noopener" class="btn btn-primary">
+              📖 Abrir Libro Completo (300 págs. PDF)
+            </a>
+            <a href="#buscador" class="btn btn-ghost-light">
+              🔍 Buscar Ejercicio o Trampa
+            </a>
+            <a href="PLAN_30_HORAS.md" target="_blank" rel="noopener" class="btn btn-ghost-light">
+              🗓️ Plan 30 Horas (.md)
+            </a>
+            <a href="README.md" target="_blank" rel="noopener" class="btn btn-ghost-light">
+              📄 Guía del Curso (README)
+            </a>
+          </div>
+
+          <div class="hero-stats">
+            <div class="stat-box">
+              <span class="num">9 Módulos</span>
+              <span class="lbl">M00–M08 · 293 págs.</span>
+            </div>
+            <div class="stat-box">
+              <span class="num">30.0 h</span>
+              <span class="lbl">15 sesiones de 2 horas</span>
+            </div>
+            <div class="stat-box">
+              <span class="num">4 Fichas</span>
+              <span class="lbl">PDF + PNG imprimibles</span>
+            </div>
+            <div class="stat-box">
+              <span class="num" id="heroProgressStat">0%</span>
+              <span class="lbl">Avance del checklist</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-card">
+          <img
+            src="assets/ilustraciones/ilus_03_puente_dfd_pseint_cpp.jpg"
+            alt="Puente conceptual de DFD hacia PSeInt y C++ básico"
+            data-lightbox-id="ilus-03"
+            class="hero-zoom-trigger"
+          />
+          <div class="hero-card-cap">
+            <span>Ruta didáctica: Idea → DFD → PSeInt → C++</span>
+            <button type="button" class="btn btn-outline btn-sm" data-open-lightbox="ilus-03">Ampliar</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- BUSCADOR RÁPIDO -->
+    <section class="section" id="buscador">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <h2>Buscador Rápido de Ejercicios, Consejos y Trampas de Parcial</h2>
+            <p>Encuentra al instante problemas resueltos, patrones en C++, alertas frecuentes de parcial y ejercicios por tema.</p>
+          </div>
+        </div>
+
+        <div class="search-shell">
+          <div class="search-controls">
+            <div class="search-input-wrap">
+              <span class="icon" aria-hidden="true">🔍</span>
+              <input
+                type="search"
+                id="searchInput"
+                placeholder="Ej: burbuja, 10 <= x <= 20, cin.ignore, centinela, matriz transpuesta, simulacro, peaje..."
+                aria-label="Buscar ejercicios, consejos o trampas"
+              />
+              <button type="button" id="clearSearchBtn" aria-label="Limpiar búsqueda">✕</button>
+            </div>
+            <select id="searchModuleSelect" aria-label="Filtrar por módulo">
+              <option value="ALL">Todos los módulos (M00–M08)</option>
+              <option value="M00">M00 · Algoritmos para Tontos</option>
+              <option value="M01">M01 · Lógica y DFD</option>
+              <option value="M02">M02 · PSeInt y Puente C++</option>
+              <option value="M03">M03 · Tipos de Datos y Operadores</option>
+              <option value="M04">M04 · Condicionales</option>
+              <option value="M05">M05 · Ciclos y Bucles</option>
+              <option value="M06">M06 · Vectores Estáticos</option>
+              <option value="M07">M07 · Matrices Estáticas</option>
+              <option value="M08">M08 · Modularidad y Simulacros</option>
+            </select>
+          </div>
+
+          <div class="pill-bar" id="searchKindPills" role="tablist" aria-label="Categoría de búsqueda">
+            <button type="button" class="pill-btn active" data-kind="ALL">Todos</button>
+            <button type="button" class="pill-btn" data-kind="ejercicio">Ejercicios y Resueltos</button>
+            <button type="button" class="pill-btn" data-kind="patron">Patrones C++</button>
+            <button type="button" class="pill-btn" data-kind="trampa">Trampas de Parcial</button>
+            <button type="button" class="pill-btn" data-kind="consejo">Consejos y Método</button>
+            <button type="button" class="pill-btn" data-kind="simulacro">Simulacros de Parcial</button>
+          </div>
+
+          <div class="search-meta">
+            <span id="searchCountText">Mostrando resultados destacados</span>
+            <button type="button" class="btn btn-outline btn-sm" id="toggleAllSearchBtn">Ver catálogo completo</button>
+          </div>
+
+          <div class="search-results" id="searchResults"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MÓDULOS M00..M08 -->
+    <section class="section section-alt" id="modulos">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <h2>Módulos del Curso (M00 – M08 · 30.0 Horas)</h2>
+            <p>Cada módulo incluye documento PDF con estilo visual unificado, apuntes en Markdown y archivos reales en PSeInt, DFD y C++.</p>
+          </div>
+          <div class="pill-bar" id="moduleStagePills">
+            <button type="button" class="pill-btn active" data-stage="ALL">Todos (9)</button>
+            <button type="button" class="pill-btn" data-stage="fundamentos">Fundamentos (M00–M02)</button>
+            <button type="button" class="pill-btn" data-stage="control">Lógica y Control (M03–M05)</button>
+            <button type="button" class="pill-btn" data-stage="estructuras">Arreglos y Parciales (M06–M08)</button>
+          </div>
+        </div>
+
+        <div class="modules-grid" id="modulesGrid"></div>
+      </div>
+    </section>
+
+    <!-- FICHAS RESUMEN -->
+    <section class="section" id="fichas">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <h2>4 Fichas Resumen Imprimibles (Hojas de Repaso Rápido)</h2>
+            <p>Diseñadas en 1 página tamaño carta para estudiar antes del parcial. Disponibles en PDF listo para imprimir y PNG de alta resolución.</p>
+          </div>
+        </div>
+
+        <div class="fichas-grid" id="fichasGrid"></div>
+      </div>
+    </section>
+
+    <!-- GALERÍA VISUAL -->
+    <section class="section section-alt" id="galeria">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <h2>Visor de Diagramas, DFDs e Ilustraciones</h2>
+            <p>Haz clic en cualquier imagen para abrir el visor ampliado con navegación por teclado (← / → y Esc).</p>
+          </div>
+          <div class="pill-bar" id="galleryFilterPills">
+            <button type="button" class="pill-btn active" data-gcat="ALL">Todas (41)</button>
+            <button type="button" class="pill-btn" data-gcat="ilus">Ilustraciones (3)</button>
+            <button type="button" class="pill-btn" data-gcat="maestros">Diagramas Maestros (11)</button>
+            <button type="button" class="pill-btn" data-gcat="dfd1">DFDs M01 (6)</button>
+            <button type="button" class="pill-btn" data-gcat="dfd4">DFDs M04 (9)</button>
+            <button type="button" class="pill-btn" data-gcat="dfd5">DFDs M05 (8)</button>
+            <button type="button" class="pill-btn" data-gcat="fichas">Fichas (4)</button>
+          </div>
+        </div>
+
+        <div class="gallery-grid" id="galleryGrid"></div>
+      </div>
+    </section>
+
+    <!-- CHECKLIST 30 HORAS -->
+    <section class="section" id="ruta30h">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <h2>Checklist Interactivo de las 30 Horas (15 Sesiones de 2.0 h)</h2>
+            <p>Marca cada sesión a medida que la estudias o dictas en monitoría. Tu progreso queda guardado automáticamente en este navegador.</p>
+          </div>
+          <div class="pill-bar">
+            <button type="button" class="btn btn-outline btn-sm" id="checkAllSessionsBtn">Marcar todas</button>
+            <button type="button" class="btn btn-outline btn-sm" id="resetSessionsBtn">Reiniciar avance</button>
+          </div>
+        </div>
+
+        <div class="checklist-panel">
+          <div class="progress-bar-header">
+            <strong id="progressSummaryText" style="color: var(--navy);">0 de 15 sesiones completadas · 0.0 / 30.0 horas (0%)</strong>
+            <span class="badge badge-soft-teal" id="progressStageBadge">Listo para empezar</span>
+          </div>
+          <div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="30" aria-valuenow="0" id="progressBarTrack">
+            <div class="progress-fill" id="progressBarFill"></div>
+          </div>
+
+          <div class="sessions-grid" id="sessionsGrid"></div>
+
+          <details class="exam-checklist-box" open>
+            <summary>Checklist Anti-Pánico de 10 Puntos Antes de Entregar un Parcial (Módulo 08)</summary>
+            <div class="anti-panic-grid" id="antiPanicGrid"></div>
+          </details>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div>
+        <strong>Curso Completo de Monitoría · Algoritmos y Programación (30.0 Horas)</strong><br />
+        <span>Ruta pedagógica estricta: DFD → PSeInt → C++ básico con arreglos estáticos (<code>const int MAX</code>), sin punteros ni memoria dinámica.</span>
+      </div>
+      <div style="display:flex; gap:0.6rem; flex-wrap:wrap;">
+        <a href="LIBRO_COMPLETO_MONITORIA_30H.pdf" target="_blank" rel="noopener" class="btn btn-primary btn-sm">Libro Completo PDF</a>
+        <a href="#inicio" class="btn btn-ghost-light btn-sm">↑ Subir</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- LIGHTBOX -->
+  <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-labelledby="lightboxTitle">
+    <div class="lightbox-dialog">
+      <div class="lightbox-header">
+        <div>
+          <h3 class="lightbox-title" id="lightboxTitle">Vista previa</h3>
+          <small id="lightboxMeta" style="color:#94A3B8;"></small>
+        </div>
+        <button type="button" class="btn btn-ghost-light btn-sm" id="lightboxCloseBtn" aria-label="Cerrar visor">Cerrar ✕</button>
+      </div>
+      <div class="lightbox-stage" id="lightboxStage">
+        <img id="lightboxImg" src="" alt="" />
+      </div>
+      <div class="lightbox-footer">
+        <span id="lightboxDesc"></span>
+        <div class="lightbox-nav">
+          <button type="button" class="btn btn-outline btn-sm" id="lightboxPrevBtn">← Anterior</button>
+          <button type="button" class="btn btn-outline btn-sm" id="lightboxZoomBtn">🔍 Alternar Zoom</button>
+          <a href="#" target="_blank" rel="noopener" class="btn btn-navy btn-sm" id="lightboxRawLink">Abrir archivo</a>
+          <button type="button" class="btn btn-outline btn-sm" id="lightboxNextBtn">Siguiente →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      "use strict";
+
+      const MODULES = [
+        {
+          id: "M00",
+          stage: "fundamentos",
+          hours: "2.5 h",
+          pages: "14 págs",
+          title: "Algoritmos para Tontos y Análisis desde Cero",
+          desc: "Pensar antes de teclear: la computadora como genio literal, 5 analogías cotidianas, modelo Entrada-Proceso-Salida (E-P-S) y el Método de los 5 Pasos.",
+          pdf: "modulos/M00_Algoritmos_Para_Tontos/M00_Algoritmos_Para_Tontos.pdf",
+          md: "modulos/M00_Algoritmos_Para_Tontos/M00_Algoritmos_Para_Tontos.md",
+          topics: ["Analogías reales", "E-P-S", "Diccionario de enunciados", "Método 5 Pasos", "8 ejercicios"],
+          files: []
+        },
+        {
+          id: "M01",
+          stage: "fundamentos",
+          hours: "3.0 h",
+          pages: "15 págs",
+          title: "Lógica y Diagramas de Flujo (DFD)",
+          desc: "Símbolos oficiales DFD (Óvalo, Paralelogramo, Rectángulo, Rombo), las 7 Reglas de Oro, pruebas de escritorio en papel y 6 problemas + 10 retos.",
+          pdf: "modulos/M01_Logica_y_DFD/M01_Logica_y_DFD.pdf",
+          md: "modulos/M01_Logica_y_DFD/M01_Logica_y_DFD.md",
+          topics: ["Símbolos oficiales", "7 Reglas de Oro", "Decisiones Sí/No", "Prueba en papel", "6 DFDs resueltos"],
+          files: [
+            { label: "P01: Promedio de 3 notas", path: "modulos/M01_Logica_y_DFD/dfd/dfd_p01_promedio_notas.png", kind: "dfd" },
+            { label: "P02: Área y perímetro cancha", path: "modulos/M01_Logica_y_DFD/dfd/dfd_p02_area_perimetro_cancha.png", kind: "dfd" },
+            { label: "P03: Salario neto (-8%)", path: "modulos/M01_Logica_y_DFD/dfd/dfd_p03_salario_neto.png", kind: "dfd" },
+            { label: "P04: Aprueba o reprueba", path: "modulos/M01_Logica_y_DFD/dfd/dfd_p04_aprueba_materia.png", kind: "dfd" },
+            { label: "P05: Descuento papelería", path: "modulos/M01_Logica_y_DFD/dfd/dfd_p05_descuento_papeleria.png", kind: "dfd" },
+            { label: "P06: Mayor de dos números", path: "modulos/M01_Logica_y_DFD/dfd/dfd_p06_mayor_dos_numeros.png", kind: "dfd" }
+          ]
+        },
+        {
+          id: "M02",
+          stage: "fundamentos",
+          hours: "3.0 h",
+          pages: "20 págs",
+          title: "PSeInt y el Puente Suave hacia C++",
+          desc: "Configuración estricta en PSeInt, tabla traductora DFD ↔ PSeInt ↔ C++, radiografía de main(), traducción de errores de g++ y 6 programas duales.",
+          pdf: "modulos/M02_PSeInt_y_Puente_CPP/M02_PSeInt_y_Puente_CPP.pdf",
+          md: "modulos/M02_PSeInt_y_Puente_CPP/M02_PSeInt_y_Puente_CPP.md",
+          topics: ["PSeInt estricto", "Anatomía C++", "Errores g++ al español", "6 pares .psc/.cpp", "10 ejercicios"],
+          files: [
+            { label: "01_saludo_y_suma.cpp", path: "modulos/M02_PSeInt_y_Puente_CPP/cpp/01_saludo_y_suma.cpp", kind: "cpp" },
+            { label: "01_saludo_y_suma.psc", path: "modulos/M02_PSeInt_y_Puente_CPP/pseint/01_saludo_y_suma.psc", kind: "psc" },
+            { label: "02_promedio_notas.cpp", path: "modulos/M02_PSeInt_y_Puente_CPP/cpp/02_promedio_notas.cpp", kind: "cpp" },
+            { label: "02_promedio_notas.psc", path: "modulos/M02_PSeInt_y_Puente_CPP/pseint/02_promedio_notas.psc", kind: "psc" },
+            { label: "03_rectangulo_terreno.cpp", path: "modulos/M02_PSeInt_y_Puente_CPP/cpp/03_rectangulo_terreno.cpp", kind: "cpp" },
+            { label: "03_rectangulo_terreno.psc", path: "modulos/M02_PSeInt_y_Puente_CPP/pseint/03_rectangulo_terreno.psc", kind: "psc" },
+            { label: "04_conversion_temperatura.cpp", path: "modulos/M02_PSeInt_y_Puente_CPP/cpp/04_conversion_temperatura.cpp", kind: "cpp" },
+            { label: "04_conversion_temperatura.psc", path: "modulos/M02_PSeInt_y_Puente_CPP/pseint/04_conversion_temperatura.psc", kind: "psc" },
+            { label: "05_factura_cafeteria.cpp", path: "modulos/M02_PSeInt_y_Puente_CPP/cpp/05_factura_cafeteria.cpp", kind: "cpp" },
+            { label: "05_factura_cafeteria.psc", path: "modulos/M02_PSeInt_y_Puente_CPP/pseint/05_factura_cafeteria.psc", kind: "psc" },
+            { label: "06_salario_semanal.cpp", path: "modulos/M02_PSeInt_y_Puente_CPP/cpp/06_salario_semanal.cpp", kind: "cpp" },
+            { label: "06_salario_semanal.psc", path: "modulos/M02_PSeInt_y_Puente_CPP/pseint/06_salario_semanal.psc", kind: "psc" }
+          ]
+        },
+        {
+          id: "M03",
+          stage: "control",
+          hours: "3.0 h",
+          pages: "29 págs",
+          title: "Tipos de Datos, Memoria RAM y Operadores",
+          desc: "Cajitas en RAM (int, double, char, bool, string), getline + cin.ignore(), constantes, división entera 5/2 vs 5.0/2, operador módulo % y casting.",
+          pdf: "modulos/M03_Tipos_Datos_y_Operadores/M03_Tipos_Datos_y_Operadores.pdf",
+          md: "modulos/M03_Tipos_Datos_y_Operadores/M03_Tipos_Datos_y_Operadores.md",
+          topics: ["RAM con plastilina", "cin.ignore()", "5/2 vs 5.0/2", "Módulo %", "Casting", "7 resueltos"],
+          files: [
+            { label: "p01_desglose_billetes.cpp", path: "modulos/M03_Tipos_Datos_y_Operadores/cpp/p01_desglose_billetes.cpp", kind: "cpp" },
+            { label: "p01_desglose_billetes.psc", path: "modulos/M03_Tipos_Datos_y_Operadores/pseint/p01_desglose_billetes.psc", kind: "psc" },
+            { label: "p02_conversion_tiempo.cpp", path: "modulos/M03_Tipos_Datos_y_Operadores/cpp/p02_conversion_tiempo.cpp", kind: "cpp" },
+            { label: "p02_conversion_tiempo.psc", path: "modulos/M03_Tipos_Datos_y_Operadores/pseint/p02_conversion_tiempo.psc", kind: "psc" },
+            { label: "p03_promedio_ponderado.cpp", path: "modulos/M03_Tipos_Datos_y_Operadores/cpp/p03_promedio_ponderado.cpp", kind: "cpp" },
+            { label: "p03_promedio_ponderado.psc", path: "modulos/M03_Tipos_Datos_y_Operadores/pseint/p03_promedio_ponderado.psc", kind: "psc" },
+            { label: "p04_fisica_mru_energia.cpp", path: "modulos/M03_Tipos_Datos_y_Operadores/cpp/p04_fisica_mru_energia.cpp", kind: "cpp" },
+            { label: "p04_fisica_mru_energia.psc", path: "modulos/M03_Tipos_Datos_y_Operadores/pseint/p04_fisica_mru_energia.psc", kind: "psc" },
+            { label: "p05_calculo_imc.cpp", path: "modulos/M03_Tipos_Datos_y_Operadores/cpp/p05_calculo_imc.cpp", kind: "cpp" },
+            { label: "p05_calculo_imc.psc", path: "modulos/M03_Tipos_Datos_y_Operadores/pseint/p05_calculo_imc.psc", kind: "psc" },
+            { label: "p06_factura_iva.cpp", path: "modulos/M03_Tipos_Datos_y_Operadores/cpp/p06_factura_iva.cpp", kind: "cpp" },
+            { label: "p06_factura_iva.psc", path: "modulos/M03_Tipos_Datos_y_Operadores/pseint/p06_factura_iva.psc", kind: "psc" },
+            { label: "p07_digitos_numero.cpp", path: "modulos/M03_Tipos_Datos_y_Operadores/cpp/p07_digitos_numero.cpp", kind: "cpp" },
+            { label: "p07_digitos_numero.psc", path: "modulos/M03_Tipos_Datos_y_Operadores/pseint/p07_digitos_numero.psc", kind: "psc" }
+          ]
+        },
+        {
+          id: "M04",
+          stage: "control",
+          hours: "3.5 h",
+          pages: "54 págs",
+          title: "Estructuras Condicionales (if, else-if, switch)",
+          desc: "Lógica booleana (&&, ||, !), la trampa mortal 10 <= x <= 20, orden de escalera else-if, if anidados, switch-case y 8 problemas con DFD, PSeInt y C++.",
+          pdf: "modulos/M04_Condicionales/M04_Condicionales.pdf",
+          md: "modulos/M04_Condicionales/M04_Condicionales.md",
+          topics: ["&& || !", "Trampa 10<=x<=20", "else-if vs if sueltos", "switch + break", "8 resueltos + 14 retos"],
+          files: [
+            { label: "p01_par_multiplo_signo.cpp", path: "modulos/M04_Condicionales/cpp/p01_par_multiplo_signo.cpp", kind: "cpp" },
+            { label: "p02_beca_universitaria_rangos.cpp", path: "modulos/M04_Condicionales/cpp/p02_beca_universitaria_rangos.cpp", kind: "cpp" },
+            { label: "p03_podio_tres_atletas.cpp", path: "modulos/M04_Condicionales/cpp/p03_podio_tres_atletas.cpp", kind: "cpp" },
+            { label: "p04_factura_energia_escalera.cpp", path: "modulos/M04_Condicionales/cpp/p04_factura_energia_escalera.cpp", kind: "cpp" },
+            { label: "p05_cajero_menu_switch.cpp", path: "modulos/M04_Condicionales/cpp/p05_cajero_menu_switch.cpp", kind: "cpp" },
+            { label: "p06_descuento_categoria_char.cpp", path: "modulos/M04_Condicionales/cpp/p06_descuento_categoria_char.cpp", kind: "cpp" },
+            { label: "p07_clasificador_triangulo.cpp", path: "modulos/M04_Condicionales/cpp/p07_clasificador_triangulo.cpp", kind: "cpp" },
+            { label: "p08_bisiesto_dias_mes.cpp", path: "modulos/M04_Condicionales/cpp/p08_bisiesto_dias_mes.cpp", kind: "cpp" },
+            { label: "p01..p08 en PSeInt (.psc) → p01_par_multiplo_signo.psc", path: "modulos/M04_Condicionales/pseint/p01_par_multiplo_signo.psc", kind: "psc" },
+            { label: "p02_beca_universitaria_rangos.psc", path: "modulos/M04_Condicionales/pseint/p02_beca_universitaria_rangos.psc", kind: "psc" },
+            { label: "p03_podio_tres_atletas.psc", path: "modulos/M04_Condicionales/pseint/p03_podio_tres_atletas.psc", kind: "psc" },
+            { label: "p04_factura_energia_escalera.psc", path: "modulos/M04_Condicionales/pseint/p04_factura_energia_escalera.psc", kind: "psc" },
+            { label: "p05_cajero_menu_switch.psc", path: "modulos/M04_Condicionales/pseint/p05_cajero_menu_switch.psc", kind: "psc" },
+            { label: "p06_descuento_categoria_char.psc", path: "modulos/M04_Condicionales/pseint/p06_descuento_categoria_char.psc", kind: "psc" },
+            { label: "p07_clasificador_triangulo.psc", path: "modulos/M04_Condicionales/pseint/p07_clasificador_triangulo.psc", kind: "psc" },
+            { label: "p08_bisiesto_dias_mes.psc", path: "modulos/M04_Condicionales/pseint/p08_bisiesto_dias_mes.psc", kind: "psc" },
+            { label: "DFD Mapa Condicionales", path: "modulos/M04_Condicionales/dfd/dfd_00_estructuras_condicionales.png", kind: "dfd" }
+          ]
+        },
+        {
+          id: "M05",
+          stage: "control",
+          hours: "4.0 h",
+          pages: "59 págs",
+          title: "Ciclos y Bucles (while, do-while, for) SIN Arreglos",
+          desc: "Los 3 ingredientes de todo bucle, trampa Repetir...Hasta Que vs do-while (De Morgan), centinelas, contadores/acumuladores, banderas, máx/mín y ciclos anidados.",
+          pdf: "modulos/M05_Ciclos_y_Bucles/M05_Ciclos_y_Bucles.pdf",
+          md: "modulos/M05_Ciclos_y_Bucles/M05_Ciclos_y_Bucles.md",
+          topics: ["for / while / do-while", "Trampa Hasta Que", "Centinela", "Máx/Mín sin arreglos", "10 resueltos + 16 retos"],
+          files: [
+            { label: "p01_tabla_multiplicar.cpp", path: "modulos/M05_Ciclos_y_Bucles/cpp/p01_tabla_multiplicar.cpp", kind: "cpp" },
+            { label: "p02_suma_y_factorial.cpp", path: "modulos/M05_Ciclos_y_Bucles/cpp/p02_suma_y_factorial.cpp", kind: "cpp" },
+            { label: "p03_caja_centinela.cpp", path: "modulos/M05_Ciclos_y_Bucles/cpp/p03_caja_centinela.cpp", kind: "cpp" },
+            { label: "p04_validacion_notas_grupo.cpp", path: "modulos/M05_Ciclos_y_Bucles/cpp/p04_validacion_notas_grupo.cpp", kind: "cpp" },
+            { label: "p05_maximo_minimo_temperaturas.cpp", path: "modulos/M05_Ciclos_y_Bucles/cpp/p05_maximo_minimo_temperaturas.cpp", kind: "cpp" },
+            { label: "p06_digitos_y_capicua.cpp", path: "modulos/M05_Ciclos_y_Bucles/cpp/p06_digitos_y_capicua.cpp", kind: "cpp" },
+            { label: "p07_numero_primo_bandera.cpp", path: "modulos/M05_Ciclos_y_Bucles/cpp/p07_numero_primo_bandera.cpp", kind: "cpp" },
+            { label: "p08_fibonacci_deslizante.cpp", path: "modulos/M05_Ciclos_y_Bucles/cpp/p08_fibonacci_deslizante.cpp", kind: "cpp" },
+            { label: "p09_ciclos_anidados_figuras_tablas.cpp", path: "modulos/M05_Ciclos_y_Bucles/cpp/p09_ciclos_anidados_figuras_tablas.cpp", kind: "cpp" },
+            { label: "p10_menu_cajero_interactivo.cpp", path: "modulos/M05_Ciclos_y_Bucles/cpp/p10_menu_cajero_interactivo.cpp", kind: "cpp" },
+            { label: "p01_tabla_multiplicar.psc", path: "modulos/M05_Ciclos_y_Bucles/pseint/p01_tabla_multiplicar.psc", kind: "psc" },
+            { label: "p03_caja_centinela.psc", path: "modulos/M05_Ciclos_y_Bucles/pseint/p03_caja_centinela.psc", kind: "psc" },
+            { label: "p04_validacion_notas_grupo.psc", path: "modulos/M05_Ciclos_y_Bucles/pseint/p04_validacion_notas_grupo.psc", kind: "psc" },
+            { label: "p07_numero_primo_bandera.psc", path: "modulos/M05_Ciclos_y_Bucles/pseint/p07_numero_primo_bandera.psc", kind: "psc" },
+            { label: "p10_menu_cajero_interactivo.psc", path: "modulos/M05_Ciclos_y_Bucles/pseint/p10_menu_cajero_interactivo.psc", kind: "psc" },
+            { label: "Guía elección de ciclo (DFD)", path: "modulos/M05_Ciclos_y_Bucles/dfd/dfd_01_guia_eleccion_ciclo.png", kind: "dfd" }
+          ]
+        },
+        {
+          id: "M06",
+          stage: "estructuras",
+          hours: "4.0 h",
+          pages: "35 págs",
+          title: "Vectores Estáticos 1D (const int MAX + n)",
+          desc: "Arreglos de tamaño fijo definido, índices 0..n-1, 8 patrones maestros: suma, conteo, máx/mín, búsqueda secuencial, invertir, rotar, insertar/eliminar y Burbuja.",
+          pdf: "modulos/M06_Vectores_Estaticos/M06_Vectores_Estaticos.pdf",
+          md: "modulos/M06_Vectores_Estaticos/M06_Vectores_Estaticos.md",
+          topics: ["const int MAX", "8 patrones 1D", "Vectores paralelos", "Insertar/Eliminar", "Burbuja paso a paso"],
+          files: [
+            { label: "m06_p01_notas_estadisticas.cpp", path: "modulos/M06_Vectores_Estaticos/cpp/m06_p01_notas_estadisticas.cpp", kind: "cpp" },
+            { label: "m06_p02_busqueda_inventario.cpp", path: "modulos/M06_Vectores_Estaticos/cpp/m06_p02_busqueda_inventario.cpp", kind: "cpp" },
+            { label: "m06_p03_invertir_capicua.cpp", path: "modulos/M06_Vectores_Estaticos/cpp/m06_p03_invertir_capicua.cpp", kind: "cpp" },
+            { label: "m06_p04_rotar_turnos.cpp", path: "modulos/M06_Vectores_Estaticos/cpp/m06_p04_rotar_turnos.cpp", kind: "cpp" },
+            { label: "m06_p05_insertar_eliminar.cpp", path: "modulos/M06_Vectores_Estaticos/cpp/m06_p05_insertar_eliminar.cpp", kind: "cpp" },
+            { label: "m06_p06_burbuja_paso_a_paso.cpp", path: "modulos/M06_Vectores_Estaticos/cpp/m06_p06_burbuja_paso_a_paso.cpp", kind: "cpp" },
+            { label: "m06_p07_filtrar_sin_duplicados.cpp", path: "modulos/M06_Vectores_Estaticos/cpp/m06_p07_filtrar_sin_duplicados.cpp", kind: "cpp" },
+            { label: "m06_p08_mezcla_dos_arreglos.cpp", path: "modulos/M06_Vectores_Estaticos/cpp/m06_p08_mezcla_dos_arreglos.cpp", kind: "cpp" },
+            { label: "m06_p01_notas_estadisticas.psc", path: "modulos/M06_Vectores_Estaticos/pseint/m06_p01_notas_estadisticas.psc", kind: "psc" },
+            { label: "m06_p02_busqueda_inventario.psc", path: "modulos/M06_Vectores_Estaticos/pseint/m06_p02_busqueda_inventario.psc", kind: "psc" },
+            { label: "m06_p05_insertar_eliminar.psc", path: "modulos/M06_Vectores_Estaticos/pseint/m06_p05_insertar_eliminar.psc", kind: "psc" },
+            { label: "m06_p06_burbuja_paso_a_paso.psc", path: "modulos/M06_Vectores_Estaticos/pseint/m06_p06_burbuja_paso_a_paso.psc", kind: "psc" }
+          ]
+        },
+        {
+          id: "M07",
+          stage: "estructuras",
+          hours: "4.0 h",
+          pages: "36 págs",
+          title: "Matrices Estáticas 2D (mat[MAX_F][MAX_C])",
+          desc: "Tablas estáticas f×c, recorrido por filas vs columnas, suma por fila/columna, coordenadas máx/mín, diagonales, simetría, transpuesta y casos reales.",
+          pdf: "modulos/M07_Matrices_Estaticas/M07_Matrices_Estaticas.pdf",
+          md: "modulos/M07_Matrices_Estaticas/M07_Matrices_Estaticas.md",
+          topics: ["Filas vs Columnas", "Diagonales (i==j, i+j==n-1)", "Transpuesta", "Cine 5x6 y Boletín", "8 resueltos + 14 retos"],
+          files: [
+            { label: "m07_p01_boletin_notas.cpp", path: "modulos/M07_Matrices_Estaticas/cpp/m07_p01_boletin_notas.cpp", kind: "cpp" },
+            { label: "m07_p02_ventas_tiendas_meses.cpp", path: "modulos/M07_Matrices_Estaticas/cpp/m07_p02_ventas_tiendas_meses.cpp", kind: "cpp" },
+            { label: "m07_p03_reserva_cine_5x6.cpp", path: "modulos/M07_Matrices_Estaticas/cpp/m07_p03_reserva_cine_5x6.cpp", kind: "cpp" },
+            { label: "m07_p04_diagonales_y_triangulares.cpp", path: "modulos/M07_Matrices_Estaticas/cpp/m07_p04_diagonales_y_triangulares.cpp", kind: "cpp" },
+            { label: "m07_p05_transpuesta_y_simetria.cpp", path: "modulos/M07_Matrices_Estaticas/cpp/m07_p05_transpuesta_y_simetria.cpp", kind: "cpp" },
+            { label: "m07_p06_cuadrado_magico.cpp", path: "modulos/M07_Matrices_Estaticas/cpp/m07_p06_cuadrado_magico.cpp", kind: "cpp" },
+            { label: "m07_p07_busqueda_e_intercambio_filas.cpp", path: "modulos/M07_Matrices_Estaticas/cpp/m07_p07_busqueda_e_intercambio_filas.cpp", kind: "cpp" },
+            { label: "m07_p08_multiplicacion_matrices.cpp", path: "modulos/M07_Matrices_Estaticas/cpp/m07_p08_multiplicacion_matrices.cpp", kind: "cpp" },
+            { label: "m07_p01_boletin_notas.psc", path: "modulos/M07_Matrices_Estaticas/pseint/m07_p01_boletin_notas.psc", kind: "psc" },
+            { label: "m07_p03_reserva_cine_5x6.psc", path: "modulos/M07_Matrices_Estaticas/pseint/m07_p03_reserva_cine_5x6.psc", kind: "psc" },
+            { label: "m07_p05_transpuesta_y_simetria.psc", path: "modulos/M07_Matrices_Estaticas/pseint/m07_p05_transpuesta_y_simetria.psc", kind: "psc" },
+            { label: "m07_p08_multiplicacion_matrices.psc", path: "modulos/M07_Matrices_Estaticas/pseint/m07_p08_multiplicacion_matrices.psc", kind: "psc" }
+          ]
+        },
+        {
+          id: "M08",
+          stage: "estructuras",
+          hours: "3.0 h",
+          pages: "31 págs",
+          title: "Modularidad, Estrategia Anti-Pánico y 2 Simulacros de Parcial",
+          desc: "Funciones void y con retorno, paso por valor vs &, cómo pasar vectores/matrices estáticos, checklist de 10 puntos y 2 simulacros completos (90 min) con rúbrica y solucionario.",
+          pdf: "modulos/M08_Modularidad_Parciales_y_Solucionario/M08_Modularidad_Parciales_y_Solucionario.pdf",
+          md: "modulos/M08_Modularidad_Parciales_y_Solucionario/M08_Modularidad_Parciales_y_Solucionario.md",
+          topics: ["Funciones & SubProcesos", "m[][MAX_C]", "Anti-Pánico 90 min", "Simulacro Corte 1", "Simulacro Final"],
+          files: [
+            { label: "01_anatomia_funciones_void_retorno.cpp", path: "modulos/M08_Modularidad_Parciales_y_Solucionario/cpp/01_anatomia_funciones_void_retorno.cpp", kind: "cpp" },
+            { label: "02_valor_vs_referencia.cpp", path: "modulos/M08_Modularidad_Parciales_y_Solucionario/cpp/02_valor_vs_referencia.cpp", kind: "cpp" },
+            { label: "03_funciones_vector_estatico.cpp", path: "modulos/M08_Modularidad_Parciales_y_Solucionario/cpp/03_funciones_vector_estatico.cpp", kind: "cpp" },
+            { label: "04_funciones_matriz_estatica.cpp", path: "modulos/M08_Modularidad_Parciales_y_Solucionario/cpp/04_funciones_matriz_estatica.cpp", kind: "cpp" },
+            { label: "05_simulacro1_p1_peaje.cpp", path: "modulos/M08_Modularidad_Parciales_y_Solucionario/cpp/05_simulacro1_p1_peaje.cpp", kind: "cpp" },
+            { label: "06_simulacro1_p2_parqueadero.cpp", path: "modulos/M08_Modularidad_Parciales_y_Solucionario/cpp/06_simulacro1_p2_parqueadero.cpp", kind: "cpp" },
+            { label: "07_simulacro1_p3_invernadero.cpp", path: "modulos/M08_Modularidad_Parciales_y_Solucionario/cpp/07_simulacro1_p3_invernadero.cpp", kind: "cpp" },
+            { label: "08_simulacro2_p1_primos_perfectos.cpp", path: "modulos/M08_Modularidad_Parciales_y_Solucionario/cpp/08_simulacro2_p1_primos_perfectos.cpp", kind: "cpp" },
+            { label: "09_simulacro2_p2_inventario_vector.cpp", path: "modulos/M08_Modularidad_Parciales_y_Solucionario/cpp/09_simulacro2_p2_inventario_vector.cpp", kind: "cpp" },
+            { label: "10_simulacro2_p3_consumo_matriz.cpp", path: "modulos/M08_Modularidad_Parciales_y_Solucionario/cpp/10_simulacro2_p3_consumo_matriz.cpp", kind: "cpp" }
+          ]
+        }
+      ];
+
+      const FICHAS = [
+        {
+          id: "ficha-01",
+          title: "Ficha 01 · Símbolos Oficiales y Reglas de DFD",
+          desc: "Guía de bolsillo de Inicio/Fin, Entrada, Proceso, Salida, Decisión, reglas de flujo y prueba de escritorio en papel.",
+          pdf: "fichas_resumen/Ficha_01_Simbolos_DFD.pdf",
+          png: "fichas_resumen/Ficha_01_Simbolos_DFD.png",
+          tag: "M01 · 1 página"
+        },
+        {
+          id: "ficha-02",
+          title: "Ficha 02 · Traductor DFD ↔ PSeInt ↔ C++",
+          desc: "Equivalencias exactas de variables, lectura/escritura, condicionales, ciclos, SubProcesos y las 5 trampas clásicas.",
+          pdf: "fichas_resumen/Ficha_02_Traductor_DFD_PSeInt_CPP.pdf",
+          png: "fichas_resumen/Ficha_02_Traductor_DFD_PSeInt_CPP.png",
+          tag: "M02–M08 · 1 página"
+        },
+        {
+          id: "ficha-03",
+          title: "Ficha 03 · Método de los 5 Pasos y Anti-Pánico",
+          desc: "Protocolo E-P-S antes de teclear, reparto de 90 minutos de parcial y los 10 chequeos obligatorios antes de entregar.",
+          pdf: "fichas_resumen/Ficha_03_Metodo_5_Pasos_Analizar_Problemas.pdf",
+          png: "fichas_resumen/Ficha_03_Metodo_5_Pasos_Analizar_Problemas.png",
+          tag: "M00 + M08 · 1 página"
+        },
+        {
+          id: "ficha-04",
+          title: "Ficha 04 · Patrones de Vectores y Matrices Estáticos",
+          desc: "Recetario C++ listo para parcial: suma, búsqueda, inserción, eliminación, Burbuja, diagonales, transpuesta y firmas de función.",
+          pdf: "fichas_resumen/Ficha_04_Patrones_Vectores_y_Matrices_Estaticos.pdf",
+          png: "fichas_resumen/Ficha_04_Patrones_Vectores_y_Matrices_Estaticos.png",
+          tag: "M06–M08 · 1 página"
+        }
+      ];
+
+      const GALLERY = [
+        // Ilustraciones (3)
+        { id: "ilus-01", cat: "ilus", title: "Algoritmo como Receta Exacta", meta: "M00 · Ilustración", desc: "Por qué la computadora ejecuta órdenes literales en secuencia.", src: "assets/ilustraciones/ilus_01_algoritmo_receta.jpg" },
+        { id: "ilus-02", cat: "ilus", title: "Variables como Casilleros en RAM", meta: "M02 / M03 · Ilustración", desc: "Metáfora visual de cajas con nombre, tipo y dato guardado.", src: "assets/ilustraciones/ilus_02_variables_ram.jpg" },
+        { id: "ilus-03", cat: "ilus", title: "Puente DFD → PSeInt → C++", meta: "Portada Libro · Ilustración", desc: "Transición progresiva de la lógica visual al código compilado.", src: "assets/ilustraciones/ilus_03_puente_dfd_pseint_cpp.jpg" },
+        // Diagramas maestros (11)
+        { id: "diag-01", cat: "maestros", title: "Método de los 5 Pasos de Análisis", meta: "M00 / M08 · Diagrama Maestro", desc: "Comprender → E-P-S → Estrategia/DFD → Prueba en papel → PSeInt/C++.", src: "assets/diagramas/met_01_cinco_pasos_analisis.png" },
+        { id: "diag-02", cat: "maestros", title: "Símbolos Oficiales de DFD", meta: "M01 · Diagrama Maestro", desc: "Los 5 bloques esenciales y la diferencia entre Entrada y Salida.", src: "assets/diagramas/dfd_00_simbolos_oficiales.png" },
+        { id: "diag-03", cat: "maestros", title: "DFD Secuencial: Suma y Promedio", meta: "M01 · Diagrama Maestro", desc: "Flujo lineal de arriba hacia abajo con asignación e impresión.", src: "assets/diagramas/dfd_01_suma_promedio.png" },
+        { id: "diag-04", cat: "maestros", title: "DFD Decisión: Mayor de Tres Números", meta: "M01 / M04 · Diagrama Maestro", desc: "Rombos encadenados y cierre ordenado hacia un único Fin.", src: "assets/diagramas/dfd_02_mayor_tres_numeros.png" },
+        { id: "diag-05", cat: "maestros", title: "DFD Ciclo Mientras con Centinela", meta: "M05 · Diagrama Maestro", desc: "Patrón de lectura anticipada y evaluación antes de acumular.", src: "assets/diagramas/dfd_03_ciclo_mientras_centinela.png" },
+        { id: "diag-06", cat: "maestros", title: "DFD Ciclo Para: Factorial", meta: "M05 · Diagrama Maestro", desc: "Iteración controlada por contador desde 1 hasta n.", src: "assets/diagramas/dfd_04_ciclo_para_factorial.png" },
+        { id: "diag-07", cat: "maestros", title: "DFD Búsqueda en Vector Estático", meta: "M06 · Diagrama Maestro", desc: "Recorrido con bandera booleana sobre arreglo v[MAX].", src: "assets/diagramas/dfd_05_vector_estatico_busqueda.png" },
+        { id: "diag-08", cat: "maestros", title: "Anatomía de Variables en Memoria RAM", meta: "M03 · Diagrama Maestro", desc: "Tamaños, tipos básicos int, double, char, bool y string.", src: "assets/diagramas/mem_01_variables_ram.png" },
+        { id: "diag-09", cat: "maestros", title: "Puente de Ciclos DFD ↔ PSeInt ↔ C++", meta: "M05 · Diagrama Maestro", desc: "Comparativa de while, do-while (Hasta Que invertido) y for.", src: "assets/diagramas/mem_02_puente_ciclos.png" },
+        { id: "diag-10", cat: "maestros", title: "Memoria de Vector Estático 1D", meta: "M06 · Diagrama Maestro", desc: "Capacidad física MAX vs tamaño lógico n usado (índices 0..n-1).", src: "assets/diagramas/mem_03_vector_estatico_1d.png" },
+        { id: "diag-11", cat: "maestros", title: "Memoria de Matriz Estática 2D", meta: "M07 · Diagrama Maestro", desc: "Coordenadas [fila][columna], diagonal principal i==j y secundaria i+j==n-1.", src: "assets/diagramas/mem_04_matriz_estatica_2d.png" },
+        // DFDs M01 (6)
+        { id: "dfd1-01", cat: "dfd1", title: "M01 P01: Promedio de Notas", meta: "M01 · DFD Resuelto", desc: "Lectura de tres notas reales y cálculo secuencial del promedio.", src: "modulos/M01_Logica_y_DFD/dfd/dfd_p01_promedio_notas.png" },
+        { id: "dfd1-02", cat: "dfd1", title: "M01 P02: Área y Perímetro de Cancha", meta: "M01 · DFD Resuelto", desc: "Entrada de base y altura; salidas múltiples en secuencia.", src: "modulos/M01_Logica_y_DFD/dfd/dfd_p02_area_perimetro_cancha.png" },
+        { id: "dfd1-03", cat: "dfd1", title: "M01 P03: Salario Neto (-8%)", meta: "M01 · DFD Resuelto", desc: "Cálculo de salario bruto, descuento del 8% y neto a pagar.", src: "modulos/M01_Logica_y_DFD/dfd/dfd_p03_salario_neto.png" },
+        { id: "dfd1-04", cat: "dfd1", title: "M01 P04: ¿Aprueba o Reprueba?", meta: "M01 · DFD Resuelto", desc: "Primera bifurcación simple Sí/No comparando nota >= 3.0.", src: "modulos/M01_Logica_y_DFD/dfd/dfd_p04_aprueba_materia.png" },
+        { id: "dfd1-05", cat: "dfd1", title: "M01 P05: Descuento en Papelería", meta: "M01 · DFD Resuelto", desc: "Decisión de descuento condicional por monto de compra.", src: "modulos/M01_Logica_y_DFD/dfd/dfd_p05_descuento_papeleria.png" },
+        { id: "dfd1-06", cat: "dfd1", title: "M01 P06: Mayor de Dos Números", meta: "M01 · DFD Resuelto", desc: "Decisión anidada contemplando el caso de empate.", src: "modulos/M01_Logica_y_DFD/dfd/dfd_p06_mayor_dos_numeros.png" },
+        // DFDs M04 (9)
+        { id: "dfd4-00", cat: "dfd4", title: "M04: Mapa de Estructuras Condicionales", meta: "M04 · DFD Guía", desc: "Simple, doble, escalera else-if y selector múltiple switch.", src: "modulos/M04_Condicionales/dfd/dfd_00_estructuras_condicionales.png" },
+        { id: "dfd4-01", cat: "dfd4", title: "M04 P01: Signo, Paridad y Múltiplo de 5", meta: "M04 · DFD Resuelto", desc: "Portero numérico con módulo % y condiciones independientes.", src: "modulos/M04_Condicionales/dfd/dfd_p01_par_multiplo_signo.png" },
+        { id: "dfd4-02", cat: "dfd4", title: "M04 P02: Beca Universitaria por Rangos", meta: "M04 · DFD Resuelto", desc: "Validación combinada con && y rangos de promedio y estrato.", src: "modulos/M04_Condicionales/dfd/dfd_p02_beca_rangos.png" },
+        { id: "dfd4-03", cat: "dfd4", title: "M04 P03: Podio de Tres Atletas", meta: "M04 · DFD Resuelto", desc: "Árbol de decisiones con manejo de empates.", src: "modulos/M04_Condicionales/dfd/dfd_p03_podio_tres_atletas.png" },
+        { id: "dfd4-04", cat: "dfd4", title: "M04 P04: Factura de Energía por Tramos", meta: "M04 · DFD Resuelto", desc: "Escalera else-if ordenada para tarifas escalonadas.", src: "modulos/M04_Condicionales/dfd/dfd_p04_factura_energia.png" },
+        { id: "dfd4-05", cat: "dfd4", title: "M04 P05: Cajero con Menú switch", meta: "M04 · DFD Resuelto", desc: "Selector múltiple entero y validación de saldo.", src: "modulos/M04_Condicionales/dfd/dfd_p05_cajero_switch.png" },
+        { id: "dfd4-06", cat: "dfd4", title: "M04 P06: Descuento por Categoría (char)", meta: "M04 · DFD Resuelto", desc: "Comparación de carácter y cálculo de bono adicional.", src: "modulos/M04_Condicionales/dfd/dfd_p06_descuento_categoria.png" },
+        { id: "dfd4-07", cat: "dfd4", title: "M04 P07: Existencia y Tipo de Triángulo", meta: "M04 · DFD Resuelto", desc: "Desigualdad triangular primero; clasificación equilátero/isósceles/escaleno después.", src: "modulos/M04_Condicionales/dfd/dfd_p07_triangulo.png" },
+        { id: "dfd4-08", cat: "dfd4", title: "M04 P08: Año Bisiesto y Días del Mes", meta: "M04 · DFD Resuelto", desc: "Regla booleana del bisiesto combinada con selector de mes.", src: "modulos/M04_Condicionales/dfd/dfd_p08_bisiesto_dias_mes.png" },
+        // DFDs M05 (8)
+        { id: "dfd5-01", cat: "dfd5", title: "M05: Guía de Elección de Ciclo", meta: "M05 · DFD Guía", desc: "Árbol rápido para elegir entre for, while o do-while.", src: "modulos/M05_Ciclos_y_Bucles/dfd/dfd_01_guia_eleccion_ciclo.png" },
+        { id: "dfd5-02", cat: "dfd5", title: "M05 P01: Tabla de Multiplicar (Para)", meta: "M05 · DFD Resuelto", desc: "Ciclo contado con acumulador de productos.", src: "modulos/M05_Ciclos_y_Bucles/dfd/dfd_02_p01_para_tabla.png" },
+        { id: "dfd5-03", cat: "dfd5", title: "M05 P03: Caja con Centinela 0 (Mientras)", meta: "M05 · DFD Resuelto", desc: "Bucle controlado por valor centinela sin contar elementos previos.", src: "modulos/M05_Ciclos_y_Bucles/dfd/dfd_03_p03_mientras_centinela.png" },
+        { id: "dfd5-04", cat: "dfd5", title: "M05 P04: Validación con Repetir", meta: "M05 · DFD Resuelto", desc: "Validación robusta de rango [0.0, 5.0] en notas.", src: "modulos/M05_Ciclos_y_Bucles/dfd/dfd_04_p04_repetir_validacion.png" },
+        { id: "dfd5-05", cat: "dfd5", title: "M05 P05: Máx y Mín SIN Arreglos", meta: "M05 · DFD Resuelto", desc: "Uso de bandera esPrimero para inicializar mayor y menor.", src: "modulos/M05_Ciclos_y_Bucles/dfd/dfd_05_p05_max_min_sin_arreglos.png" },
+        { id: "dfd5-06", cat: "dfd5", title: "M05 P07: Detector de Primo con Bandera", meta: "M05 · DFD Resuelto", desc: "Parada temprana en bucle mientras divisor * divisor <= n.", src: "modulos/M05_Ciclos_y_Bucles/dfd/dfd_06_p07_bandera_primo.png" },
+        { id: "dfd5-07", cat: "dfd5", title: "M05 P09: Ciclos Anidados (Figuras)", meta: "M05 · DFD Resuelto", desc: "Ciclo externo de filas y ciclo interno de columnas.", src: "modulos/M05_Ciclos_y_Bucles/dfd/dfd_07_p09_ciclos_anidados.png" },
+        { id: "dfd5-08", cat: "dfd5", title: "M05 P10: Menú Cajero Interactivo", meta: "M05 · DFD Resuelto", desc: "do-while externo + switch interno + acumuladores de movimientos.", src: "modulos/M05_Ciclos_y_Bucles/dfd/dfd_08_p10_menu_cajero.png" },
+        // Fichas (4)
+        { id: "ficha-01", cat: "fichas", title: "Ficha 01: Símbolos de DFD", meta: "Ficha Resumen Imprimible", desc: "Versión PNG de alta resolución lista para imprimir o repasar.", src: "fichas_resumen/Ficha_01_Simbolos_DFD.png" },
+        { id: "ficha-02", cat: "fichas", title: "Ficha 02: Traductor DFD-PSeInt-C++", meta: "Ficha Resumen Imprimible", desc: "Versión PNG con tablas de sintaxis equivalente.", src: "fichas_resumen/Ficha_02_Traductor_DFD_PSeInt_CPP.png" },
+        { id: "ficha-03", cat: "fichas", title: "Ficha 03: Método 5 Pasos + Anti-Pánico", meta: "Ficha Resumen Imprimible", desc: "Versión PNG con protocolo de análisis y chequeos pre-entrega.", src: "fichas_resumen/Ficha_03_Metodo_5_Pasos_Analizar_Problemas.png" },
+        { id: "ficha-04", cat: "fichas", title: "Ficha 04: Patrones Vectores y Matrices", meta: "Ficha Resumen Imprimible", desc: "Versión PNG con algoritmos base de 1D, 2D y funciones estáticas.", src: "fichas_resumen/Ficha_04_Patrones_Vectores_y_Matrices_Estaticos.png" }
+      ];
+
+      const SEARCH_DB = [
+        // M00
+        { mod: "M00", kind: "consejo", title: "La Computadora como Genio Literal y Modelo E-P-S", desc: "Todo problema se resuelve identificando primero Salidas (¿qué me piden?), Entradas (¿qué datos me dan?) y Proceso (¿qué fórmulas necesito?).", snippet: "E-P-S antes de tocar el teclado", link: "modulos/M00_Algoritmos_Para_Tontos/M00_Algoritmos_Para_Tontos.pdf" },
+        { mod: "M00", kind: "consejo", title: "Método de los 5 Pasos del Monitor", desc: "1. Comprender en tus palabras · 2. E-P-S · 3. Estrategia y DFD · 4. Prueba de escritorio en papel · 5. Traducir a PSeInt/C++.", snippet: "diagrama: met_01_cinco_pasos_analisis.png", link: "modulos/M00_Algoritmos_Para_Tontos/M00_Algoritmos_Para_Tontos.pdf" },
+        { mod: "M00", kind: "trampa", title: "Los 5 Errores Clásicos del Principiante", desc: "Empezar a escribir código sin leer el enunciado completo, confundir entradas con constantes o asumir que el programa 'adivina' unidades.", snippet: "Error #1: Codificar sin análisis E-P-S", link: "modulos/M00_Algoritmos_Para_Tontos/M00_Algoritmos_Para_Tontos.md" },
+        { mod: "M00", kind: "ejercicio", title: "Problemas de Pizza, Cine, Nota Ponderada y Carretera + 8 Ejercicios", desc: "Incluye intercambio de vasos (vasoA/vasoB con auxiliar) y detección de error en promedio sin paréntesis.", snippet: "prom = (n1 + n2 + n3) / 3", link: "modulos/M00_Algoritmos_Para_Tontos/M00_Algoritmos_Para_Tontos.pdf" },
+
+        // M01
+        { mod: "M01", kind: "consejo", title: "Las 7 Reglas de Oro de un DFD Impecable", desc: "Un solo Inicio y un solo Fin, flujo claro sin líneas cruzadas, toda variable leída/inicializada antes de usarse y ramas de rombo convergentes.", snippet: "1 Inicio -> flujo ordenado -> 1 Fin", link: "modulos/M01_Logica_y_DFD/M01_Logica_y_DFD.pdf" },
+        { mod: "M01", kind: "trampa", title: "Errores Clásicos en DFD (y su reflejo futuro en C++)", desc: "Hacer asignaciones dentro de un bloque de lectura, olvidar cerrar la rama 'No' de un rombo o mostrar una variable antes de calcularla.", snippet: "Leer x <- 5 (INCORRECTO en DFD)", link: "modulos/M01_Logica_y_DFD/M01_Logica_y_DFD.md" },
+        { mod: "M01", kind: "ejercicio", title: "6 Problemas DFD Resueltos + 10 Retos de Práctica", desc: "Promedio, cancha, salario neto (-8%), aprueba materia, descuento papelería, mayor de dos números con empate y cazar DFDs rotos.", snippet: "modulos/M01_Logica_y_DFD/dfd/*.png", link: "modulos/M01_Logica_y_DFD/M01_Logica_y_DFD.pdf" },
+
+        // M02
+        { mod: "M02", kind: "consejo", title: "Configuración Estricta de PSeInt + Traductor de Errores de g++", desc: "Activa perfil Estricto en PSeInt para obligarte a declarar tipos y punto y coma; aprende a leer expected ';' before '}' token.", snippet: "Configurar -> Opciones -> Estricto", link: "modulos/M02_PSeInt_y_Puente_CPP/M02_PSeInt_y_Puente_CPP.pdf" },
+        { mod: "M02", kind: "trampa", title: "Confundir = (Asignación) con == (Comparación) y Olvidar ';'", desc: "PSeInt usa <- para asignar y = para comparar; en C++ es = para guardar y == para comparar.", snippet: "PSeInt: x <- 5 | C++: x = 5;", link: "modulos/M02_PSeInt_y_Puente_CPP/M02_PSeInt_y_Puente_CPP.pdf" },
+        { mod: "M02", kind: "ejercicio", title: "6 Programas Duales PSeInt/C++ + 10 Ejercicios (IMC, Swap, Pintura)", desc: "Saludo y suma, promedio, terreno, conversión Celsius/Fahrenheit/Kelvin, cafetería y salario semanal compilables en g++.", snippet: "cpp/01_saludo_y_suma.cpp .. 06_salario_semanal.cpp", link: "modulos/M02_PSeInt_y_Puente_CPP/cpp/04_conversion_temperatura.cpp" },
+
+        // M03
+        { mod: "M03", kind: "trampa", title: "División Entera vs División Real (5 / 2 = 2 en C++)", desc: "Si numerador y denominador son int, C++ trunca los decimales. Usa 5.0 / 2 o static_cast<double>(a) / b.", snippet: "double r = static_cast<double>(a) / b;", link: "modulos/M03_Tipos_Datos_y_Operadores/M03_Tipos_Datos_y_Operadores.pdf" },
+        { mod: "M03", kind: "trampa", title: "La Trampa del Fantasma \\n con cin >> y getline()", desc: "Después de leer un número con cin >> codigo;, queda un salto de línea en el buffer; usa cin.ignore() antes de getline(cin, nombre).", snippet: "cin >> cod; cin.ignore(); getline(cin, nom);", link: "modulos/M03_Tipos_Datos_y_Operadores/cpp/p03_promedio_ponderado.cpp" },
+        { mod: "M03", kind: "patron", title: "Desglose de Billetes y Extracción de Dígitos con / y %", desc: "Patrón clásico de parcial para separar miles/centenas/decenas/unidades o convertir segundos en HH:MM:SS usando cociente y residuo.", snippet: "digito = n % 10; n = n / 10;", link: "modulos/M03_Tipos_Datos_y_Operadores/cpp/p07_digitos_numero.cpp" },
+        { mod: "M03", kind: "ejercicio", title: "7 Resueltos + 12 Ejercicios (Desglose Billetes, MRUV, IMC, IVA)", desc: "Cajero de billetes, reloj de segundos, promedio ponderado con nombre completo, energía cinética, IMC y 4 cifras invertidas.", snippet: "cpp/p01_desglose_billetes.cpp .. p07_digitos_numero.cpp", link: "modulos/M03_Tipos_Datos_y_Operadores/cpp/p01_desglose_billetes.cpp" },
+
+        // M04
+        { mod: "M04", kind: "trampa", title: "LA TRAMPA MORTAL: Escribir 10 <= x <= 20 en C++", desc: "En C++ 10 <= x <= 20 se evalúa como (10 <= x) <= 20, dando (0 o 1) <= 20, ¡SIEMPRE verdadero! Escribe siempre dos comparaciones unidas con &&.", snippet: "if (x >= 10 && x <= 20)  // CORRECTO", link: "modulos/M04_Condicionales/M04_Condicionales.pdf" },
+        { mod: "M04", kind: "trampa", title: "Escalera else-if Desordenada u Olvidar break en switch", desc: "Evaluar >= 3.0 antes que >= 4.5 captura las notas altas en el tramo equivocado. En switch, sin break ocurre 'fall-through'.", snippet: "Ordenar rangos de más estricto a menos estricto + break;", link: "modulos/M04_Condicionales/cpp/p04_factura_energia_escalera.cpp" },
+        { mod: "M04", kind: "consejo", title: "Diccionario Traductor de Enunciados Condicionales", desc: "'Al menos / como mínimo' (>=), 'a lo sumo / máximo' (<=), 'entre A y B inclusive' (x >= A && x <= B), 'múltiplo de k' (n % k == 0).", snippet: "n % k == 0  // divisible por k", link: "modulos/M04_Condicionales/M04_Condicionales.md" },
+        { mod: "M04", kind: "ejercicio", title: "8 Problemas Resueltos + 14 Retos (Beca, Podio, Triángulos, Bisiesto)", desc: "Incluye validador de fechas, ecuación cuadrática, reloj hh:mm + 1 min, cajero con switch y clasificación completa de triángulos.", snippet: "cpp/p01_par_multiplo_signo.cpp .. p08_bisiesto_dias_mes.cpp", link: "modulos/M04_Condicionales/cpp/p07_clasificador_triangulo.cpp" },
+
+        // M05
+        { mod: "M05", kind: "trampa", title: "TRAMPA MORTAL: Repetir...Hasta Que (PSeInt) vs do-while (C++)", desc: "PSeInt termina cuando la condición es VERDADERA; C++ continúa mientras sea VERDADERA. ¡Debes NEGAR la condición al traducir!", snippet: "Hasta Que (nota>=0 && nota<=5)  =>  while (nota<0 || nota>5);", link: "modulos/M05_Ciclos_y_Bucles/M05_Ciclos_y_Bucles.pdf" },
+        { mod: "M05", kind: "trampa", title: "Punto y Coma Fantasma en for(...); o while(...); y Acumulador Sin 0", desc: "Un ';' tras el paréntesis crea un ciclo vacío; olvidar inicializar suma = 0 o producto = 1 produce basura de RAM.", snippet: "int suma = 0; // inicializar SIEMPRE antes del bucle", link: "modulos/M05_Ciclos_y_Bucles/M05_Ciclos_y_Bucles.md" },
+        { mod: "M05", kind: "patron", title: "Patrón Centinela, Bandera Booleana y Máx/Mín SIN Arreglos", desc: "Lectura previa al while, parada temprana en detector de primos y bandera bool esPrimero = true para hallar mayor/menor al vuelo.", snippet: "if (esPrimero || x > mayor) { mayor = x; esPrimero = false; }", link: "modulos/M05_Ciclos_y_Bucles/cpp/p05_maximo_minimo_temperaturas.cpp" },
+        { mod: "M05", kind: "ejercicio", title: "10 Resueltos + 16 Retos (Factorial, Capicúa, Primo, Fibonacci, Menú Cajero)", desc: "Tabla, centinela, validación, máx/mín, dígitos/capicúa, primo, Fibonacci deslizante, figuras con ciclos anidados, Euclides MCD y rombo.", snippet: "cpp/p01_tabla_multiplicar.cpp .. p10_menu_cajero_interactivo.cpp", link: "modulos/M05_Ciclos_y_Bucles/cpp/p07_numero_primo_bandera.cpp" },
+
+        // M06
+        { mod: "M06", kind: "patron", title: "Regla de Oro de Vectores Estáticos: Capacidad MAX vs Tamaño Lógico n", desc: "Nunca declares int v[n]; (VLA prohibido). Usa const int MAX = 100; double v[MAX]; y valida 1 <= n <= MAX.", snippet: "const int MAX = 100; int v[MAX];", link: "modulos/M06_Vectores_Estaticos/M06_Vectores_Estaticos.pdf" },
+        { mod: "M06", kind: "patron", title: "Los 8 Patrones Maestros 1D (Suma, Búsqueda, Invertir, Rotar, Insertar/Eliminar, Burbuja)", desc: "Inserción desplazando hacia la derecha desde i=n hasta pos+1; eliminación hacia la izquierda desde pos hasta n-2; Burbuja con bandera.", snippet: "for (int i = n; i > pos; i--) v[i] = v[i - 1]; v[pos] = x; n++;", link: "modulos/M06_Vectores_Estaticos/cpp/m06_p05_insertar_eliminar.cpp" },
+        { mod: "M06", kind: "trampa", title: "Desbordamiento Silencioso (i <= n en vez de i < n) y Olvidar n++ / n--", desc: "Con n elementos válidos los índices siempre van de 0 a n-1. Acceder a v[n] lee memoria basura.", snippet: "for (int i = 0; i < n; i++)", link: "modulos/M06_Vectores_Estaticos/M06_Vectores_Estaticos.md" },
+        { mod: "M06", kind: "ejercicio", title: "8 Resueltos + 14 Retos (Notas, Inventario Paralelo, Capicúa, Duplicados, Merge)", desc: "Incluye búsqueda binaria sobre vector ordenado, selección directa, segundo mayor, histograma 0..5 y unión/intersección.", snippet: "cpp/m06_p01..p08.cpp", link: "modulos/M06_Vectores_Estaticos/cpp/m06_p06_burbuja_paso_a_paso.cpp" },
+
+        // M07
+        { mod: "M07", kind: "patron", title: "Recorrido por Filas vs Por Columnas en Matriz Estática [MAX_F][MAX_C]", desc: "Para sumar cada estudiante recorres j adentro (por fila); para promediar cada materia fijas la columna j afuera y recorres filas i adentro.", snippet: "const int MAX_F = 20, MAX_C = 20; int m[MAX_F][MAX_C];", link: "modulos/M07_Matrices_Estaticas/M07_Matrices_Estaticas.pdf" },
+        { mod: "M07", kind: "patron", title: "Diagonales, Triangulares, Simetría y Transpuesta (T[j][i] = A[i][j])", desc: "Diagonal principal: i == j. Diagonal secundaria: i + j == n - 1. Triangular superior: i < j. Simétrica si A[i][j] == A[j][i].", snippet: "diagP += a[i][i]; diagS += a[i][n - 1 - i];", link: "modulos/M07_Matrices_Estaticas/cpp/m07_p04_diagonales_y_triangulares.cpp" },
+        { mod: "M07", kind: "trampa", title: "Invertir [fila][col] por [col][fila] y Confundir f con c en Transpuesta", desc: "Una matriz A de f×c produce una transpuesta T de c×f. Verifica f <= MAX_F && c <= MAX_C antes de llenar.", snippet: "if (a[i][j] != a[j][i]) esSimetrica = false;", link: "modulos/M07_Matrices_Estaticas/cpp/m07_p05_transpuesta_y_simetria.cpp" },
+        { mod: "M07", kind: "ejercicio", title: "8 Resueltos + 14 Retos (Boletín, Ventas, Cine 5x6, Cuadrado Mágico, A*B)", desc: "Incluye Punto de Silla, recorrido en espiral, buscaminas 5x5, rotación 90° horario y reservas de vuelos 6x4.", snippet: "cpp/m07_p01..p08.cpp", link: "modulos/M07_Matrices_Estaticas/cpp/m07_p03_reserva_cine_5x6.cpp" },
+
+        // M08
+        { mod: "M08", kind: "patron", title: "Paso de Vectores y Matrices Estáticas a Funciones en C++", desc: "Los vectores SIEMPRE pasan por referencia implícita (int v[], int n). En matrices es OBLIGATORIO fijar el tamaño de columnas: m[][MAX_C].", snippet: "void mostrar(const int m[][MAX_C], int f, int c);", link: "modulos/M08_Modularidad_Parciales_y_Solucionario/cpp/04_funciones_matriz_estatica.cpp" },
+        { mod: "M08", kind: "trampa", title: "Las 4 Trampas de Funciones (Olvidar &, return v;, omitir MAX_C)", desc: "Una función NO puede retornar un arreglo completo ni cambiar variables primitivas sin &. Usa void leer(int &n) o void llenar(int v[], int &n).", snippet: "void intercambiar(int &a, int &b);", link: "modulos/M08_Modularidad_Parciales_y_Solucionario/cpp/02_valor_vs_referencia.cpp" },
+        { mod: "M08", kind: "consejo", title: "Estrategia Anti-Pánico en Parciales de 90 Minutos", desc: "Primeros 8 minutos SIN tocar el teclado: subraya entradas, restricciones y formato exacto; reparte 20/30/35 min por punto y guarda 5 min para el checklist de 10 puntos.", snippet: "8 min análisis -> 3 puntos -> 5 min checklist", link: "modulos/M08_Modularidad_Parciales_y_Solucionario/M08_Modularidad_Parciales_y_Solucionario.pdf" },
+        { mod: "M08", kind: "simulacro", title: "Simulacro 1 (Corte 1 · 90 min / 100 pts): Peaje, Parqueadero e Invernadero", desc: "Punto 1: Control de peaje (25 pts). Punto 2: Parqueadero inteligente con validación (35 pts). Punto 3: Monitor de invernadero con centinela y máx/mín sin arreglos (40 pts).", snippet: "cpp/05_simulacro1_p1_peaje.cpp .. 07_simulacro1_p3_invernadero.cpp", link: "modulos/M08_Modularidad_Parciales_y_Solucionario/cpp/05_simulacro1_p1_peaje.cpp" },
+        { mod: "M08", kind: "simulacro", title: "Simulacro 2 (Corte Final · 90 min / 100 pts): Primos, Inventario y Consumo 2D", desc: "Punto 1: Analizador modular primo/perfecto (25 pts). Punto 2: Inventario con vectores paralelos + Burbuja (35 pts). Punto 3: Matriz consumo energético por apartamento/mes (40 pts).", snippet: "cpp/08_simulacro2_p1..10_simulacro2_p3_consumo_matriz.cpp", link: "modulos/M08_Modularidad_Parciales_y_Solucionario/cpp/10_simulacro2_p3_consumo_matriz.cpp" },
+        { mod: "M08", kind: "ejercicio", title: "4 Ejercicios Express de Modularidad (Ordenar & Referencia, Aprobados, Simetría, Cazador de Bugs)", desc: "Práctica rápida antes del examen con diagnóstico de errores típicos de firmas de función y solucionario explicado.", snippet: "void ordenarAsc(double &a, double &b)", link: "modulos/M08_Modularidad_Parciales_y_Solucionario/M08_Modularidad_Parciales_y_Solucionario.pdf" }
+      ];
+
+      const SESSIONS = [
+        { id: "S01", mods: "M00 (2.0 h)", title: "Perder el miedo, analogías reales y Método de los 5 Pasos (E-P-S)", detail: "Cómo piensa una computadora literal y desglose de problemas en papel." },
+        { id: "S02", mods: "M00 (0.5 h) + M01 (1.5 h)", title: "Cierre de análisis E-P-S + Símbolos oficiales de DFD", detail: "7 Reglas de Oro de un DFD y primeros diagramas secuenciales." },
+        { id: "S03", mods: "M01 (1.5 h) + M02 (0.5 h)", title: "Decisiones en DFD, prueba de escritorio + Bienvenida a PSeInt", detail: "Ramas Sí/No, trazas en papel y configuración estricta en PSeInt." },
+        { id: "S04", mods: "M02 (2.0 h)", title: "Puente DFD → PSeInt → C++ básico y errores de compilación", detail: "Anatomía de main(), traducción paso a paso y lectura de errores de g++." },
+        { id: "S05", mods: "M02 (0.5 h) + M03 (1.5 h)", title: "Cierre puente dual + Memoria RAM 'para tontos'", detail: "Tipos int, double, char, bool, string, getline() y trampa cin.ignore()." },
+        { id: "S06", mods: "M03 (1.5 h) + M04 (0.5 h)", title: "Aritmética (5/2 vs 5.0/2, %, casting) + Lógica booleana", detail: "Operadores relacionales, tablas de verdad &&, ||, !." },
+        { id: "S07", mods: "M04 (2.0 h)", title: "if, if-else, escalera else-if y diccionario de enunciados", detail: "Dominar la trampa mortal 10 <= x <= 20 y el orden de los rangos." },
+        { id: "S08", mods: "M04 (1.0 h) + M05 (1.0 h)", title: "if anidados y switch-case + Primeros ciclos (while)", detail: "Selector múltiple con break y bucles con contador y valor centinela." },
+        { id: "S09", mods: "M05 (2.0 h)", title: "for, while, do-while, banderas y Máx/Mín sin arreglos", detail: "Trampa mortal Repetir...Hasta Que (De Morgan) vs do-while en C++." },
+        { id: "S10", mods: "M05 (1.0 h) + M06 (1.0 h)", title: "Ciclos anidados + Bienvenida a Vectores Estáticos", detail: "Matrices de asteriscos y capacidad fija const int MAX con índices 0..n-1." },
+        { id: "S11", mods: "M06 (2.0 h)", title: "Patrones maestros en Vectores Estáticos 1D", detail: "Búsqueda secuencial, invertir in-place, rotar, insertar y eliminar con MAX." },
+        { id: "S12", mods: "M06 (1.0 h) + M07 (1.0 h)", title: "Ordenamiento Burbuja + Bienvenida a Matrices Estáticas 2D", detail: "Trazado visual de Bubble Sort y tablas f×c en mat[MAX_F][MAX_C]." },
+        { id: "S13", mods: "M07 (2.0 h)", title: "Recorridos por filas/columnas, coordenadas y matrices cuadradas", detail: "Diagonales principal/secundaria, simetría y matriz transpuesta." },
+        { id: "S14", mods: "M07 (1.0 h) + M08 (1.0 h)", title: "Casos reales 2D + Funciones con vectores y matrices estáticos", detail: "Boletín/cine + void, retorno, paso por & y firma m[][MAX_C]." },
+        { id: "S15", mods: "M08 (2.0 h)", title: "Estrategia Anti-Pánico, Simulacros Corte 1 & Final y Cierre", detail: "Resolución guiada de simulacros de 90 min y checklist de 10 puntos." }
+      ];
+
+      const ANTI_PANIC_CHECKS = [
+        "¿Declaré const int MAX fijo (cero arreglos int v[n]; ni std::vector)?",
+        "¿Inicialicé contadores (= 0), acumuladores (= 0) y producto (= 1)?",
+        "¿En rangos usé x >= 10 && x <= 20 (nunca 10 <= x <= 20)?",
+        "¿Usé == para comparar dentro de if/while y = solo para asignar?",
+        "¿Puse cin.ignore() antes de getline(cin, texto) tras leer números?",
+        "¿Evité división entera colocando .0 o static_cast<double>(...)?",
+        "¿Al traducir Repetir...Hasta Que a do-while negué la condición?",
+        "¿Todos los ciclos sobre arreglos usan i < n (nunca i <= n)?",
+        "¿En matrices pasadas a función fijé la columna m[][MAX_C]?",
+        "¿Corrí una prueba de escritorio rápida con un caso normal y uno límite?"
+      ];
+
+      // Utilities
+      const norm = (str) =>
+        String(str || "")
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "");
+
+      const esc = (str) =>
+        String(str || "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+
+      // Mobile menu
+      const mobileMenuBtn = document.getElementById("mobileMenuBtn");
+      const mainNav = document.getElementById("mainNav");
+      mobileMenuBtn.addEventListener("click", () => {
+        const isOpen = mainNav.classList.toggle("open");
+        mobileMenuBtn.setAttribute("aria-expanded", String(isOpen));
+      });
+      mainNav.querySelectorAll("a").forEach((a) => {
+        a.addEventListener("click", () => {
+          mainNav.classList.remove("open");
+          mobileMenuBtn.setAttribute("aria-expanded", "false");
+        });
+      });
+
+      // Render Modules
+      const modulesGrid = document.getElementById("modulesGrid");
+      let activeStage = "ALL";
+
+      function renderModules() {
+        const list = MODULES.filter((m) => activeStage === "ALL" || m.stage === activeStage);
+        modulesGrid.innerHTML = list.map((m) => {
+          const filesHtml = m.files.length
+            ? `<details class="files-drawer">
+                <summary>Archivos de práctica y DFDs (${m.files.length})</summary>
+                <ul class="file-list">
+                  ${m.files.map((f) => {
+                    const tagClass = f.kind === "cpp" ? "tag-cpp" : f.kind === "psc" ? "tag-psc" : "tag-dfd";
+                    const tagLabel = f.kind === "cpp" ? "C++" : f.kind === "psc" ? "PSC" : "DFD";
+                    return `<li>
+                      <a class="file-link" href="${esc(f.path)}" target="_blank" rel="noopener">
+                        <span>${esc(f.label)}</span>
+                        <span class="file-tag ${tagClass}">${tagLabel}</span>
+                      </a>
+                    </li>`;
+                  }).join("")}
+                </ul>
+              </details>`
+            : `<div style="margin-top:auto; font-size:0.8rem; color:var(--muted); border-top:1px solid var(--border-soft); padding-top:0.55rem;">Módulo conceptual y análisis en papel (sin código C++ todavía).</div>`;
+
+          return `<article class="module-card stage-${esc(m.stage)}">
+            <div class="module-top">
+              <span class="module-code">${esc(m.id)}</span>
+              <div class="module-meta">
+                <span class="badge badge-soft-teal">${esc(m.hours)}</span>
+                <span class="badge badge-soft-blue">${esc(m.pages)}</span>
+              </div>
+            </div>
+            <h3>${esc(m.title)}</h3>
+            <p class="desc">${esc(m.desc)}</p>
+            <div class="topic-chips">
+              ${m.topics.map((t) => `<span class="chip">${esc(t)}</span>`).join("")}
+            </div>
+            <div class="module-btns">
+              <a href="${esc(m.pdf)}" target="_blank" rel="noopener" class="btn btn-primary btn-sm">📄 Abrir PDF</a>
+              <a href="${esc(m.md)}" target="_blank" rel="noopener" class="btn btn-outline btn-sm">📝 Apuntes (.md)</a>
+            </div>
+            ${filesHtml}
+          </article>`;
+        }).join("");
+      }
+
+      document.getElementById("moduleStagePills").addEventListener("click", (e) => {
+        const btn = e.target.closest(".pill-btn");
+        if (!btn) return;
+        document.querySelectorAll("#moduleStagePills .pill-btn").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        activeStage = btn.dataset.stage;
+        renderModules();
+      });
+
+      // Render Fichas
+      const fichasGrid = document.getElementById("fichasGrid");
+      fichasGrid.innerHTML = FICHAS.map((f) => `
+        <article class="ficha-card">
+          <div class="ficha-thumb-wrap" data-open-lightbox="${esc(f.id)}" role="button" tabindex="0" aria-label="Ampliar ${esc(f.title)}">
+            <img src="${esc(f.png)}" alt="${esc(f.title)}" loading="lazy" />
+          </div>
+          <div class="ficha-body">
+            <div><span class="badge badge-soft-orange">${esc(f.tag)}</span></div>
+            <h3>${esc(f.title)}</h3>
+            <p>${esc(f.desc)}</p>
+            <div class="card-actions">
+              <a href="${esc(f.pdf)}" target="_blank" rel="noopener" class="btn btn-primary btn-sm">🖨️ Abrir PDF</a>
+              <button type="button" class="btn btn-outline btn-sm" data-open-lightbox="${esc(f.id)}">🔍 Ver PNG</button>
+            </div>
+          </div>
+        </article>
+      `).join("");
+
+      // Render Search
+      const searchInput = document.getElementById("searchInput");
+      const clearSearchBtn = document.getElementById("clearSearchBtn");
+      const searchModuleSelect = document.getElementById("searchModuleSelect");
+      const searchResults = document.getElementById("searchResults");
+      const searchCountText = document.getElementById("searchCountText");
+      const toggleAllSearchBtn = document.getElementById("toggleAllSearchBtn");
+      let activeKind = "ALL";
+      let showAllSearch = false;
+
+      const kindBadge = {
+        ejercicio: { label: "Ejercicios", cls: "badge-soft-teal" },
+        patron: { label: "Patrón C++", cls: "badge-soft-blue" },
+        trampa: { label: "Trampa Parcial", cls: "badge-soft-red" },
+        consejo: { label: "Consejo", cls: "badge-soft-orange" },
+        simulacro: { label: "Simulacro", cls: "badge-soft-violet" }
+      };
+
+      function renderSearch() {
+        const q = norm(searchInput.value.trim());
+        const mod = searchModuleSelect.value;
+        clearSearchBtn.style.display = q.length > 0 ? "inline-block" : "none";
+
+        const filtered = SEARCH_DB.filter((item) => {
+          if (mod !== "ALL" && item.mod !== mod) return false;
+          if (activeKind !== "ALL" && item.kind !== activeKind) return false;
+          if (!q) return true;
+          const haystack = norm(`${item.mod} ${item.kind} ${item.title} ${item.desc} ${item.snippet}`);
+          return q.split(/\s+/).every((token) => haystack.includes(token));
+        });
+
+        const isUnfiltered = !q && mod === "ALL" && activeKind === "ALL" && !showAllSearch;
+        const visible = isUnfiltered ? filtered.slice(0, 9) : filtered;
+
+        searchCountText.textContent = isUnfiltered
+          ? `Mostrando ${visible.length} destacados de ${filtered.length} entradas indexadas`
+          : `${filtered.length} resultado${filtered.length === 1 ? "" : "s"} encontrado${filtered.length === 1 ? "" : "s"}`;
+
+        toggleAllSearchBtn.style.display = (!q && mod === "ALL" && activeKind === "ALL") ? "inline-flex" : "none";
+        toggleAllSearchBtn.textContent = showAllSearch ? "Mostrar solo destacados" : `Ver catálogo completo (${SEARCH_DB.length})`;
+
+        if (visible.length === 0) {
+          searchResults.innerHTML = `<div class="empty-state">
+            No encontramos coincidencias para esa búsqueda. Prueba palabras como <strong>burbuja</strong>, <strong>centinela</strong>, <strong>diagonal</strong>, <strong>cin.ignore</strong> o selecciona otro módulo.
+          </div>`;
+          return;
+        }
+
+        const modMap = Object.fromEntries(MODULES.map((m) => [m.id, m]));
+        searchResults.innerHTML = visible.map((item) => {
+          const kb = kindBadge[item.kind] || { label: item.kind, cls: "badge-soft-blue" };
+          const modObj = modMap[item.mod];
+          const primaryLabel = item.link.endsWith(".cpp") ? "Abrir .cpp" : item.link.endsWith(".md") ? "Ver Apuntes" : "Abrir PDF";
+          return `<article class="search-card" data-kind="${esc(item.kind)}">
+            <div>
+              <div style="display:flex; gap:0.4rem; flex-wrap:wrap;">
+                <span class="badge badge-navy">${esc(item.mod)}</span>
+                <span class="badge ${kb.cls}">${esc(kb.label)}</span>
+              </div>
+              <h3>${esc(item.title)}</h3>
+              <p>${esc(item.desc)}</p>
+              <code class="snippet">${esc(item.snippet)}</code>
+            </div>
+            <div class="card-actions">
+              <a href="${esc(item.link)}" target="_blank" rel="noopener" class="btn btn-primary btn-sm">${primaryLabel}</a>
+              ${modObj && item.link !== modObj.pdf ? `<a href="${esc(modObj.pdf)}" target="_blank" rel="noopener" class="btn btn-outline btn-sm">PDF ${esc(item.mod)}</a>` : ""}
+            </div>
+          </article>`;
+        }).join("");
+      }
+
+      searchInput.addEventListener("input", renderSearch);
+      searchModuleSelect.addEventListener("change", renderSearch);
+      clearSearchBtn.addEventListener("click", () => {
+        searchInput.value = "";
+        renderSearch();
+        searchInput.focus();
+      });
+      toggleAllSearchBtn.addEventListener("click", () => {
+        showAllSearch = !showAllSearch;
+        renderSearch();
+      });
+      document.getElementById("searchKindPills").addEventListener("click", (e) => {
+        const btn = e.target.closest(".pill-btn");
+        if (!btn) return;
+        document.querySelectorAll("#searchKindPills .pill-btn").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        activeKind = btn.dataset.kind;
+        renderSearch();
+      });
+
+      // Render Gallery
+      const galleryGrid = document.getElementById("galleryGrid");
+      let activeGalleryCat = "ALL";
+      let currentGalleryItems = GALLERY;
+
+      function renderGallery() {
+        currentGalleryItems = GALLERY.filter((g) => activeGalleryCat === "ALL" || g.cat === activeGalleryCat);
+        galleryGrid.innerHTML = currentGalleryItems.map((g) => `
+          <figure class="gallery-card" style="margin:0;">
+            <button type="button" class="gallery-thumb ${g.cat === "ilus" ? "cover" : ""}" data-open-lightbox="${esc(g.id)}" aria-label="Ampliar ${esc(g.title)}">
+              <img src="${esc(g.src)}" alt="${esc(g.title)}" loading="lazy" />
+            </button>
+            <figcaption class="gallery-cap">
+              <strong>${esc(g.title)}</strong>
+              <span>${esc(g.meta)}</span>
+            </figcaption>
+          </figure>
+        `).join("");
+      }
+
+      document.getElementById("galleryFilterPills").addEventListener("click", (e) => {
+        const btn = e.target.closest(".pill-btn");
+        if (!btn) return;
+        document.querySelectorAll("#galleryFilterPills .pill-btn").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        activeGalleryCat = btn.dataset.gcat;
+        renderGallery();
+      });
+
+      // Lightbox
+      const lightbox = document.getElementById("lightbox");
+      const lightboxStage = document.getElementById("lightboxStage");
+      const lightboxImg = document.getElementById("lightboxImg");
+      const lightboxTitle = document.getElementById("lightboxTitle");
+      const lightboxMeta = document.getElementById("lightboxMeta");
+      const lightboxDesc = document.getElementById("lightboxDesc");
+      const lightboxRawLink = document.getElementById("lightboxRawLink");
+      let lightboxIndex = -1;
+
+      function openLightboxById(id) {
+        const pool = currentGalleryItems.some((item) => item.id === id) ? currentGalleryItems : GALLERY;
+        const idx = pool.findIndex((item) => item.id === id);
+        if (idx === -1) return;
+        currentGalleryItems = pool;
+        showLightboxAt(idx);
+      }
+
+      function showLightboxAt(idx) {
+        const item = currentGalleryItems[idx];
+        if (!item) return;
+        lightboxIndex = idx;
+        lightboxStage.classList.remove("zoomed");
+        lightboxImg.src = item.src;
+        lightboxImg.alt = item.title;
+        lightboxTitle.textContent = item.title;
+        lightboxMeta.textContent = `${item.meta} (${idx + 1} / ${currentGalleryItems.length})`;
+        lightboxDesc.textContent = item.desc;
+        lightboxRawLink.href = item.src;
+        lightbox.classList.add("open");
+      }
+
+      function closeLightbox() {
+        lightbox.classList.remove("open");
+        lightboxStage.classList.remove("zoomed");
+      }
+
+      document.addEventListener("click", (e) => {
+        const trigger = e.target.closest("[data-open-lightbox], [data-lightbox-id]");
+        if (!trigger) return;
+        const id = trigger.dataset.openLightbox || trigger.dataset.lightboxId;
+        if (id) openLightboxById(id);
+      });
+
+      document.addEventListener("keydown", (e) => {
+        if (e.target.matches("[data-open-lightbox]") && (e.key === "Enter" || e.key === " ")) {
+          e.preventDefault();
+          openLightboxById(e.target.dataset.openLightbox);
+          return;
+        }
+        if (!lightbox.classList.contains("open")) return;
+        if (e.key === "Escape") closeLightbox();
+        if (e.key === "ArrowRight") showLightboxAt((lightboxIndex + 1) % currentGalleryItems.length);
+        if (e.key === "ArrowLeft") showLightboxAt((lightboxIndex - 1 + currentGalleryItems.length) % currentGalleryItems.length);
+      });
+
+      document.getElementById("lightboxCloseBtn").addEventListener("click", closeLightbox);
+      document.getElementById("lightboxZoomBtn").addEventListener("click", () => lightboxStage.classList.toggle("zoomed"));
+      document.getElementById("lightboxNextBtn").addEventListener("click", () => showLightboxAt((lightboxIndex + 1) % currentGalleryItems.length));
+      document.getElementById("lightboxPrevBtn").addEventListener("click", () => showLightboxAt((lightboxIndex - 1 + currentGalleryItems.length) % currentGalleryItems.length));
+      lightbox.addEventListener("click", (e) => {
+        if (e.target === lightbox) closeLightbox();
+      });
+
+      // Checklist 30 Horas + Anti-Pánico
+      const STORAGE_SESSIONS = "monitoria_cpp_30h_sessions_v1";
+      const STORAGE_ANTIPANIC = "monitoria_cpp_antipanic_v1";
+      const sessionsGrid = document.getElementById("sessionsGrid");
+      const progressBarFill = document.getElementById("progressBarFill");
+      const progressBarTrack = document.getElementById("progressBarTrack");
+      const progressSummaryText = document.getElementById("progressSummaryText");
+      const progressStageBadge = document.getElementById("progressStageBadge");
+      const navProgressText = document.getElementById("navProgressText");
+      const heroProgressStat = document.getElementById("heroProgressStat");
+
+      function loadSet(key) {
+        try {
+          const parsed = JSON.parse(localStorage.getItem(key) || "[]");
+          return new Set(Array.isArray(parsed) ? parsed : []);
+        } catch {
+          return new Set();
+        }
+      }
+
+      function saveSet(key, set) {
+        try {
+          localStorage.setItem(key, JSON.stringify([...set]));
+        } catch {
+          // Ignore storage errors under restricted file:// policies
+        }
+      }
+
+      let doneSessions = loadSet(STORAGE_SESSIONS);
+      let doneAntiPanic = loadSet(STORAGE_ANTIPANIC);
+
+      function renderSessions() {
+        sessionsGrid.innerHTML = SESSIONS.map((s) => {
+          const checked = doneSessions.has(s.id);
+          return `<label class="session-item ${checked ? "done" : ""}">
+            <input type="checkbox" data-session-id="${esc(s.id)}" ${checked ? "checked" : ""} />
+            <div class="session-info">
+              <div style="display:flex; gap:0.4rem; flex-wrap:wrap; margin-bottom:0.25rem;">
+                <span class="badge badge-navy">${esc(s.id)} · 2.0 h</span>
+                <span class="badge badge-soft-teal">${esc(s.mods)}</span>
+              </div>
+              <h4>${esc(s.title)}</h4>
+              <p>${esc(s.detail)}</p>
+            </div>
+          </label>`;
+        }).join("");
+
+        const count = doneSessions.size;
+        const hours = (count * 2).toFixed(1);
+        const pct = Math.round((count / SESSIONS.length) * 100);
+
+        progressBarFill.style.width = `${pct}%`;
+        progressBarTrack.setAttribute("aria-valuenow", hours);
+        progressSummaryText.textContent = `${count} de ${SESSIONS.length} sesiones completadas · ${hours} / 30.0 horas (${pct}%)`;
+        navProgressText.textContent = `${hours} / 30.0 h`;
+        heroProgressStat.textContent = `${pct}%`;
+
+        if (count === 0) progressStageBadge.textContent = "Listo para empezar";
+        else if (count < 5) progressStageBadge.textContent = "Despegando en fundamentos";
+        else if (count < 10) progressStageBadge.textContent = "Dominando lógica y control";
+        else if (count < 15) progressStageBadge.textContent = "Recta final hacia parciales";
+        else progressStageBadge.textContent = "¡Curso de 30.0 h completado!";
+      }
+
+      sessionsGrid.addEventListener("change", (e) => {
+        const cb = e.target.closest("[data-session-id]");
+        if (!cb) return;
+        const id = cb.dataset.sessionId;
+        if (cb.checked) doneSessions.add(id);
+        else doneSessions.delete(id);
+        saveSet(STORAGE_SESSIONS, doneSessions);
+        renderSessions();
+      });
+
+      document.getElementById("checkAllSessionsBtn").addEventListener("click", () => {
+        doneSessions = new Set(SESSIONS.map((s) => s.id));
+        saveSet(STORAGE_SESSIONS, doneSessions);
+        renderSessions();
+      });
+
+      document.getElementById("resetSessionsBtn").addEventListener("click", () => {
+        doneSessions = new Set();
+        saveSet(STORAGE_SESSIONS, doneSessions);
+        renderSessions();
+      });
+
+      const antiPanicGrid = document.getElementById("antiPanicGrid");
+      function renderAntiPanic() {
+        antiPanicGrid.innerHTML = ANTI_PANIC_CHECKS.map((txt, idx) => {
+          const key = `ap-${idx + 1}`;
+          const checked = doneAntiPanic.has(key);
+          return `<label class="anti-panic-item">
+            <input type="checkbox" data-ap-id="${key}" ${checked ? "checked" : ""} />
+            <span><strong>${idx + 1}.</strong> ${esc(txt)}</span>
+          </label>`;
+        }).join("");
+      }
+
+      antiPanicGrid.addEventListener("change", (e) => {
+        const cb = e.target.closest("[data-ap-id]");
+        if (!cb) return;
+        if (cb.checked) doneAntiPanic.add(cb.dataset.apId);
+        else doneAntiPanic.delete(cb.dataset.apId);
+        saveSet(STORAGE_ANTIPANIC, doneAntiPanic);
+      });
+
+      // Init
+      renderModules();
+      renderSearch();
+      renderGallery();
+      renderSessions();
+      renderAntiPanic();
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,1371 @@
+\documentclass[11pt,letterpaper]{article}
+\usepackage{../../latex_common/estilo_monitoria}
+
+\begin{document}
+
+\portadamodulo{04}{Estructuras Condicionales}{3.5 horas}{Toma de decisiones paso a paso: lógica booleana, rango seguro, if, else-if, anidamiento y switch-case}{%
+\begin{itemize}
+  \item Dominar los operadores relacionales y lógicos (\texttt{\&\&}, \texttt{||}, \texttt{!}; en PSeInt \texttt{Y}, \texttt{O}, \texttt{NO}) y sus tablas de verdad sin memorización mecánica.
+  \item Evitar la trampa mortal de rangos encadenados en C++ (\texttt{10 <= x <= 20}) usando la forma segura (\texttt{10 <= x \&\& x <= 20}).
+  \item Elegir con criterio entre \texttt{if} simple, \texttt{if-else}, escalera \texttt{else-if}, \texttt{if} anidados y \texttt{switch-case} con \texttt{break} y \texttt{default}.
+  \item Traducir frases típicas de parcial (\textit{``al menos''}, \textit{``supera''}, \textit{``a lo sumo''}, \textit{``entre A y B inclusive''}, \textit{``múltiplo''}) a DFD, PSeInt y C++.
+  \item Validar algoritmos con pruebas de escritorio antes de compilar (sin ciclos ni arreglos, que llegarán en M05--M07).
+\end{itemize}%
+}
+
+\tableofcontents
+\vspace{8pt}
+
+% ============================================================================
+\section{Guía Rápida del Monitor (Distribución de 3.5 Horas)}
+% ============================================================================
+
+Este módulo cubre exactamente \textbf{3.5 horas (210 minutos)} de trabajo entre clase guiada en tablero y práctica supervisada en computador:
+
+\begin{center}
+  \small
+  \captionof{table}{Distribución sugerida de las 3.5 horas del Módulo 04}
+  \renewcommand{\arraystretch}{1.28}
+  \rowcolors{2}{GrisSuave}{white}
+  \begin{tabularx}{\linewidth}{>{\leavevmode\bfseries\sffamily\color{AzulMarino}}p{2.1cm} X >{\centering\arraybackslash}p{2.0cm}}
+    \rowcolor{AzulMarino}
+    \textcolor{white}{\textbf{Bloque}} &
+    \textcolor{white}{\textbf{Tema y actividad en monitoría}} &
+    \textcolor{white}{\textbf{Tiempo}} \\
+    Bloque 1 & Lógica booleana y tablas de verdad ``con plastilina'' & 45 min \\
+    Bloque 2 & Trampa mortal de rangos (\texttt{10 <= x <= 20}) y relacionales & 25 min \\
+    Bloque 3 & Las 5 formas condicionales (\texttt{if}, \texttt{if-else}, \texttt{else-if}, anidados, \texttt{switch}) & 55 min \\
+    Bloque 4 & Diccionario traductor de parciales y errores de compilación & 25 min \\
+    Bloque 5 & Taller guiado: 8 problemas resueltos (EPS + DFD + PSeInt + C++) & 40 min \\
+    Bloque 6 & Práctica autónoma con los 14 ejercicios propuestos y cierre & 20 min \\
+    \bottomrule
+  \end{tabularx}
+\end{center}
+
+\newpage
+% ============================================================================
+\section{Explicado Para Tontos: ¿Qué es Decidir en un Programa?}
+% ============================================================================
+
+\begin{paratontos}{El tren sobre un riel vs.\ el desvío de vías}
+Hasta el Módulo 03, nuestros programas funcionaban como un \textbf{tren en un único riel recto}: leían datos, calculaban fórmulas y mostraban resultados de arriba hacia abajo sin saltarse jamás una instrucción.
+
+En la vida real casi nada es tan rígido. Si vas a retirar dinero de un cajero, primero se pregunta: \textit{``¿Tiene saldo suficiente?''}. Si la respuesta es \textbf{Sí}, entrega los billetes; si la respuesta es \textbf{No}, muestra \textit{``Fondos insuficientes''}. Ese \textbf{desvío de rieles} es una estructura condicional.
+
+Piensa en cada \texttt{if} como un \textbf{portero de discoteca} con una pregunta de ``Sí o No'' en su libreta: si respondes verdadero (\codigo{true}), te abre la puerta y ejecutas lo que hay entre llaves \texttt{\{ ... \}}; si respondes falso (\codigo{false}), sigues de largo al siguiente bloque.
+\end{paratontos}
+
+% ============================================================================
+\section{Lógica Booleana y Tablas de Verdad sin Enredos}
+% ============================================================================
+
+Toda condición que escribas dentro de un \codigo{if} o en un rombo de DFD debe reducirse finalmente a uno de dos valores booleanos: \textbf{verdadero} (\codigo{true} en C++, \codigo{Verdadero} en PSeInt) o \textbf{falso} (\codigo{false} en C++, \codigo{Falso} en PSeInt).
+
+\subsection{Operadores Relacionales (Las 6 preguntas básicas)}
+
+\begin{center}
+  \small
+  \captionof{table}{Operadores relacionales en Matemática, PSeInt y C++}
+  \renewcommand{\arraystretch}{1.28}
+  \rowcolors{2}{GrisSuave}{white}
+  \setlength{\tabcolsep}{4.5pt}
+  \begin{tabularx}{\linewidth}{X c c c >{\ttfamily\footnotesize}c c}
+    \rowcolor{AzulMarino}
+    \textcolor{white}{\textbf{Significado en español}} &
+    \textcolor{white}{\textbf{Matemática}} &
+    \textcolor{white}{\textbf{PSeInt}} &
+    \textcolor{white}{\textbf{C++}} &
+    \textcolor{white}{\textbf{\sffamily Ej.\ (\texttt{x = 10})}} &
+    \textcolor{white}{\textbf{Resultado}} \\
+    ¿Es igual a? & $=$ & \texttt{=} & \texttt{==} & x == 10 & \texttt{true} \\
+    ¿Es diferente / distinto de? & $\neq$ & \texttt{<>} & \texttt{!=} & x != 10 & \texttt{false} \\
+    ¿Es menor que? & $<$ & \texttt{<} & \texttt{<} & x < 20 & \texttt{true} \\
+    ¿Es menor o igual que? & $\le$ & \texttt{<=} & \texttt{<=} & x <= 10 & \texttt{true} \\
+    ¿Es mayor que? & $>$ & \texttt{>} & \texttt{>} & x > 10 & \texttt{false} \\
+    ¿Es mayor o igual que? & $\ge$ & \texttt{>=} & \texttt{>=} & x >= 10 & \texttt{true} \\
+    \bottomrule
+  \end{tabularx}
+\end{center}
+
+\begin{peligro}{Confundir asignación (\texttt{=}) con comparación (\texttt{==})}
+En C++ un solo igual (\codigo{=}) significa \textbf{ORDEN DE GUARDAR} (\texttt{x = 5;} mete un 5 en la caja \texttt{x}), mientras que el doble igual (\codigo{==}) es la \textbf{PREGUNTA} (\texttt{x == 5} pregunta si \texttt{x} vale 5).
+
+Si por descuido escribes \texttt{if (x = 5)}, C++ sobrescribe \texttt{x} con \texttt{5} y, como todo número distinto de cero cuenta como verdadero, \textbf{el condicional siempre entra}. Compilar con \texttt{-Wall -Wextra} te avisa al instante, pero en parciales en papel nadie te avisa: revisa dos veces cada \texttt{==}.
+\end{peligro}
+
+\subsection{Operadores Lógicos: \texttt{\&\&}, \texttt{||} y \texttt{!}}
+
+\begin{paratontos}{Dos candados en serie, dos puertas paralelas y el botón ``al revés''}
+\begin{itemize}
+  \item \textbf{\texttt{\&\&} (en PSeInt \texttt{Y}) --- Dos candados en serie:} Una caja fuerte tiene dos candados seguidos (\texttt{A} y \texttt{B}). Solo se abre si \textbf{ambos} son verdaderos. Si uno falla, toda la condición es falsa.
+  \item \textbf{\texttt{||} (en PSeInt \texttt{O}) --- Dos puertas paralelas:} Un salón tiene dos puertas de entrada (\texttt{A} y \texttt{B}). Basta con que \textbf{al menos una} esté abierta para entrar. Solo da falso cuando ambas son falsas.
+  \item \textbf{\texttt{!} (en PSeInt \texttt{NO}) --- Botón ``al revés'':} Invierte el resultado lógico. Si \texttt{tieneSancion} es \texttt{false}, entonces \texttt{!tieneSancion} es \texttt{true} (\textit{``no tiene sanción''}).
+\end{itemize}
+\end{paratontos}
+
+\begin{center}
+  \small
+  \captionof{table}{Tablas de verdad completas para operadores lógicos}
+  \renewcommand{\arraystretch}{1.28}
+  \rowcolors{2}{GrisSuave}{white}
+  \begin{tabularx}{0.88\linewidth}{>{\centering\arraybackslash}X >{\centering\arraybackslash}X >{\centering\arraybackslash}X >{\centering\arraybackslash}X >{\centering\arraybackslash}X}
+    \rowcolor{AzulMarino}
+    \textcolor{white}{\textbf{\texttt{A}}} &
+    \textcolor{white}{\textbf{\texttt{B}}} &
+    \textcolor{white}{\textbf{\texttt{A \&\& B} (\texttt{Y})}} &
+    \textcolor{white}{\textbf{\texttt{A || B} (\texttt{O})}} &
+    \textcolor{white}{\textbf{\texttt{!A} (\texttt{NO})}} \\
+    \texttt{true} (V) & \texttt{true} (V) & \textbf{\texttt{true} (V)} & \textbf{\texttt{true} (V)} & \texttt{false} (F) \\
+    \texttt{true} (V) & \texttt{false} (F) & \texttt{false} (F) & \textbf{\texttt{true} (V)} & \texttt{false} (F) \\
+    \texttt{false} (F) & \texttt{true} (V) & \texttt{false} (F) & \textbf{\texttt{true} (V)} & \texttt{true} (V) \\
+    \texttt{false} (F) & \texttt{false} (F) & \texttt{false} (F) & \texttt{false} (F) & \texttt{true} (V) \\
+    \bottomrule
+  \end{tabularx}
+\end{center}
+
+\begin{consejo}{Precedencia, paréntesis y cortocircuito lógico}
+\begin{enumerate}
+  \item \textbf{Orden de evaluación:} primero \texttt{!} y aritmética, luego relacionales (\texttt{<}, \texttt{<=}, \texttt{==}, \dots), luego \texttt{\&\&} y por último \texttt{||}.
+  \item \textbf{Regla del monitor:} siempre que mezcles \texttt{\&\&} y \texttt{||}, usa paréntesis explícitos: \texttt{promedio >= 4.5 \&\& (estrato == 1 || estrato == 2)}.
+  \item \textbf{Cortocircuito lógico:} en \texttt{(b != 0 \&\& a / b > 2)}, si \texttt{b == 0}, C++ ya sabe que el \texttt{\&\&} es falso y \textbf{ni siquiera evalúa \texttt{a / b}}, evitando la división por cero. ¡El orden importa!
+\end{enumerate}
+\end{consejo}
+
+% ============================================================================
+\section{La Trampa Mortal de los Rangos en C++}
+% ============================================================================
+
+\begin{peligro}{Escribir \texttt{10 <= x <= 20} en lugar de \texttt{10 <= x \&\& x <= 20}}
+Supón que te piden verificar si \texttt{x} está entre 10 y 20 inclusive. En matemáticas escribes $10 \le x \le 20$, pero en C++ escribir \texttt{if (10 <= x <= 20)} es un \textbf{error mortal silencioso}:
+
+C++ solo compara \textbf{de dos en dos} de izquierda a derecha, y además en C++ \texttt{false} vale \texttt{0} y \texttt{true} vale \texttt{1}. Mira qué pasa si probamos con \texttt{x = 50} (que NO está entre 10 y 20):
+\begin{enumerate}
+  \item Evalúa \texttt{(10 <= 50)} $\Rightarrow$ da \texttt{true}, que internamente vale \textbf{\texttt{1}}.
+  \item Reemplaza y evalúa \texttt{1 <= 20} $\Rightarrow$ \textbf{¡también da \texttt{true}!}
+  \item Si pruebas con \texttt{x = -500}: \texttt{(10 <= -500)} da \texttt{0}, y \texttt{0 <= 20} también da \textbf{\texttt{true}}.
+\end{enumerate}
+¡Para C++, \texttt{10 <= x <= 20} resulta verdadero para \textbf{cualquier} número del universo!
+
+\textbf{Forma única y correcta:} parte el rango en dos preguntas unidas con \texttt{\&\&}:
+\begin{itemize}
+  \item \textbf{Dentro del rango $[10, 20]$:} \texttt{10 <= x \&\& x <= 20} (en PSeInt: \texttt{10 <= x Y x <= 20}).
+  \item \textbf{Fuera del rango $[10, 20]$:} \texttt{x < 10 || x > 20} (¡con \texttt{||}, nunca con \texttt{\&\&}, porque ningún número es a la vez $< 10$ y $> 20$!).
+\end{itemize}
+\end{peligro}
+
+% ============================================================================
+\section{Las 5 Estructuras Condicionales (DFD, PSeInt y C++)}
+% ============================================================================
+
+Antes de escribir código, observa el mapa visual con la geometría de flujo de los cuatro patrones principales de decisión:
+
+\imagenmodulo[0.92\linewidth]{dfd_00_estructuras_condicionales.png}{Mapa visual de estructuras condicionales: \texttt{if} simple, \texttt{if-else}, escalera \texttt{else-if} y \texttt{switch-case}.}
+
+\newpage
+\begin{tablatraduccion}[Resumen comparativo de estructuras condicionales]
+  \texttt{if} simple & Rombo con 1 rama activa & Si c Entonces \dots\ FinSi & if (c) \{ \dots\ \} \\
+  \texttt{if-else} & Rombo con 2 ramas (Sí/No) & Si c Entonces \dots\ SiNo \dots\ FinSi & if (c) \{ \dots\ \} else \{ \dots\ \} \\
+  Escalera \texttt{else-if} & Rombos en cascada & Si c1 \dots\ SiNo Si c2 \dots\ FinSi FinSi & if (c1) \{ \dots\ \} else if (c2) \{ \dots\ \} else \{ \dots\ \} \\
+  \texttt{if} anidados & Rombo dentro de rama Sí/No & Si c1 Entonces Si c2 \dots\ FinSi FinSi & if (c1) \{ if (c2) \{ \dots\ \} \} \\
+  \texttt{switch-case} & Selector múltiple discreto & Segun v Hacer 1: \dots\ De Otro Modo: \dots\ FinSegun & switch (v) \{ case 1: \dots\ break; default: \dots\ \} \\
+\end{tablatraduccion}
+
+\subsection{Escalera \texorpdfstring{\texttt{else-if}}{else-if}: El orden define si funciona o falla}
+
+\begin{peligro}{Varios \texttt{if} independientes vs.\ escalera \texttt{else-if} invertida}
+Si calificas una nota con \texttt{if (nota >= 4.5)}, luego \texttt{if (nota >= 4.0)} y luego \texttt{if (nota >= 3.0)} sin \texttt{else}, una nota de \texttt{4.8} imprimirá \textbf{los tres mensajes a la vez}.
+
+Por el contrario, si pones una escalera \texttt{else-if} pero empiezas por \texttt{nota >= 3.0} arriba y dejas \texttt{nota >= 4.5} abajo, \texttt{4.8} entrará en la primera puerta (\texttt{>= 3.0}) y \textbf{nunca alcanzará \textit{Excelente}}. Regla de oro: en cotas con \texttt{>=} ve de \textbf{mayor a menor}; en cotas con \texttt{<=} ve de \textbf{menor a mayor}.
+\end{peligro}
+
+\subsection{Decisiones Anidadas (\texorpdfstring{\texttt{if}}{if} dentro de \texorpdfstring{\texttt{if}}{if}) y Regla de las Llaves}
+
+Usa \texttt{\&\&} cuando las condiciones comparten la misma consecuencia, y usa \texttt{if} anidados cuando necesites mensajes de diagnóstico específicos según la puerta que falló, o cuando la segunda decisión dependa de datos que solo se leen o calculan si pasó la primera.
+
+\begin{consejo}{Usa siempre llaves \texttt{\{ \}} para evitar el ``\texttt{else} colgante''}
+Aunque C++ permite omitir las llaves en bloques de una sola línea, pon siempre \texttt{\{ \}}. Al anidar un \texttt{if} sin llaves dentro de otro, un \texttt{else} solitario se pega al \texttt{if} más cercano por dentro, aunque tu sangría visual sugiera otra cosa.
+\end{consejo}
+
+La Figura~\ref{fig:dfd-mayor-tres} muestra cómo un árbol clásico de \texttt{if} anidados resuelve el mayor de tres números usando \texttt{>=} para manejar empates de forma limpia:
+
+\imagenmodulo[0.88\linewidth]{dfd_02_mayor_tres_numeros.png}{Diagrama DFD de decisiones anidadas (repositorio común) para hallar el mayor de tres números.\label{fig:dfd-mayor-tres}}
+
+\subsection{Selector Múltiple \texorpdfstring{\texttt{switch-case}}{switch-case}: \texorpdfstring{\texttt{break}}{break}, Cascada y \texorpdfstring{\texttt{default}}{default}}
+
+\begin{peligro}{Reglas estrictas del \texttt{switch} y la caída en cascada}
+\begin{enumerate}
+  \item \textbf{Solo enteros o caracteres:} en C++, \texttt{switch (var)} únicamente acepta \texttt{int} o \texttt{char} (nunca \texttt{double}, nunca \texttt{string}, nunca rangos como \texttt{case x > 10:}).
+  \item \textbf{Caída en cascada (\textit{fall-through}) sin \texttt{break;}:} cada \texttt{case} es una etiqueta de entrada, no una pared. Si olvidas \texttt{break;} en un menú, C++ sigue ejecutando hacia abajo los casos siguientes. En PSeInt, \texttt{Segun} sí se detiene automáticamente al final de cada caso.
+  \item \textbf{Agrupación intencional útil:} omitir \texttt{break;} entre casos vacíos sirve para compartir un mismo bloque, por ejemplo \texttt{case 'a': case 'A':} o varios meses de 31 días.
+  \item \textbf{Red de seguridad \texttt{default:}:} siempre incluye \texttt{default:} (en PSeInt \texttt{De Otro Modo:}) para responder ante entradas inesperadas.
+\end{enumerate}
+\end{peligro}
+
+\newpage
+% ============================================================================
+\section{Diccionario Traductor de Parciales y Errores Comunes}
+% ============================================================================
+
+\begin{center}
+  \small
+  \captionof{table}{Diccionario traductor de enunciados de parcial a condiciones}
+  \renewcommand{\arraystretch}{1.28}
+  \rowcolors{2}{GrisSuave}{white}
+  \begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}p{4.6cm} >{\centering\arraybackslash}p{2.2cm} >{\ttfamily\footnotesize\raggedright\arraybackslash}p{3.6cm} >{\ttfamily\footnotesize\raggedright\arraybackslash}X}
+    \rowcolor{AzulMarino}
+    \textcolor{white}{\textbf{Frase en el enunciado}} &
+    \textcolor{white}{\textbf{Matemática}} &
+    \textcolor{white}{\textbf{\sffamily PSeInt}} &
+    \textcolor{white}{\textbf{\sffamily C++}} \\
+    ``al menos X'' / ``mínimo X'' & $n \ge X$ & n >= X & n >= X \\
+    ``supera X'' / ``más de X'' & $n > X$ & n > X & n > X \\
+    ``a lo sumo X'' / ``hasta X'' & $n \le X$ & n <= X & n <= X \\
+    ``inferior a X'' / ``menos de X'' & $n < X$ & n < X & n < X \\
+    ``entre A y B inclusive'' & $A \le x \le B$ & A <= x Y x <= B & A <= x \&\& x <= B \\
+    ``estrictamente entre A y B'' & $A < x < B$ & A < x Y x < B & A < x \&\& x < B \\
+    ``fuera del rango $[A, B]$'' & $x < A \lor x > B$ & x < A O x > B & x < A || x > B \\
+    ``múltiplo o divisible por $k$'' & $k \mid x$ & x MOD k = 0 & x \% k == 0 \\
+    ``es par'' / ``es impar'' & $2 \mid x$ / $2 \nmid x$ & x MOD 2 = 0 / <> 0 & x \% 2 == 0 / != 0 \\
+    ``descuento según categoría'' & casos exactos & Segun cat Hacer & switch (cat) \\
+    ``tarifa según rango o tramo'' & intervalos & Escalera Si...SiNo & Escalera else if \\
+    \bottomrule
+  \end{tabularx}
+\end{center}
+
+\begin{center}
+  \small
+  \captionof{table}{Traductor de errores clásicos de compilación de C++ al español del monitor}
+  \renewcommand{\arraystretch}{1.28}
+  \rowcolors{2}{GrisSuave}{white}
+  \begin{tabularx}{\linewidth}{>{\ttfamily\footnotesize\raggedright\arraybackslash}p{3.6cm} >{\raggedright\arraybackslash}p{4.4cm} X}
+    \rowcolor{RojoAlerta}
+    \textcolor{white}{\textbf{\sffamily Código con error}} &
+    \textcolor{white}{\textbf{Mensaje del compilador}} &
+    \textcolor{white}{\textbf{Traducción del monitor y solución}} \\
+    if (x > 0); \{ \dots\ \} & Compila, pero siempre ejecuta las llaves & Pusiste un \texttt{;} justo después de \texttt{)}. Eso cierra un \texttt{if} vacío. Borra ese punto y coma. \\
+    if (x = 5) & \textit{suggest parentheses around assignment} & Usaste asignación \texttt{=} en lugar de comparación \texttt{==}. Cámbialo por \texttt{==}. \\
+    else (x < 0) \{ \dots\ \} & \textit{expected ';' before '\{'} & \texttt{else} NO lleva condición; debes escribir \texttt{else if (x < 0)}. \\
+    case "A": & \textit{does not reduce to an integer constant} & Las comillas dobles son para texto. Un \texttt{char} en \texttt{case} lleva comillas simples: \texttt{case 'A':}. \\
+    switch (nota) & \textit{switch quantity not an integer} & \texttt{switch} no acepta \texttt{double}. Usa una escalera \texttt{else-if}. \\
+    10 <= x <= 20 & \textit{comparisons do not have mathematical meaning} & Trampa de rangos encadenados. Escribe \texttt{10 <= x \&\& x <= 20}. \\
+    \bottomrule
+  \end{tabularx}
+\end{center}
+
+% ============================================================================
+\section{Taller Resuelto Paso a Paso (8 Problemas Completos)}
+% ============================================================================
+
+% ----------------------------------------------------------------------------
+\subsection{Problema 01: El Portero Numérico (Signo, Paridad y Múltiplo de 5)}
+% ----------------------------------------------------------------------------
+
+\textbf{Enunciado:} Lee un número entero y determina: (1) si es positivo, negativo o cero (neutro); (2) si es par o impar; (3) si es múltiplo de 5 o no.
+
+\begin{analisis}{El Portero Numérico (EPS y estructura)}
+\begin{itemize}
+  \item \textbf{Entradas:} \texttt{numero} (\texttt{int}).
+  \item \textbf{Proceso:} Para el signo usamos una escalera \texttt{if / else if / else} (las tres opciones son mutuamente excluyentes). Para paridad (\texttt{numero \% 2 == 0}) y múltiplo de 5 (\texttt{numero \% 5 == 0}) usamos dos \texttt{if-else} independientes, porque un mismo número puede ser negativo, impar y múltiplo de 5 a la vez.
+  \item \textbf{Salidas:} Tres líneas independientes indicando signo, paridad y divisibilidad por 5.
+\end{itemize}
+\end{analisis}
+
+\imagenmodulo[0.68\linewidth]{dfd_p01_par_multiplo_signo.png}{Diagrama DFD del Problema 01: El Portero Numérico.}
+
+\lstinputlisting[style=pseintmonitoria, caption={Problema 01 en PSeInt (\texttt{pseint/p01\_par\_multiplo\_signo.psc})}]{pseint/p01_par_multiplo_signo.psc}
+
+\lstinputlisting[style=cppmonitoria, caption={Problema 01 en C++ (\texttt{cpp/p01\_par\_multiplo\_signo.cpp})}]{cpp/p01_par_multiplo_signo.cpp}
+
+\begin{pruebaescritorio}{Problema 01 --- Traza de variables}
+\footnotesize
+\renewcommand{\arraystretch}{1.22}
+\rowcolors{2}{white}{GrisClaro}
+\begin{tabularx}{\linewidth}{>{\centering\arraybackslash}p{1.2cm} >{\centering\arraybackslash}p{1.4cm} >{\centering\arraybackslash}p{1.6cm} >{\centering\arraybackslash}p{1.6cm} >{\centering\arraybackslash}p{2.0cm} >{\centering\arraybackslash}p{2.0cm} X}
+  \rowcolor{AzulMarino}
+  \textcolor{white}{\textbf{Caso}} & \textcolor{white}{\texttt{numero}} & \textcolor{white}{\texttt{> 0}} & \textcolor{white}{\texttt{< 0}} & \textcolor{white}{\texttt{\% 2 == 0}} & \textcolor{white}{\texttt{\% 5 == 0}} & \textcolor{white}{\textbf{Salida}} \\
+  1 & \texttt{-15} & \texttt{false} & \texttt{true} & \texttt{false} & \texttt{true} & Negativo, Impar, Sí múltiplo 5 \\
+  2 & \texttt{0} & \texttt{false} & \texttt{false} & \texttt{true} & \texttt{true} & Cero (neutro), Par, Sí múltiplo 5 \\
+  3 & \texttt{14} & \texttt{true} & (no eval.) & \texttt{true} & \texttt{false} & Positivo, Par, No múltiplo 5 \\
+  \bottomrule
+\end{tabularx}
+\end{pruebaescritorio}
+
+% ----------------------------------------------------------------------------
+\subsection{Problema 02: Filtro de Beca Universitaria (Rangos y Lógica Booleana)}
+% ----------------------------------------------------------------------------
+
+\textbf{Enunciado:} Lee \texttt{edad} ($15..80$), \texttt{promedio} ($0.0..5.0$), \texttt{estrato} ($1..6$) y \texttt{sancionInput} ($1$ = sí, $0$ = no). Si algún dato está fuera de rango, reporta el error específico. Si tiene sanción, rechaza la beca. Si no tiene sanción, otorga el mayor beneficio: Beca Completa ($100\%$) si \texttt{promedio >= 4.5} y estrato $1$ o $2$; Media Beca ($50\%$) si \texttt{promedio >= 4.0} y estrato $\le 3$; Bono Excelencia ($25\%$) si \texttt{promedio >= 4.7}; o informa que no cumple.
+
+\begin{analisis}{Filtro de Beca Universitaria (EPS y estructura)}
+\begin{itemize}
+  \item \textbf{Entradas:} \texttt{edad} (\texttt{int}), \texttt{promedio} (\texttt{double}), \texttt{estrato} (\texttt{int}), \texttt{sancionInput} (\texttt{int}).
+  \item \textbf{Proceso:} Validación temprana con rangos compuestos seguros (\texttt{15 <= edad \&\& edad <= 80}, \texttt{0.0 <= promedio \&\& promedio <= 5.0}, etc.), bandera booleana \texttt{tieneSancion} y escalera \texttt{else-if} ordenada del mayor beneficio ($100\%$) al menor ($25\%$).
+  \item \textbf{Salidas:} Diagnóstico de rango inválido o veredicto de beca.
+\end{itemize}
+\end{analisis}
+
+\imagenmodulo[0.78\linewidth]{dfd_p02_beca_rangos.png}{Diagrama DFD del Problema 02: Filtro de Beca Universitaria.}
+
+\lstinputlisting[style=pseintmonitoria, caption={Problema 02 en PSeInt (\texttt{pseint/p02\_beca\_universitaria\_rangos.psc})}]{pseint/p02_beca_universitaria_rangos.psc}
+
+\lstinputlisting[style=cppmonitoria, caption={Problema 02 en C++ (\texttt{cpp/p02\_beca\_universitaria\_rangos.cpp})}]{cpp/p02_beca_universitaria_rangos.cpp}
+
+\begin{pruebaescritorio}{Problema 02 --- Traza de variables}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.22}
+\rowcolors{2}{white}{GrisClaro}
+\begin{tabularx}{\linewidth}{c c c c c c c X}
+  \rowcolor{AzulMarino}
+  \textcolor{white}{\textbf{Caso}} & \textcolor{white}{\texttt{edad}} & \textcolor{white}{\texttt{prom.}} & \textcolor{white}{\texttt{estr.}} & \textcolor{white}{\texttt{sanc.}} & \textcolor{white}{\texttt{validos}} & \textcolor{white}{\texttt{tieneSanc.}} & \textcolor{white}{\textbf{Resultado}} \\
+  1 & 20 & 4.6 & 2 & 0 & \texttt{true} & \texttt{false} & Beca COMPLETA (100\%) \\
+  2 & 20 & 5.5 & 2 & 0 & \texttt{false} & --- & Error: promedio fuera de $[0.0, 5.0]$ \\
+  3 & 19 & 4.8 & 5 & 0 & \texttt{true} & \texttt{false} & Bono Excelencia (25\%) \\
+  4 & 21 & 4.9 & 1 & 1 & \texttt{true} & \texttt{true} & Rechazada por sanción \\
+  \bottomrule
+\end{tabularx}
+\end{pruebaescritorio}
+
+% ----------------------------------------------------------------------------
+\subsection{Problema 03: Podio de Tres Atletas (\texorpdfstring{\texttt{if}}{if} Anidados y Empates)}
+% ----------------------------------------------------------------------------
+
+\textbf{Enunciado:} Lee tres puntajes reales \texttt{a}, \texttt{b} y \texttt{c}, encuentra el mayor y el menor usando \texttt{if} anidados (sin arreglos ni ciclos) y reporta si hubo empate triple, empate parcial o puntajes distintos.
+
+\begin{analisis}{Podio de Tres Atletas (EPS y estructura)}
+\begin{itemize}
+  \item \textbf{Entradas:} \texttt{a}, \texttt{b}, \texttt{c} (\texttt{double}).
+  \item \textbf{Proceso:} Árbol binario de \texttt{if} anidados con \texttt{>=} para \texttt{mayor} y con \texttt{<=} para \texttt{menor}. Luego escalera \texttt{else-if} para distinguir empate triple (\texttt{a == b \&\& b == c}) de parcial (\texttt{a == b || a == c || b == c}).
+  \item \textbf{Salidas:} Mayor, menor con 2 decimales y estado del podio.
+\end{itemize}
+\end{analisis}
+
+\imagenmodulo[0.78\linewidth]{dfd_p03_podio_tres_atletas.png}{Diagrama DFD del Problema 03: Podio de Tres Atletas.}
+
+\lstinputlisting[style=pseintmonitoria, caption={Problema 03 en PSeInt (\texttt{pseint/p03\_podio\_tres\_atletas.psc})}]{pseint/p03_podio_tres_atletas.psc}
+
+\lstinputlisting[style=cppmonitoria, caption={Problema 03 en C++ (\texttt{cpp/p03\_podio\_tres\_atletas.cpp})}]{cpp/p03_podio_tres_atletas.cpp}
+
+\begin{pruebaescritorio}{Problema 03 --- Traza de variables}
+\footnotesize
+\renewcommand{\arraystretch}{1.22}
+\rowcolors{2}{white}{GrisClaro}
+\begin{tabularx}{\linewidth}{>{\centering\arraybackslash}p{1.0cm} >{\centering\arraybackslash}p{1.1cm} >{\centering\arraybackslash}p{1.1cm} >{\centering\arraybackslash}p{1.1cm} >{\centering\arraybackslash}p{1.4cm} >{\centering\arraybackslash}p{1.3cm} >{\centering\arraybackslash}p{1.3cm} X}
+  \rowcolor{AzulMarino}
+  \textcolor{white}{\textbf{Caso}} & \textcolor{white}{\texttt{a}} & \textcolor{white}{\texttt{b}} & \textcolor{white}{\texttt{c}} & \textcolor{white}{\texttt{a >= b}} & \textcolor{white}{\texttt{mayor}} & \textcolor{white}{\texttt{menor}} & \textcolor{white}{\textbf{Estado del podio}} \\
+  1 & 9.5 & 12.0 & 9.5 & \texttt{false} & 12.00 & 9.50 & Empate parcial \\
+  2 & 8.0 & 8.0 & 8.0 & \texttt{true} & 8.00 & 8.00 & Empate triple \\
+  3 & 7.1 & 9.4 & 10.2 & \texttt{false} & 10.20 & 7.10 & Sin empates \\
+  \bottomrule
+\end{tabularx}
+\end{pruebaescritorio}
+
+% ----------------------------------------------------------------------------
+\subsection{Problema 04: Factura Escalonada de Energía Eléctrica}
+% ----------------------------------------------------------------------------
+
+\textbf{Enunciado:} Cobra el consumo en kWh ($\ge 0$) por tramos marginales: primeros $100$ kWh a $\$450$; siguientes $150$ ($101..250$) a $\$600$; siguientes $200$ ($251..450$) a $\$800$; excedente ($> 450$) a $\$1050$. Aplica factor por estrato: 1 ($-40\%$), 2 ($-25\%$), 3 ($-10\%$), 4 ($0\%$), 5--6 ($+20\%$).
+
+\begin{analisis}{Factura de Energía Eléctrica (EPS y estructura)}
+\begin{itemize}
+  \item \textbf{Entradas:} \texttt{consumo} (\texttt{int}), \texttt{estrato} (\texttt{int}).
+  \item \textbf{Proceso:} Validar \texttt{consumo >= 0} y \texttt{1 <= estrato <= 6}. Escalera \texttt{else-if} ascendente para los 4 tramos marginales, seguida de \texttt{switch (estrato)} con \texttt{case 5: case 6:} agrupados para el factor de ajuste.
+  \item \textbf{Salidas:} Subtotal base, ajuste por estrato y total a pagar.
+\end{itemize}
+\end{analisis}
+
+\imagenmodulo[0.64\linewidth]{dfd_p04_factura_energia.png}{Diagrama DFD del Problema 04: Factura de Energía Eléctrica.}
+
+\lstinputlisting[style=pseintmonitoria, caption={Problema 04 en PSeInt (\texttt{pseint/p04\_factura\_energia\_escalera.psc})}]{pseint/p04_factura_energia_escalera.psc}
+
+\lstinputlisting[style=cppmonitoria, caption={Problema 04 en C++ (\texttt{cpp/p04\_factura\_energia\_escalera.cpp})}]{cpp/p04_factura_energia_escalera.cpp}
+
+\begin{pruebaescritorio}{Problema 04 --- Traza de variables}
+\footnotesize
+\renewcommand{\arraystretch}{1.22}
+\rowcolors{2}{white}{GrisClaro}
+\begin{tabularx}{\linewidth}{>{\centering\arraybackslash}p{0.9cm} >{\centering\arraybackslash}p{1.3cm} >{\centering\arraybackslash}p{1.2cm} X >{\centering\arraybackslash}p{1.8cm} >{\centering\arraybackslash}p{1.1cm} >{\centering\arraybackslash}p{1.8cm}}
+  \rowcolor{AzulMarino}
+  \textcolor{white}{\textbf{Caso}} & \textcolor{white}{\texttt{consumo}} & \textcolor{white}{\texttt{estrato}} & \textcolor{white}{\textbf{Tramo aplicado}} & \textcolor{white}{\texttt{subtotal}} & \textcolor{white}{\texttt{factor}} & \textcolor{white}{\texttt{totalPagar}} \\
+  1 & 320 & 2 & \texttt{<= 450}: $45000 + 90000 + 70 \times 800$ & 191000.00 & 0.75 & 143250.00 \\
+  2 & 80 & 5 & \texttt{<= 100}: $80 \times 450$ & 36000.00 & 1.20 & 43200.00 \\
+  3 & -10 & 3 & Inválido (sale antes) & --- & --- & Error \\
+  \bottomrule
+\end{tabularx}
+\end{pruebaescritorio}
+
+% ----------------------------------------------------------------------------
+\subsection{Problema 05: Cajero Automático (\texorpdfstring{\texttt{switch-case}}{switch-case} con \texorpdfstring{\texttt{int}}{int}, \texorpdfstring{\texttt{break}}{break} y \texorpdfstring{\texttt{default}}{default})}
+% ----------------------------------------------------------------------------
+
+\textbf{Enunciado:} Simula una transacción de cajero automático. Lee el saldo inicial ($\ge 0$) y una opción de menú (\texttt{1} Consultar saldo, \texttt{2} Consignar validando monto $> 0$, \texttt{3} Retirar validando monto $> 0$ y saldo suficiente, \texttt{4} Salir). Maneja opciones fuera de rango con \texttt{default:}.
+
+\begin{analisis}{Cajero Automático (EPS y estructura)}
+\begin{itemize}
+  \item \textbf{Entradas:} \texttt{saldo} (\texttt{double}), \texttt{opcion} (\texttt{int}), y \texttt{monto} (\texttt{double}) solo dentro de los casos 2 y 3.
+  \item \textbf{Proceso:} Menú entero discreto resuelto con \texttt{switch (opcion)} y \texttt{break;} obligatorio al final de cada caso para impedir la caída en cascada. Dentro de consignar/retirar anidamos \texttt{if-else} para proteger fondos.
+  \item \textbf{Salidas:} Nuevo saldo o mensaje de error correspondiente.
+\end{itemize}
+\end{analisis}
+
+\imagenmodulo[0.90\linewidth]{dfd_p05_cajero_switch.png}{Diagrama DFD del Problema 05: Cajero Automático con \texttt{switch-case}.}
+
+\lstinputlisting[style=pseintmonitoria, caption={Problema 05 en PSeInt (\texttt{pseint/p05\_cajero\_menu\_switch.psc})}]{pseint/p05_cajero_menu_switch.psc}
+
+\lstinputlisting[style=cppmonitoria, caption={Problema 05 en C++ (\texttt{cpp/p05\_cajero\_menu\_switch.cpp})}]{cpp/p05_cajero_menu_switch.cpp}
+
+\begin{pruebaescritorio}{Problema 05 --- Traza de variables}
+\footnotesize
+\renewcommand{\arraystretch}{1.22}
+\rowcolors{2}{white}{GrisClaro}
+\begin{tabularx}{\linewidth}{>{\centering\arraybackslash}p{0.9cm} >{\centering\arraybackslash}p{1.7cm} >{\centering\arraybackslash}p{1.2cm} >{\centering\arraybackslash}p{1.6cm} >{\centering\arraybackslash}p{1.8cm} X}
+  \rowcolor{AzulMarino}
+  \textcolor{white}{\textbf{Caso}} & \textcolor{white}{\texttt{saldo ini.}} & \textcolor{white}{\texttt{opcion}} & \textcolor{white}{\texttt{monto}} & \textcolor{white}{\texttt{saldo fin.}} & \textcolor{white}{\textbf{Salida}} \\
+  1 & 500000.00 & 3 & 120000.00 & 380000.00 & Retiro exitoso. Nuevo saldo: \$380000.00 \\
+  2 & 100000.00 & 3 & 250000.00 & 100000.00 & Error: Fondos insuficientes \\
+  3 & 200000.00 & 9 & (no lee) & 200000.00 & Error: Opción inválida (1 a 4) \\
+  \bottomrule
+\end{tabularx}
+\end{pruebaescritorio}
+
+% ----------------------------------------------------------------------------
+\subsection{Problema 06: Tienda TechStore (\texorpdfstring{\texttt{switch}}{switch} sobre \texorpdfstring{\texttt{char}}{char} y Bono Condicional)}
+% ----------------------------------------------------------------------------
+
+\textbf{Enunciado:} Lee el monto de compra ($> 0$) y la categoría de cliente (\texttt{A}/\texttt{a} VIP 20\%, \texttt{B}/\texttt{b} Frecuente 12\%, \texttt{C}/\texttt{c} Nuevo 5\%). Si la compra supera $\$500.000$, suma un bono extra del $5\%$ al descuento.
+
+\begin{analisis}{Tienda TechStore (EPS y estructura)}
+\begin{itemize}
+  \item \textbf{Entradas:} \texttt{montoCompra} (\texttt{double}), \texttt{categoria} (\texttt{char}).
+  \item \textbf{Proceso:} {\sloppy \texttt{switch (categoria)} agrupando minúscula y mayúscula (\texttt{case 'a': case 'A':}) para mostrar la cascada controlada, bandera \texttt{categoriaValida} y un \texttt{if} independiente si \texttt{montoCompra > 500000.0}.}
+  \item \textbf{Salidas:} Categoría, bono, porcentaje aplicado, descuento y total a pagar.
+\end{itemize}
+\end{analisis}
+
+\imagenmodulo[0.66\linewidth]{dfd_p06_descuento_categoria.png}{Diagrama DFD del Problema 06: Descuento por Categoría en Tienda TechStore.}
+
+\lstinputlisting[style=pseintmonitoria, caption={Problema 06 en PSeInt (\texttt{pseint/p06\_descuento\_categoria\_char.psc})}]{pseint/p06_descuento_categoria_char.psc}
+
+\lstinputlisting[style=cppmonitoria, caption={Problema 06 en C++ (\texttt{cpp/p06\_descuento\_categoria\_char.cpp})}]{cpp/p06_descuento_categoria_char.cpp}
+
+\begin{pruebaescritorio}{Problema 06 --- Traza de variables}
+\footnotesize
+\renewcommand{\arraystretch}{1.22}
+\rowcolors{2}{white}{GrisClaro}
+\begin{tabularx}{\linewidth}{>{\centering\arraybackslash}p{0.9cm} >{\centering\arraybackslash}p{1.8cm} >{\centering\arraybackslash}p{1.1cm} >{\centering\arraybackslash}p{1.2cm} >{\centering\arraybackslash}p{1.1cm} >{\centering\arraybackslash}p{1.5cm} X}
+  \rowcolor{AzulMarino}
+  \textcolor{white}{\textbf{Caso}} & \textcolor{white}{\texttt{monto}} & \textcolor{white}{\texttt{cat.}} & \textcolor{white}{\texttt{valida}} & \textcolor{white}{\texttt{bono}} & \textcolor{white}{\texttt{pct\%}} & \textcolor{white}{\textbf{Total a pagar}} \\
+  1 & 600000.00 & \texttt{'a'} & \texttt{true} & \texttt{true} & 25.00\% & \$450000.00 (desc.\ \$150000) \\
+  2 & 300000.00 & \texttt{'B'} & \texttt{true} & \texttt{false} & 12.00\% & \$264000.00 (desc.\ \$36000) \\
+  3 & 150000.00 & \texttt{'Z'} & \texttt{false} & --- & --- & Error: Categoría no reconocida \\
+  \bottomrule
+\end{tabularx}
+\end{pruebaescritorio}
+
+% ----------------------------------------------------------------------------
+\subsection{Problema 07: Existencia y Clasificación de Triángulos}
+% ----------------------------------------------------------------------------
+
+\textbf{Enunciado:} Dados tres lados reales \texttt{a}, \texttt{b}, \texttt{c}, valida que sean positivos y cumplan la desigualdad triangular. Si existe, clasifícalo en Equilátero, Isósceles o Escaleno, e indica si es rectángulo (con tolerancia flotante $10^{-6}$).
+
+\begin{analisis}{Clasificador de Triángulos (EPS y estructura)}
+\begin{itemize}
+  \item \textbf{Entradas:} \texttt{a}, \texttt{b}, \texttt{c} (\texttt{double}).
+  \item \textbf{Proceso:} Dos validaciones tempranas (\texttt{> 0} y desigualdad triangular con \texttt{\&\&}). Escalera \texttt{else-if} evaluando Equilátero \textbf{antes} que Isósceles. Finalmente tres banderas booleanas con \texttt{fabs(...) < 1e-6} unidas por \texttt{||} para detectar el ángulo recto.
+  \item \textbf{Salidas:} Tipo de triángulo por lados y si es rectángulo o no.
+\end{itemize}
+\end{analisis}
+
+\imagenmodulo[0.78\linewidth]{dfd_p07_triangulo.png}{Diagrama DFD del Problema 07: Existencia y Clasificación de Triángulos.}
+
+\lstinputlisting[style=pseintmonitoria, caption={Problema 07 en PSeInt (\texttt{pseint/p07\_clasificador\_triangulo.psc})}]{pseint/p07_clasificador_triangulo.psc}
+
+\lstinputlisting[style=cppmonitoria, caption={Problema 07 en C++ (\texttt{cpp/p07\_clasificador\_triangulo.cpp})}]{cpp/p07_clasificador_triangulo.cpp}
+
+\begin{pruebaescritorio}{Problema 07 --- Traza de variables}
+\footnotesize
+\renewcommand{\arraystretch}{1.22}
+\rowcolors{2}{white}{GrisClaro}
+\begin{tabularx}{\linewidth}{>{\centering\arraybackslash}p{0.9cm} >{\centering\arraybackslash}p{2.0cm} >{\centering\arraybackslash}p{1.6cm} >{\centering\arraybackslash}p{2.2cm} X}
+  \rowcolor{AzulMarino}
+  \textcolor{white}{\textbf{Caso}} & \textcolor{white}{\texttt{a, b, c}} & \textcolor{white}{\texttt{existe}} & \textcolor{white}{\textbf{Tipo lados}} & \textcolor{white}{\textbf{Ángulo recto}} \\
+  1 & 3, 4, 5 & \texttt{true} & Escaleno & Sí es rectángulo (\texttt{rectC = true}) \\
+  2 & 5, 5, 5 & \texttt{true} & Equilátero & No es rectángulo \\
+  3 & 1, 2, 10 & \texttt{false} & --- & No existe (incumple $1+2 > 10$) \\
+  \bottomrule
+\end{tabularx}
+\end{pruebaescritorio}
+
+% ----------------------------------------------------------------------------
+\subsection{Problema 08: Año Bisiesto y Días del Mes}
+% ----------------------------------------------------------------------------
+
+\textbf{Enunciado:} Lee un mes ($1..12$) y un año ($> 0$). Determina si el año es bisiesto mediante la regla gregoriana (\texttt{(anio \% 4 == 0 \&\& anio \% 100 != 0) || (anio \% 400 == 0)}) y reporta cuántos días tiene ese mes.
+
+\begin{analisis}{Calendario Maestro (EPS y estructura)}
+\begin{itemize}
+  \item \textbf{Entradas:} \texttt{mes} (\texttt{int}), \texttt{anio} (\texttt{int}).
+  \item \textbf{Proceso:} Validación de rango para mes y año; evaluación de \texttt{esBisiesto} en un booleano; \texttt{switch (mes)} agrupando en cascada los meses de 31 días y los de 30 días, más \texttt{if-else} dentro de \texttt{case 2:} según \texttt{esBisiesto}.
+  \item \textbf{Salidas:} Indicación de bisiesto y total de días del mes.
+\end{itemize}
+\end{analisis}
+
+\imagenmodulo[0.52\linewidth]{dfd_p08_bisiesto_dias_mes.png}{Diagrama DFD del Problema 08: Año Bisiesto y Días del Mes.}
+
+\lstinputlisting[style=pseintmonitoria, caption={Problema 08 en PSeInt (\texttt{pseint/p08\_bisiesto\_dias\_mes.psc})}]{pseint/p08_bisiesto_dias_mes.psc}
+
+\lstinputlisting[style=cppmonitoria, caption={Problema 08 en C++ (\texttt{cpp/p08\_bisiesto\_dias\_mes.cpp})}]{cpp/p08_bisiesto_dias_mes.cpp}
+
+\begin{pruebaescritorio}{Problema 08 --- Traza de variables}
+\footnotesize
+\renewcommand{\arraystretch}{1.22}
+\rowcolors{2}{white}{GrisClaro}
+\begin{tabularx}{\linewidth}{>{\centering\arraybackslash}p{0.9cm} >{\centering\arraybackslash}p{1.0cm} >{\centering\arraybackslash}p{1.2cm} >{\centering\arraybackslash}p{1.5cm} >{\centering\arraybackslash}p{1.8cm} >{\centering\arraybackslash}p{1.6cm} >{\centering\arraybackslash}p{1.8cm} X}
+  \rowcolor{AzulMarino}
+  \textcolor{white}{\textbf{Caso}} & \textcolor{white}{\texttt{mes}} & \textcolor{white}{\texttt{anio}} & \textcolor{white}{\texttt{\%4==0}} & \textcolor{white}{\texttt{\%100!=0}} & \textcolor{white}{\texttt{\%400==0}} & \textcolor{white}{\texttt{bisiesto}} & \textcolor{white}{\textbf{Días}} \\
+  1 & 2 & 2024 & \texttt{true} & \texttt{true} & \texttt{false} & \texttt{true} & 29 días \\
+  2 & 2 & 1900 & \texttt{true} & \texttt{false} & \texttt{false} & \texttt{false} & 28 días \\
+  3 & 2 & 2000 & \texttt{true} & \texttt{false} & \texttt{true} & \texttt{true} & 29 días \\
+  4 & 4 & 2025 & \texttt{false} & \texttt{true} & \texttt{false} & \texttt{false} & 30 días \\
+  \bottomrule
+\end{tabularx}
+\end{pruebaescritorio}
+
+% ============================================================================
+\section{Ejercicios Propuestos para Práctica (14 Retos)}
+% ============================================================================
+
+\begin{consejo}{Antes de mirar el Solucionario}
+Aplica el método EPS en papel, dibuja un boceto de DFD y haz una prueba de escritorio con al menos dos casos (uno normal y uno extremo o inválido) antes de escribir código.
+\end{consejo}
+
+\begin{ejercicio}{Ejercicio 01 --- Votación y Licencia de Conducción}
+Lee la edad entera de una persona ($0$ a $120$). Si está fuera de rango, muestra un error. De lo contrario, indica si puede tramitar licencia particular ($\ge 16$), si puede votar ($\ge 18$) y si es adulto mayor ($\ge 65$).\\
+\textbf{Pista del Monitor:} No uses escalera \texttt{else-if} para las categorías, porque alguien de $70$ años cumple las tres condiciones al tiempo.
+\end{ejercicio}
+
+\begin{ejercicio}{Ejercicio 02 --- Calculadora de 4 Operaciones con \texttt{switch}}
+Lee dos números reales (\texttt{num1}, \texttt{num2}) y un carácter operador (\texttt{'+'}, \texttt{'-'}, \texttt{'*'}, \texttt{'/'}). Usa \texttt{switch (op)} para calcular el resultado. Si el operador es \texttt{'/'} y \texttt{num2 == 0}, muestra un error en lugar de dividir.\\
+\textbf{Pista del Monitor:} Anida un \texttt{if} dentro de \texttt{case '/':} para proteger la división entre cero y usa \texttt{default:} para operadores desconocidos.
+\end{ejercicio}
+
+\begin{ejercicio}{Ejercicio 03 --- Conversor de Nota Cuantitativa a Cualitativa}
+Lee una nota real entre $0.0$ y $5.0$. Valida el rango (\texttt{0.0 <= nota \&\& nota <= 5.0}) y clasifica: $4.5..5.0$ Excelente; $4.0..4.49$ Sobresaliente; $3.0..3.99$ Aceptable; $2.0..2.99$ Insuficiente; $0.0..1.99$ Deficiente.\\
+\textbf{Pista del Monitor:} Aquí las categorías sí son excluyentes. Usa una escalera \texttt{else-if} ordenada de mayor a menor.
+\end{ejercicio}
+
+\begin{ejercicio}{Ejercicio 04 --- Tarifa de Parqueadero por Tipo de Vehículo}
+Lee el tipo de vehículo (\texttt{'M'} moto $\$2000$/h, \texttt{'C'} carro $\$4500$/h, \texttt{'P'} pesado $\$8000$/h; acepta minúsculas y mayúsculas) y horas enteras ($\ge 1$). Si permanece más de 5 horas, aplica descuento del $10\%$.\\
+\textbf{Pista del Monitor:} Agrupa \texttt{'m'}/\texttt{'M'}, \texttt{'c'}/\texttt{'C'}, \texttt{'p'}/\texttt{'P'} en \texttt{switch} y aplica el descuento después con un \texttt{if (horas > 5)}.
+\end{ejercicio}
+
+\begin{ejercicio}{Ejercicio 05 --- Múltiplo Mutuo Protegido}
+Lee dos enteros \texttt{a} y \texttt{b}. Indica si \texttt{a} es múltiplo de \texttt{b}, si \texttt{b} es múltiplo de \texttt{a}, si ambos son cero o si ninguno divide al otro. Evita cualquier módulo por cero.\\
+\textbf{Pista del Monitor:} Usa cortocircuito lógico: \texttt{(b != 0 \&\& a \% b == 0)} evita que el programa falle si \texttt{b == 0}.
+\end{ejercicio}
+
+\begin{ejercicio}{Ejercicio 06 --- Ubicación en el Plano Cartesiano}
+Lee dos coordenadas reales $(x, y)$ e indica en cuál de las 7 regiones exactas está: Origen, Eje X, Eje Y, o Cuadrantes I, II, III o IV.\\
+\textbf{Pista del Monitor:} Evalúa primero los casos especiales (\texttt{x == 0 \&\& y == 0}, luego \texttt{x == 0}, luego \texttt{y == 0}) antes que los cuatro cuadrantes.
+\end{ejercicio}
+
+\begin{ejercicio}{Ejercicio 07 --- Salario Semanal con Horas Extra Escalonadas}
+Lee las horas trabajadas (\texttt{horas >= 0}) y el valor por hora normal (\texttt{tarifa > 0}). Hasta 40h se pagan a $1.0\times$; entre 41 y 50h a $1.5\times$; por encima de 50h a $2.0\times$.\\
+\textbf{Pista del Monitor:} Usa tramos marginales como en la factura eléctrica: si \texttt{horas > 50}, las primeras 40 van a $1.0\times$, las siguientes 10 a $1.5\times$ y solo \texttt{(horas - 50)} a $2.0\times$.
+\end{ejercicio}
+
+\begin{ejercicio}{Ejercicio 08 --- Semáforo de Presión Arterial}
+Lee presión sistólica (\texttt{sis}) y diastólica (\texttt{dia}) enteros positivos. Clasifica: Crisis hipertensiva (\texttt{sis >= 180 || dia >= 120}), Hipertensión (\texttt{sis >= 140 || dia >= 90}), Elevada (\texttt{120 <= sis \&\& sis < 140 \&\& dia < 90}), Hipotensión (\texttt{sis < 90 || dia < 60}), o Normal.\\
+\textbf{Pista del Monitor:} Coloca primero los casos extremos (\textit{Crisis}, luego \textit{Hipertensión}) antes de \textit{Elevada}.
+\end{ejercicio}
+
+\begin{ejercicio}{Ejercicio 09 --- Ordenar Tres Enteros Sin Arreglos ni Ciclos}
+Lee tres enteros \texttt{a}, \texttt{b}, \texttt{c} y muéstralos ordenados de menor a mayor usando únicamente condicionales e intercambios con una variable auxiliar \texttt{aux}.\\
+\textbf{Pista del Monitor:} Tres \texttt{if} simples consecutivos: si \texttt{a > b} intercambia; si \texttt{a > c} intercambia; por último si \texttt{b > c} intercambia.
+\end{ejercicio}
+
+\begin{ejercicio}{Ejercicio 10 --- Clasificador de Carácter ASCII}
+Lee un carácter \texttt{ch} e indica si es vocal mayúscula, vocal minúscula, consonante mayúscula, consonante minúscula, dígito numérico (\texttt{'0'}..\texttt{'9'}) o símbolo especial.\\
+\textbf{Pista del Monitor:} Los caracteres ASCII están ordenados: pregunta \texttt{'a' <= ch \&\& ch <= 'z'} para minúsculas y \texttt{'0' <= ch \&\& ch <= '9'} para dígitos.
+\end{ejercicio}
+
+\begin{ejercicio}{Ejercicio 11 --- Ecuación Cuadrática Completa ($ax^2 + bx + c = 0$)}
+Lee reales \texttt{a}, \texttt{b}, \texttt{c}. Analiza todos los casos: \texttt{a == 0 \&\& b == 0} (identidad o contradicción), \texttt{a == 0 \&\& b != 0} (lineal única), y \texttt{a != 0} según discriminante $D = b^2 - 4ac$ ($D > 0$, $D == 0$, $D < 0$ raíces complejas).\\
+\textbf{Pista del Monitor:} Usa \texttt{<cmath>} (\texttt{sqrt}) y cuando $D < 0$ calcula \texttt{sqrt(-D)} para evitar raíz de negativo.
+\end{ejercicio}
+
+\begin{ejercicio}{Ejercicio 12 --- Validador Completo de Fecha (\texttt{dia/mes/anio})}
+Lee enteros \texttt{dia}, \texttt{mes}, \texttt{anio} e indica si conforman una fecha válida del calendario gregoriano (\texttt{anio >= 1}, \texttt{1 <= mes <= 12} y \texttt{1 <= dia <= maxDias}, considerando bisiestos en febrero).\\
+\textbf{Pista del Monitor:} Reutiliza la lógica del Problema 08 para hallar \texttt{maxDias} y luego valida \texttt{1 <= dia \&\& dia <= maxDias}.
+\end{ejercicio}
+
+\begin{ejercicio}{Ejercicio 13 --- Peaje Inteligente}
+Lee categoría (\texttt{1} Auto $\$12.000$, \texttt{2} Bus $\$18.500$, \texttt{3} Camión 2 ejes $\$26.000$, \texttt{4} Camión 3+ ejes $\$39.000$), horario nocturno (\texttt{'S'}/\texttt{'N'}, $+10\%$) y telepeaje (\texttt{'S'}/\texttt{'N'}, $-15\%$ sobre el valor resultante). Valida todas las entradas.\\
+\textbf{Pista del Monitor:} Usa \texttt{switch} para la tarifa base y luego dos \texttt{if} independientes para recargo y descuento.
+\end{ejercicio}
+
+\begin{ejercicio}{Ejercicio 14 --- Reloj Digital: Un Minuto Después (\texttt{hh:mm + 1})}
+Lee una hora militar (\texttt{hh} $0..23$, \texttt{mm} $0..59$). Valida los rangos y muestra la hora exacta un minuto después con dos dígitos (ej.\ \texttt{09:59} $\rightarrow$ \texttt{10:00}, \texttt{23:59} $\rightarrow$ \texttt{00:00}).\\
+\textbf{Pista del Monitor:} Si \texttt{mm < 59}, suma 1 a \texttt{mm}. Si \texttt{mm == 59}, pon \texttt{mm = 0} y revisa adentro si \texttt{hh == 23} para reiniciar a \texttt{0} o incrementar \texttt{hh}.
+\end{ejercicio}
+
+% ============================================================================
+\section{Solucionario Completo Paso a Paso (E01 -- E14)}
+% ============================================================================
+
+% --- E01 ---
+\begin{solucion}{Ejercicio 01 --- Votación y Licencia de Conducción}
+\textbf{Análisis EPS:} Entrada \texttt{edad} (\texttt{int}). Proceso: validar \texttt{0 <= edad \&\& edad <= 120}; luego tres \texttt{if} simples independientes. Salida: permisos aplicables.\\[4pt]
+\footnotesize
+\renewcommand{\arraystretch}{1.18}
+\rowcolors{2}{white}{GrisSuave}
+\begin{tabularx}{\linewidth}{>{\centering\arraybackslash}p{1.2cm} >{\centering\arraybackslash}p{1.4cm} >{\centering\arraybackslash}p{2.0cm} X}
+  \rowcolor{AzulMarino}
+  \textcolor{white}{\textbf{Caso}} & \textcolor{white}{\texttt{edad}} & \textcolor{white}{\textbf{Rango válido}} & \textcolor{white}{\textbf{Salida}} \\
+  1 & 17 & \texttt{true} & Licencia particular \\
+  2 & 70 & \texttt{true} & Licencia + Votar + Adulto mayor \\
+  3 & -3 & \texttt{false} & Error: Edad fuera de rango \\
+  \bottomrule
+\end{tabularx}
+\end{solucion}
+
+\begin{lstlisting}[style=cppmonitoria, caption={Solución E01 en C++}]
+#include <iostream>
+using namespace std;
+
+int main() {
+    int edad = 0;
+    cout << "Edad (0 a 120): ";
+    cin >> edad;
+
+    if (edad < 0 || edad > 120) {
+        cout << "ERROR: Edad fuera de rango." << endl;
+        return 0;
+    }
+
+    if (edad < 16) {
+        cout << "Menor sin licencia ni voto." << endl;
+    }
+    if (edad >= 16) {
+        cout << "- Puede tramitar licencia particular." << endl;
+    }
+    if (edad >= 18) {
+        cout << "- Puede votar en elecciones." << endl;
+    }
+    if (edad >= 65) {
+        cout << "- Aplica a beneficios de adulto mayor." << endl;
+    }
+    return 0;
+}
+\end{lstlisting}
+
+% --- E02 ---
+\begin{solucion}{Ejercicio 02 --- Calculadora de 4 Operaciones con \texttt{switch}}
+\textbf{Análisis EPS:} Entradas \texttt{num1}, \texttt{num2} (\texttt{double}), \texttt{op} (\texttt{char}). Proceso: \texttt{switch (op)} protegiendo \texttt{num2 == 0.0} dentro de \texttt{case '/'}. Salida: resultado o error.\\[4pt]
+\footnotesize
+\renewcommand{\arraystretch}{1.18}
+\rowcolors{2}{white}{GrisSuave}
+\begin{tabularx}{\linewidth}{>{\centering\arraybackslash}p{1.2cm} >{\centering\arraybackslash}p{2.6cm} >{\centering\arraybackslash}p{2.8cm} X}
+  \rowcolor{AzulMarino}
+  \textcolor{white}{\textbf{Caso}} & \textcolor{white}{\textbf{Entrada}} & \textcolor{white}{\textbf{Rama}} & \textcolor{white}{\textbf{Salida}} \\
+  1 & \texttt{10 / 4} & \texttt{case '/'} (\texttt{num2 != 0}) & Resultado: 2.50 \\
+  2 & \texttt{8 / 0} & \texttt{case '/'} (\texttt{num2 == 0}) & Error: División por cero imposible \\
+  \bottomrule
+\end{tabularx}
+\end{solucion}
+
+\begin{lstlisting}[style=cppmonitoria, caption={Solución E02 en C++}]
+#include <iomanip>
+#include <iostream>
+using namespace std;
+
+int main() {
+    double num1 = 0.0;
+    double num2 = 0.0;
+    char op = ' ';
+    cout << "Ingrese numero 1, operador (+ - * /) y numero 2: ";
+    cin >> num1 >> op >> num2;
+
+    cout << fixed << setprecision(2);
+    switch (op) {
+        case '+':
+            cout << "Resultado: " << (num1 + num2) << endl;
+            break;
+        case '-':
+            cout << "Resultado: " << (num1 - num2) << endl;
+            break;
+        case '*':
+            cout << "Resultado: " << (num1 * num2) << endl;
+            break;
+        case '/':
+            if (num2 == 0.0) {
+                cout << "ERROR: Division por cero imposible." << endl;
+            } else {
+                cout << "Resultado: " << (num1 / num2) << endl;
+            }
+            break;
+        default:
+            cout << "ERROR: Operador no valido." << endl;
+            break;
+    }
+    return 0;
+}
+\end{lstlisting}
+
+% --- E03 ---
+\begin{solucion}{Ejercicio 03 --- Conversor de Nota Cuantitativa a Cualitativa}
+\textbf{Análisis EPS:} Entrada \texttt{nota} (\texttt{double}). Proceso: validar $[0.0, 5.0]$ y escalera \texttt{else-if} descendente. Salida: nivel cualitativo.\\[4pt]
+\footnotesize
+\renewcommand{\arraystretch}{1.18}
+\rowcolors{2}{white}{GrisSuave}
+\begin{tabularx}{\linewidth}{>{\centering\arraybackslash}p{1.2cm} >{\centering\arraybackslash}p{1.4cm} >{\centering\arraybackslash}p{3.0cm} X}
+  \rowcolor{AzulMarino}
+  \textcolor{white}{\textbf{Caso}} & \textcolor{white}{\texttt{nota}} & \textcolor{white}{\textbf{Condición}} & \textcolor{white}{\textbf{Salida}} \\
+  1 & 4.25 & \texttt{nota >= 4.0} & Sobresaliente \\
+  2 & 5.40 & \texttt{nota > 5.0} & Error: nota fuera de rango \\
+  \bottomrule
+\end{tabularx}
+\end{solucion}
+
+\begin{lstlisting}[style=cppmonitoria, caption={Solución E03 en C++}]
+#include <iostream>
+using namespace std;
+
+int main() {
+    double nota = 0.0;
+    cout << "Ingrese la nota (0.0 a 5.0): ";
+    cin >> nota;
+
+    if (nota < 0.0 || nota > 5.0) {
+        cout << "ERROR: La nota debe estar entre 0.0 y 5.0." << endl;
+    } else if (nota >= 4.5) {
+        cout << "Calificacion: Excelente" << endl;
+    } else if (nota >= 4.0) {
+        cout << "Calificacion: Sobresaliente" << endl;
+    } else if (nota >= 3.0) {
+        cout << "Calificacion: Aceptable" << endl;
+    } else if (nota >= 2.0) {
+        cout << "Calificacion: Insuficiente" << endl;
+    } else {
+        cout << "Calificacion: Deficiente" << endl;
+    }
+    return 0;
+}
+\end{lstlisting}
+
+% --- E04 ---
+\begin{solucion}{Ejercicio 04 --- Tarifa de Parqueadero por Tipo de Vehículo}
+\textbf{Análisis EPS:} Entradas \texttt{tipo} (\texttt{char}), \texttt{horas} (\texttt{int}). Proceso: validar \texttt{horas >= 1}, \texttt{switch (tipo)} agrupando minúscula/mayúscula, más descuento de $10\%$ si \texttt{horas > 5}. Salida: total.\\[4pt]
+\footnotesize
+\renewcommand{\arraystretch}{1.18}
+\rowcolors{2}{white}{GrisSuave}
+\begin{tabularx}{\linewidth}{>{\centering\arraybackslash}p{1.2cm} >{\centering\arraybackslash}p{1.2cm} >{\centering\arraybackslash}p{1.2cm} >{\centering\arraybackslash}p{2.0cm} >{\centering\arraybackslash}p{2.0cm} X}
+  \rowcolor{AzulMarino}
+  \textcolor{white}{\textbf{Caso}} & \textcolor{white}{\texttt{tipo}} & \textcolor{white}{\texttt{horas}} & \textcolor{white}{\texttt{tarifa}} & \textcolor{white}{\textbf{Desc. 10\%}} & \textcolor{white}{\textbf{Total}} \\
+  1 & \texttt{'c'} & 6 & 4500 & Sí & \$24300.00 \\
+  2 & \texttt{'M'} & 3 & 2000 & No & \$6000.00 \\
+  \bottomrule
+\end{tabularx}
+\end{solucion}
+
+\begin{lstlisting}[style=cppmonitoria, caption={Solución E04 en C++}]
+#include <iomanip>
+#include <iostream>
+using namespace std;
+
+int main() {
+    char tipo = ' ';
+    int horas = 0;
+    double tarifaHora = 0.0;
+    bool tipoValido = true;
+
+    cout << "Tipo de vehiculo (M=Moto, C=Carro, P=Pesado): ";
+    cin >> tipo;
+    cout << "Horas enteras de permanencia (>= 1): ";
+    cin >> horas;
+
+    if (horas < 1) {
+        cout << "ERROR: Las horas deben ser al menos 1." << endl;
+        return 0;
+    }
+
+    switch (tipo) {
+        case 'm':
+        case 'M':
+            tarifaHora = 2000.0;
+            break;
+        case 'c':
+        case 'C':
+            tarifaHora = 4500.0;
+            break;
+        case 'p':
+        case 'P':
+            tarifaHora = 8000.0;
+            break;
+        default:
+            tipoValido = false;
+            break;
+    }
+
+    if (!tipoValido) {
+        cout << "ERROR: Tipo de vehiculo no valido." << endl;
+        return 0;
+    }
+
+    double total = horas * tarifaHora;
+    if (horas > 5) {
+        total = total * 0.90;
+    }
+
+    cout << fixed << setprecision(2);
+    cout << "Total a pagar: $" << total << endl;
+    return 0;
+}
+\end{lstlisting}
+
+% --- E05 ---
+\begin{solucion}{Ejercicio 05 --- Múltiplo Mutuo Protegido}
+\textbf{Análisis EPS:} Entradas \texttt{a}, \texttt{b} (\texttt{int}). Proceso: proteger \texttt{== 0} mediante cortocircuito lógico \texttt{!= 0 \&\& ... \% ... == 0}. Salida: relación de divisibilidad.\\[4pt]
+\footnotesize
+\renewcommand{\arraystretch}{1.18}
+\rowcolors{2}{white}{GrisSuave}
+\begin{tabularx}{\linewidth}{>{\centering\arraybackslash}p{1.2cm} >{\centering\arraybackslash}p{1.0cm} >{\centering\arraybackslash}p{1.0cm} >{\centering\arraybackslash}p{1.6cm} >{\centering\arraybackslash}p{1.6cm} X}
+  \rowcolor{AzulMarino}
+  \textcolor{white}{\textbf{Caso}} & \textcolor{white}{\texttt{a}} & \textcolor{white}{\texttt{b}} & \textcolor{white}{\texttt{aMultB}} & \textcolor{white}{\texttt{bMultA}} & \textcolor{white}{\textbf{Salida}} \\
+  1 & 0 & 5 & \texttt{true} & \texttt{false} & 0 es múltiplo de 5 \\
+  2 & 6 & 6 & \texttt{true} & \texttt{true} & Ambos son múltiplos mutuos \\
+  \bottomrule
+\end{tabularx}
+\end{solucion}
+
+\begin{lstlisting}[style=cppmonitoria, caption={Solución E05 en C++}]
+#include <iostream>
+using namespace std;
+
+int main() {
+    int a = 0;
+    int b = 0;
+    cout << "Ingrese dos enteros a y b: ";
+    cin >> a >> b;
+
+    if (a == 0 && b == 0) {
+        cout << "Ambos numeros son cero; ninguno puede dividir al otro." << endl;
+    } else {
+        bool aMultB = (b != 0 && a % b == 0);
+        bool bMultA = (a != 0 && b % a == 0);
+
+        if (aMultB) {
+            cout << a << " ES multiplo de " << b << "." << endl;
+        }
+        if (bMultA) {
+            cout << b << " ES multiplo de " << a << "." << endl;
+        }
+        if (!aMultB && !bMultA) {
+            cout << "Ninguno es multiplo del otro." << endl;
+        }
+    }
+    return 0;
+}
+\end{lstlisting}
+
+% --- E06 ---
+\begin{solucion}{Ejercicio 06 --- Ubicación en el Plano Cartesiano}
+\textbf{Análisis EPS:} Entradas \texttt{x}, \texttt{y} (\texttt{double}). Proceso: escalera \texttt{else-if} evaluando origen, ejes y luego los 4 cuadrantes. Salida: región exacta.\\[4pt]
+\footnotesize
+\renewcommand{\arraystretch}{1.18}
+\rowcolors{2}{white}{GrisSuave}
+\begin{tabularx}{\linewidth}{>{\centering\arraybackslash}p{1.2cm} >{\centering\arraybackslash}p{2.2cm} >{\centering\arraybackslash}p{2.8cm} X}
+  \rowcolor{AzulMarino}
+  \textcolor{white}{\textbf{Caso}} & \textcolor{white}{\texttt{(x, y)}} & \textcolor{white}{\textbf{Rama}} & \textcolor{white}{\textbf{Salida}} \\
+  1 & \texttt{(0, -4.5)} & \texttt{x == 0.0} & Punto sobre el EJE Y \\
+  2 & \texttt{(-2, -3)} & \texttt{x < 0 \&\& y < 0} & Cuadrante III (-, -) \\
+  \bottomrule
+\end{tabularx}
+\end{solucion}
+
+\begin{lstlisting}[style=cppmonitoria, caption={Solución E06 en C++}]
+#include <iostream>
+using namespace std;
+
+int main() {
+    double x = 0.0;
+    double y = 0.0;
+    cout << "Ingrese coordenadas x y: ";
+    cin >> x >> y;
+
+    if (x == 0.0 && y == 0.0) {
+        cout << "Punto en el ORIGEN (0, 0)." << endl;
+    } else if (x == 0.0) {
+        cout << "Punto sobre el EJE Y." << endl;
+    } else if (y == 0.0) {
+        cout << "Punto sobre el EJE X." << endl;
+    } else if (x > 0.0 && y > 0.0) {
+        cout << "Cuadrante I (+, +)." << endl;
+    } else if (x < 0.0 && y > 0.0) {
+        cout << "Cuadrante II (-, +)." << endl;
+    } else if (x < 0.0 && y < 0.0) {
+        cout << "Cuadrante III (-, -)." << endl;
+    } else {
+        cout << "Cuadrante IV (+, -)." << endl;
+    }
+    return 0;
+}
+\end{lstlisting}
+
+% --- E07 ---
+\begin{solucion}{Ejercicio 07 --- Salario Semanal con Horas Extra Escalonadas}
+\textbf{Análisis EPS:} Entradas \texttt{horas} (\texttt{int}), \texttt{tarifa} (\texttt{double}). Proceso: validar \texttt{horas >= 0 \&\& tarifa > 0} y escalera \texttt{else-if} por los 3 tramos marginales. Salida: salario.\\[4pt]
+\footnotesize
+\renewcommand{\arraystretch}{1.18}
+\rowcolors{2}{white}{GrisSuave}
+\begin{tabularx}{\linewidth}{>{\centering\arraybackslash}p{1.2cm} >{\centering\arraybackslash}p{1.4cm} >{\centering\arraybackslash}p{1.8cm} X >{\centering\arraybackslash}p{2.2cm}}
+  \rowcolor{AzulMarino}
+  \textcolor{white}{\textbf{Caso}} & \textcolor{white}{\texttt{horas}} & \textcolor{white}{\texttt{tarifa}} & \textcolor{white}{\textbf{Tramo}} & \textcolor{white}{\textbf{Salario}} \\
+  1 & 45 & 10000 & $40 \times 10000 + 5 \times 15000$ & \$475000.00 \\
+  2 & 52 & 10000 & $400000 + 150000 + 2 \times 20000$ & \$590000.00 \\
+  \bottomrule
+\end{tabularx}
+\end{solucion}
+
+\begin{lstlisting}[style=cppmonitoria, caption={Solución E07 en C++}]
+#include <iomanip>
+#include <iostream>
+using namespace std;
+
+int main() {
+    int horas = 0;
+    double tarifa = 0.0;
+    double salario = 0.0;
+
+    cout << "Horas trabajadas en la semana (>= 0): ";
+    cin >> horas;
+    cout << "Valor por hora normal (> 0): ";
+    cin >> tarifa;
+
+    if (horas < 0 || tarifa <= 0.0) {
+        cout << "ERROR: Horas y tarifa invalidas." << endl;
+        return 0;
+    }
+
+    if (horas <= 40) {
+        salario = horas * tarifa;
+    } else if (horas <= 50) {
+        salario = (40 * tarifa) + (horas - 40) * (tarifa * 1.5);
+    } else {
+        salario = (40 * tarifa) + (10 * tarifa * 1.5) + (horas - 50) * (tarifa * 2.0);
+    }
+
+    cout << fixed << setprecision(2);
+    cout << "Salario semanal total: $" << salario << endl;
+    return 0;
+}
+\end{lstlisting}
+
+% --- E08 ---
+\begin{solucion}{Ejercicio 08 --- Semáforo de Presión Arterial}
+\textbf{Análisis EPS:} Entradas \texttt{sis}, \texttt{dia} (\texttt{int}). Proceso: validar \texttt{sis > 0 \&\& dia > 0}; escalera \texttt{else-if} desde Crisis $\rightarrow$ Hipertensión $\rightarrow$ Elevada $\rightarrow$ Hipotensión $\rightarrow$ Normal. Salida: alerta médica.\\[4pt]
+\footnotesize
+\renewcommand{\arraystretch}{1.18}
+\rowcolors{2}{white}{GrisSuave}
+\begin{tabularx}{\linewidth}{>{\centering\arraybackslash}p{1.2cm} >{\centering\arraybackslash}p{2.0cm} >{\centering\arraybackslash}p{2.8cm} X}
+  \rowcolor{AzulMarino}
+  \textcolor{white}{\textbf{Caso}} & \textcolor{white}{\texttt{sis, dia}} & \textcolor{white}{\textbf{Condición}} & \textcolor{white}{\textbf{Salida}} \\
+  1 & 135, 92 & \texttt{dia >= 90} & Alerta NARANJA: Hipertensión \\
+  2 & 118, 76 & \texttt{else} & Estado VERDE: Normal \\
+  \bottomrule
+\end{tabularx}
+\end{solucion}
+
+\begin{lstlisting}[style=cppmonitoria, caption={Solución E08 en C++}]
+#include <iostream>
+using namespace std;
+
+int main() {
+    int sis = 0;
+    int dia = 0;
+    cout << "Presion sistolica y diastolica (enteros > 0): ";
+    cin >> sis >> dia;
+
+    if (sis <= 0 || dia <= 0) {
+        cout << "ERROR: Valores de presion invalidos." << endl;
+    } else if (sis >= 180 || dia >= 120) {
+        cout << "Alerta ROJA: Crisis hipertensiva." << endl;
+    } else if (sis >= 140 || dia >= 90) {
+        cout << "Alerta NARANJA: Hipertension." << endl;
+    } else if (120 <= sis && sis < 140 && dia < 90) {
+        cout << "Alerta AMARILLA: Presion elevada." << endl;
+    } else if (sis < 90 || dia < 60) {
+        cout << "Alerta AZUL: Hipotension." << endl;
+    } else {
+        cout << "Estado VERDE: Presion arterial normal." << endl;
+    }
+    return 0;
+}
+\end{lstlisting}
+
+% --- E09 ---
+\begin{solucion}{Ejercicio 09 --- Ordenar Tres Enteros Sin Arreglos ni Ciclos}
+\textbf{Análisis EPS:} Entradas \texttt{a}, \texttt{b}, \texttt{c} (\texttt{int}). Proceso: tres \texttt{if} simples consecutivos intercambiando parejas desordenadas con \texttt{aux}. Salida: \texttt{a <= b <= c}.\\[4pt]
+\footnotesize
+\renewcommand{\arraystretch}{1.18}
+\rowcolors{2}{white}{GrisSuave}
+\begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}p{2.4cm} >{\centering\arraybackslash}p{1.2cm} >{\centering\arraybackslash}p{1.2cm} >{\centering\arraybackslash}p{1.2cm} X}
+  \rowcolor{AzulMarino}
+  \textcolor{white}{\textbf{Paso (\texttt{30, 10, 20})}} & \textcolor{white}{\texttt{a}} & \textcolor{white}{\texttt{b}} & \textcolor{white}{\texttt{c}} & \textcolor{white}{\textbf{Acción}} \\
+  Inicio & 30 & 10 & 20 & Lectura inicial \\
+  \texttt{if (a > b)} & 10 & 30 & 20 & Intercambia 30 y 10 \\
+  \texttt{if (a > c)} & 10 & 30 & 20 & \texttt{10 > 20} falso (sin cambio) \\
+  \texttt{if (b > c)} & 10 & 20 & 30 & Intercambia 30 y 20 \\
+  \bottomrule
+\end{tabularx}
+\end{solucion}
+
+\begin{lstlisting}[style=cppmonitoria, caption={Solución E09 en C++}]
+#include <iostream>
+using namespace std;
+
+int main() {
+    int a = 0;
+    int b = 0;
+    int c = 0;
+    int aux = 0;
+
+    cout << "Ingrese tres enteros a, b, c: ";
+    cin >> a >> b >> c;
+
+    if (a > b) {
+        aux = a;
+        a = b;
+        b = aux;
+    }
+    if (a > c) {
+        aux = a;
+        a = c;
+        c = aux;
+    }
+    if (b > c) {
+        aux = b;
+        b = c;
+        c = aux;
+    }
+
+    cout << "Orden ascendente: " << a << ", " << b << ", " << c << endl;
+    return 0;
+}
+\end{lstlisting}
+
+% --- E10 ---
+\begin{solucion}{Ejercicio 10 --- Clasificador de Carácter ASCII}
+\textbf{Análisis EPS:} Entrada \texttt{ch} (\texttt{char}). Proceso: escalera \texttt{else-if} con rangos ASCII (\texttt{'A'}..\texttt{'Z'}, \texttt{'a'}..\texttt{'z'}, \texttt{'0'}..\texttt{'9'}) y \texttt{if} anidado para distinguir vocal de consonante. Salida: clasificación.\\[4pt]
+\footnotesize
+\renewcommand{\arraystretch}{1.18}
+\rowcolors{2}{white}{GrisSuave}
+\begin{tabularx}{\linewidth}{>{\centering\arraybackslash}p{1.2cm} >{\centering\arraybackslash}p{1.2cm} >{\centering\arraybackslash}p{3.0cm} X}
+  \rowcolor{AzulMarino}
+  \textcolor{white}{\textbf{Caso}} & \textcolor{white}{\texttt{ch}} & \textcolor{white}{\textbf{Rango ASCII}} & \textcolor{white}{\textbf{Salida}} \\
+  1 & \texttt{'e'} & \texttt{'a' <= ch \&\& ch <= 'z'} & Vocal minúscula \\
+  2 & \texttt{'7'} & \texttt{'0' <= ch \&\& ch <= '9'} & Dígito numérico \\
+  \bottomrule
+\end{tabularx}
+\end{solucion}
+
+\begin{lstlisting}[style=cppmonitoria, caption={Solución E10 en C++}]
+#include <iostream>
+using namespace std;
+
+int main() {
+    char ch = ' ';
+    cout << "Ingrese un solo caracter: ";
+    cin >> ch;
+
+    if ('A' <= ch && ch <= 'Z') {
+        if (ch == 'A' || ch == 'E' || ch == 'I' || ch == 'O' || ch == 'U') {
+            cout << "Vocal mayuscula." << endl;
+        } else {
+            cout << "Consonante mayuscula." << endl;
+        }
+    } else if ('a' <= ch && ch <= 'z') {
+        if (ch == 'a' || ch == 'e' || ch == 'i' || ch == 'o' || ch == 'u') {
+            cout << "Vocal minuscula." << endl;
+        } else {
+            cout << "Consonante minuscula." << endl;
+        }
+    } else if ('0' <= ch && ch <= '9') {
+        cout << "Digito numerico." << endl;
+    } else {
+        cout << "Simbolo especial." << endl;
+    }
+    return 0;
+}
+\end{lstlisting}
+
+% --- E11 ---
+\begin{solucion}{Ejercicio 11 --- Ecuación Cuadrática}
+\textbf{Análisis EPS:} Entradas \texttt{a}, \texttt{b}, \texttt{c} (\texttt{double}). Proceso: \texttt{if} anidados separando caso degenerado/lineal (\texttt{a == 0}) y cuadrático con discriminante $D = b^2 - 4ac$. Salida: raíces reales o complejas.\\[4pt]
+\footnotesize
+\renewcommand{\arraystretch}{1.18}
+\rowcolors{2}{white}{GrisSuave}
+\begin{tabularx}{\linewidth}{>{\centering\arraybackslash}p{1.2cm} >{\centering\arraybackslash}p{2.0cm} >{\centering\arraybackslash}p{1.8cm} X}
+  \rowcolor{AzulMarino}
+  \textcolor{white}{\textbf{Caso}} & \textcolor{white}{\texttt{a, b, c}} & \textcolor{white}{\texttt{disc}} & \textcolor{white}{\textbf{Salida}} \\
+  1 & 1, -5, 6 & 1.0 & \texttt{x1 = 3.0000, x2 = 2.0000} \\
+  2 & 1, 0, 4 & -16.0 & \texttt{0.0000 +/- 2.0000i} \\
+  \bottomrule
+\end{tabularx}
+\end{solucion}
+
+\begin{lstlisting}[style=cppmonitoria, caption={Solución E11 en C++}]
+#include <cmath>
+#include <iomanip>
+#include <iostream>
+using namespace std;
+
+int main() {
+    double a = 0.0;
+    double b = 0.0;
+    double c = 0.0;
+    cout << "Ingrese coeficientes a, b, c: ";
+    cin >> a >> b >> c;
+
+    cout << fixed << setprecision(4);
+
+    if (a == 0.0) {
+        if (b == 0.0) {
+            if (c == 0.0) {
+                cout << "Identidad 0 = 0 (infinitas soluciones)." << endl;
+            } else {
+                cout << "Ecuacion inconsistente (sin solucion)." << endl;
+            }
+        } else {
+            double x = -c / b;
+            cout << "Ecuacion lineal. Unica raiz x = " << x << endl;
+        }
+    } else {
+        double disc = (b * b) - (4.0 * a * c);
+        if (disc > 0.0) {
+            double x1 = (-b + sqrt(disc)) / (2.0 * a);
+            double x2 = (-b - sqrt(disc)) / (2.0 * a);
+            cout << "Dos raices reales: x1 = " << x1 << ", x2 = " << x2 << endl;
+        } else if (disc == 0.0) {
+            double x = -b / (2.0 * a);
+            cout << "Raiz real doble: x = " << x << endl;
+        } else {
+            double realPart = -b / (2.0 * a);
+            double imagPart = sqrt(-disc) / (2.0 * a);
+            if (imagPart < 0.0) {
+                imagPart = -imagPart;
+            }
+            cout << "Raices complejas: " << realPart << " +/- " << imagPart << "i" << endl;
+        }
+    }
+    return 0;
+}
+\end{lstlisting}
+
+% --- E12 ---
+\begin{solucion}{Ejercicio 12 --- Validador de Fecha}
+\textbf{Análisis EPS:} Entradas \texttt{dia}, \texttt{mes}, \texttt{anio} (\texttt{int}). Proceso: validar año y mes, calcular \texttt{esBisiesto} y \texttt{maxDias} vía \texttt{switch (mes)}, luego verificar \texttt{1 <= dia} y \texttt{dia <= maxDias}. Salida: fecha válida o inválida.\par\medskip
+\footnotesize
+\renewcommand{\arraystretch}{1.18}
+\rowcolors{2}{white}{GrisSuave}
+\begin{tabularx}{\linewidth}{>{\centering\arraybackslash}p{1.2cm} >{\centering\arraybackslash}p{2.2cm} >{\centering\arraybackslash}p{1.8cm} >{\centering\arraybackslash}p{1.6cm} X}
+  \rowcolor{AzulMarino}
+  \textcolor{white}{\textbf{Caso}} & \textcolor{white}{\texttt{fecha}} & \textcolor{white}{\texttt{bisiesto}} & \textcolor{white}{\texttt{maxDias}} & \textcolor{white}{\textbf{Salida}} \\
+  1 & 29/2/2023 & \texttt{false} & 28 & Fecha inválida (máximo 28 días) \\
+  2 & 29/2/2024 & \texttt{true} & 29 & Fecha válida \\
+  \bottomrule
+\end{tabularx}
+\end{solucion}
+
+\begin{lstlisting}[style=cppmonitoria, caption={Solución E12 en C++}]
+#include <iostream>
+using namespace std;
+
+int main() {
+    int dia = 0;
+    int mes = 0;
+    int anio = 0;
+    int maxDias = 0;
+
+    cout << "Ingrese dia, mes y anio: ";
+    cin >> dia >> mes >> anio;
+
+    if (anio < 1 || mes < 1 || mes > 12) {
+        cout << "FECHA INVALIDA (anio o mes fuera de rango)." << endl;
+        return 0;
+    }
+
+    bool esBisiesto = (anio % 4 == 0 && anio % 100 != 0) || (anio % 400 == 0);
+
+    switch (mes) {
+        case 1:
+        case 3:
+        case 5:
+        case 7:
+        case 8:
+        case 10:
+        case 12:
+            maxDias = 31;
+            break;
+        case 4:
+        case 6:
+        case 9:
+        case 11:
+            maxDias = 30;
+            break;
+        case 2:
+            maxDias = esBisiesto ? 29 : 28;
+            break;
+        default:
+            maxDias = 0;
+            break;
+    }
+
+    if (1 <= dia && dia <= maxDias) {
+        cout << "FECHA VALIDA." << endl;
+    } else {
+        cout << "FECHA INVALIDA (el mes " << mes << " tiene maximo " << maxDias << " dias)." << endl;
+    }
+    return 0;
+}
+\end{lstlisting}
+
+% --- E13 ---
+\begin{solucion}{Ejercicio 13 --- Peaje Inteligente}
+\textbf{Análisis EPS:} Entradas \texttt{cat} (\texttt{int}), \texttt{nocturno} y \texttt{telepeaje} (\texttt{char}). Proceso: \texttt{switch (cat)}, validar caracteres \texttt{S}/\texttt{N}, luego recargo $+10\%$ y descuento $-15\%$ con dos \texttt{if} independientes. Salida: total.\\[4pt]
+\footnotesize
+\renewcommand{\arraystretch}{1.18}
+\rowcolors{2}{white}{GrisSuave}
+\begin{tabularx}{\linewidth}{>{\centering\arraybackslash}p{1.2cm} >{\centering\arraybackslash}p{1.0cm} >{\centering\arraybackslash}p{1.2cm} >{\centering\arraybackslash}p{1.2cm} X >{\centering\arraybackslash}p{2.0cm}}
+  \rowcolor{AzulMarino}
+  \textcolor{white}{\textbf{Caso}} & \textcolor{white}{\texttt{cat}} & \textcolor{white}{\texttt{noc.}} & \textcolor{white}{\texttt{tel.}} & \textcolor{white}{\textbf{Cálculo}} & \textcolor{white}{\textbf{Total}} \\
+  1 & 1 & \texttt{'S'} & \texttt{'S'} & $12000 \times 1.10 \times 0.85$ & \$11220.00 \\
+  2 & 3 & \texttt{'N'} & \texttt{'N'} & $26000$ & \$26000.00 \\
+  \bottomrule
+\end{tabularx}
+\end{solucion}
+
+\begin{lstlisting}[style=cppmonitoria, caption={Solución E13 en C++}]
+#include <iomanip>
+#include <iostream>
+using namespace std;
+
+int main() {
+    int cat = 0;
+    char nocturno = ' ';
+    char telepeaje = ' ';
+    double total = 0.0;
+
+    cout << "Categoria (1=Auto, 2=Bus, 3=Camion 2E, 4=Camion 3+E): ";
+    cin >> cat;
+    cout << "Horario nocturno? (S/N): ";
+    cin >> nocturno;
+    cout << "Tiene telepeaje? (S/N): ";
+    cin >> telepeaje;
+
+    switch (cat) {
+        case 1:
+            total = 12000.0;
+            break;
+        case 2:
+            total = 18500.0;
+            break;
+        case 3:
+            total = 26000.0;
+            break;
+        case 4:
+            total = 39000.0;
+            break;
+        default:
+            cout << "ERROR: Categoria invalida." << endl;
+            return 0;
+    }
+
+    bool nocValido = (nocturno == 'S' || nocturno == 's' || nocturno == 'N' || nocturno == 'n');
+    bool telValido = (telepeaje == 'S' || telepeaje == 's' || telepeaje == 'N' || telepeaje == 'n');
+
+    if (!nocValido || !telValido) {
+        cout << "ERROR: Responda S o N para horario y telepeaje." << endl;
+        return 0;
+    }
+
+    if (nocturno == 'S' || nocturno == 's') {
+        total = total * 1.10;
+    }
+    if (telepeaje == 'S' || telepeaje == 's') {
+        total = total * 0.85;
+    }
+
+    cout << fixed << setprecision(2);
+    cout << "Total peaje a pagar: $" << total << endl;
+    return 0;
+}
+\end{lstlisting}
+
+% --- E14 ---
+\begin{solucion}{Ejercicio 14 --- Reloj Digital: Un Minuto Después (\texttt{hh:mm + 1})}
+\textbf{Análisis EPS:} Entradas \texttt{hh}, \texttt{mm} (\texttt{int}). Proceso: validar \texttt{0 <= hh \&\& hh <= 23} y \texttt{0 <= mm \&\& mm <= 59}; luego \texttt{if} anidados para desbordamiento de minuto 59 y hora 23. Salida: hora formateada a dos dígitos.\\[4pt]
+\footnotesize
+\renewcommand{\arraystretch}{1.18}
+\rowcolors{2}{white}{GrisSuave}
+\begin{tabularx}{\linewidth}{>{\centering\arraybackslash}p{1.2cm} >{\centering\arraybackslash}p{2.0cm} >{\centering\arraybackslash}p{3.4cm} X}
+  \rowcolor{AzulMarino}
+  \textcolor{white}{\textbf{Caso}} & \textcolor{white}{\texttt{hh:mm}} & \textcolor{white}{\textbf{Rama}} & \textcolor{white}{\textbf{Salida}} \\
+  1 & \texttt{09:59} & \texttt{mm == 59}, \texttt{hh != 23} & \texttt{10:00} \\
+  2 & \texttt{23:59} & \texttt{mm == 59}, \texttt{hh == 23} & \texttt{00:00} \\
+  3 & \texttt{07:04} & \texttt{mm < 59} & \texttt{07:05} \\
+  \bottomrule
+\end{tabularx}
+\end{solucion}
+
+\begin{lstlisting}[style=cppmonitoria, caption={Solución E14 en C++}]
+#include <iostream>
+using namespace std;
+
+int main() {
+    int hh = 0;
+    int mm = 0;
+    cout << "Ingrese hora militar hh y minutos mm: ";
+    cin >> hh >> mm;
+
+    if (hh < 0 || hh > 23 || mm < 0 || mm > 59) {
+        cout << "ERROR: Hora invalida (hh 0..23, mm 0..59)." << endl;
+        return 0;
+    }
+
+    if (mm < 59) {
+        mm = mm + 1;
+    } else {
+        mm = 0;
+        if (hh == 23) {
+            hh = 0;
+        } else {
+            hh = hh + 1;
+        }
+    }
+
+    cout << "Un minuto despues: ";
+    if (hh < 10) {
+        cout << "0";
+    }
+    cout << hh << ":";
+    if (mm < 10) {
+        cout << "0";
+    }
+    cout << mm << endl;
+    return 0;
+}
+\end{lstlisting}
+
+% ============================================================================
+\begin{consejo}{Checklist final antes de pasar al Módulo 05}
+\begin{itemize}
+  \item Sé explicar con claridad la diferencia entre \texttt{=} (asignar) y \texttt{==} (comparar).
+  \item Nunca escribo \texttt{10 <= x <= 20} en C++; siempre escribo \texttt{10 <= x \&\& x <= 20}.
+  \item Distingo cuándo usar \texttt{if} independientes, escalera \texttt{else-if}, \texttt{if} anidados y \texttt{switch-case}.
+  \item Nunca olvido \texttt{break;} en \texttt{switch} (salvo agrupación intencional como \texttt{case 'a': case 'A':}) ni la red de seguridad \texttt{default:}.
+  \item Domino el Diccionario Traductor de Parciales (\textit{``al menos''}, \textit{``supera''}, \textit{``a lo sumo''}, \textit{``múltiplo''}).
+\end{itemize}
+\end{consejo}
+
+\end{document}

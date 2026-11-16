@@ -1,0 +1,1593 @@
+\documentclass[11pt,letterpaper]{article}
+\usepackage{../../latex_common/estilo_monitoria}
+
+\begin{document}
+
+\portadamodulo{05}{Ciclos y Bucles: while, do-while y for}{4.0 horas}{Dominando la Repetición Paso a Paso SIN Arreglos: DFD $\rightarrow$ PSeInt $\rightarrow$ C++}{%
+\begin{itemize}
+  \item Comprender cómo funciona un ciclo en memoria RAM y cuáles son sus 3 ingredientes obligatorios (inicialización, condición y actualización).
+  \item Elegir sin dudar entre \texttt{for} (\textit{Para}), \texttt{while} (\textit{Mientras}) y \texttt{do-while} (\textit{Repetir...Hasta Que}) según la naturaleza del problema.
+  \item Evitar la \textbf{Trampa Mortal de Parcial}: condiciones opuestas entre PSeInt (\texttt{Repetir...Hasta Que}) y C++ (\texttt{do...while}) aplicando las Leyes de De Morgan.
+  \item Dominar técnicas clave \textbf{SIN usar arreglos}: contadores, acumuladores, banderas booleanas, búsqueda de máximo/mínimo sin arreglos, validación de entradas y lectura segura con centinela.
+  \item Resolver problemas con ciclos anidados (figuras de asteriscos, tablas de multiplicar, números primos, serie de Fibonacci y menús interactivos) pasando por DFD, PSeInt, C++ y prueba de escritorio.
+\end{itemize}
+}
+
+{\setlength{\parskip}{1pt}\tableofcontents}
+\newpage
+
+% ============================================================================
+\section{Explicado ``Para Tontos'' / Con Plastilina: ¿Qué es un ciclo?}
+% ============================================================================
+
+\begin{paratontos}{¿Por qué existen los ciclos y cómo te salvan la vida?}
+Imagina que el profesor te castiga diciendo: \emph{``Escribe en el tablero 500 veces: Debo inicializar mis acumuladores en cero''}. Con lo que sabías hasta M04 (\texttt{if}, \texttt{else}, \texttt{cout}), tendrías que copiar y pegar 500 líneas iguales. Y si luego te piden procesar 2\,000 estudiantes, sería imposible.
+
+Un \textbf{ciclo (o bucle)} es una orden que le dice al computador:
+\begin{quote}
+\emph{``Repite este bloque de instrucciones una y otra vez mientras (o hasta que) se cumpla una condición.''}
+\end{quote}
+
+\textbf{Tres analogías de la vida real:}
+\begin{enumerate}
+  \item \textbf{Ciclo \texttt{for} (\textit{Para}) --- ``Dar 5 vueltas exactas a la cancha'':} Sabes desde el principio cuántas veces vas a repetir (vuelta 1, 2, 3, 4 y 5).
+  \item \textbf{Ciclo \texttt{while} (\textit{Mientras}) --- ``Lavar platos mientras haya platos sucios'':} Primero miras el lavaplatos. Si hay \textbf{0 platos}, no lavas ninguno (0 vueltas). Si hay platos, lavas uno, vuelves a mirar y repites hasta que no quede ninguno.
+  \item \textbf{Ciclo \texttt{do-while} (\textit{Repetir...Hasta Que}) --- ``Escribir la clave del WiFi'':} Primero intentas escribir una clave (\textbf{al menos 1 vez} tienes que hacerlo); después el sistema verifica si está mal para volver a pedírtela.
+\end{enumerate}
+\end{paratontos}
+
+\begin{consejo}{Regla de alcance del Módulo 05}
+En todo este módulo trabajaremos \textbf{exclusivamente con variables simples} (todavía \textbf{NO} existen arreglos, vectores ni matrices; esos llegan en M06). Aprenderás a procesar secuencias largas de datos \textbf{``al vuelo''}, dato por dato, sin almacenar listas en memoria.
+\end{consejo}
+
+% ============================================================================
+\section{Los 3 Ingredientes Obligatorios de Todo Ciclo}
+% ============================================================================
+
+Para que un ciclo funcione correctamente y no se quede atrapado para siempre (el temido \emph{bucle infinito}), necesita 3 elementos esenciales:
+
+\begin{center}
+\small
+\captionof{table}{Los 3 ingredientes obligatorios de todo ciclo}
+\renewcommand{\arraystretch}{1.3}
+\rowcolors{2}{GrisSuave}{white}
+\begin{tabularx}{\linewidth}{>{\leavevmode\bfseries\sffamily\color{AzulMarino}\raggedright\arraybackslash}p{2.9cm} >{\leavevmode\raggedright\arraybackslash}X >{\leavevmode\ttfamily\footnotesize\raggedright\arraybackslash}p{3.1cm} >{\leavevmode\ttfamily\footnotesize\raggedright\arraybackslash}p{3.2cm}}
+\rowcolor{AzulMarino}
+\textcolor{white}{Ingrediente} & \textcolor{white}{\textbf{Pregunta que responde}} & \textcolor{white}{\textbf{\sffamily Con contador}} & \textcolor{white}{\textbf{\sffamily Con centinela}} \\
+1. Inicialización & ¿Cómo arranca la variable de control \emph{antes} de entrar? & int i = 1; & cin >> precio; \\
+2. Condición & ¿Qué pregunta booleana decide si hay otra vuelta? & i <= 10 & precio != 0 \\
+3. Actualización & ¿Qué cambia \emph{dentro} del cuerpo para acercarse al fin? & i++; & cin >> precio; \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{consejo}{Diagnóstico rápido de bucle infinito}
+Si ejecutas tu programa y la consola se queda ``congelada'' o imprime el mismo número sin parar, revisa inmediatamente el \textbf{Ingrediente \#3 (Actualización)}. En el 90\,\% de los casos, olvidaste modificar dentro del ciclo la variable que evalúa la condición.
+\end{consejo}
+
+% ============================================================================
+\section{Los 3 Ciclos Frente a Frente (DFD, PSeInt y C++)}
+% ============================================================================
+
+\subsection{\texorpdfstring{El ciclo \texttt{while} / \textit{Mientras} (``El Portero Estricto'')}{El ciclo while / Mientras}}
+
+Primero evalúa la condición; después ejecuta el cuerpo. Si desde el principio la condición es falsa, el bloque interior se ejecuta \textbf{0 veces}.
+
+\begin{lstlisting}[style=pseintmonitoria,caption={Sintaxis del ciclo Mientras en PSeInt}]
+i <- 1;
+Mientras i <= 3 Hacer
+    Escribir i;
+    i <- i + 1;
+FinMientras
+\end{lstlisting}
+
+\begin{lstlisting}[style=cppmonitoria,caption={Sintaxis equivalente del ciclo while en C++}]
+int i = 1;             // 1. Inicializacion
+while (i <= 3) {       // 2. Condicion (evalua antes de entrar)
+    cout << i << endl;
+    i++;               // 3. Actualizacion
+}
+\end{lstlisting}
+
+\subsection{\texorpdfstring{El ciclo \texttt{do-while} / \textit{Repetir...Hasta Que} (``El Mesero Amable'')}{El ciclo do-while / Repetir...Hasta Que}}
+
+Primero ejecuta el cuerpo \textbf{al menos 1 vez}, y al final pregunta si debe volver a empezar o ya puede continuar con el resto del programa.
+
+\begin{lstlisting}[style=pseintmonitoria,caption={Sintaxis de Repetir...Hasta Que en PSeInt (condición de SALIDA)}]
+Repetir
+    Escribir "Ingrese nota (0.0 a 5.0):";
+    Leer nota;
+Hasta Que nota >= 0.0 Y nota <= 5.0
+\end{lstlisting}
+
+\begin{lstlisting}[style=cppmonitoria,caption={Sintaxis de do-while en C++ (condición de CONTINUACIÓN + punto y coma final)}]
+do {
+    cout << "Ingrese nota (0.0 a 5.0): ";
+    cin >> nota;
+} while (nota < 0.0 || nota > 5.0);
+\end{lstlisting}
+
+\subsection{\texorpdfstring{El ciclo \texttt{for} / \textit{Para} (``La Máquina Contadora Automática'')}{El ciclo for / Para}}
+
+Empaqueta inicialización, condición y actualización en una sola línea. Es el estándar cuando conoces el número exacto de iteraciones.
+
+\begin{lstlisting}[style=pseintmonitoria,caption={Sintaxis del ciclo Para en PSeInt (límite inclusivo)}]
+Para i <- 1 Hasta n Con Paso 1 Hacer
+    Escribir i;
+FinPara
+\end{lstlisting}
+
+\begin{lstlisting}[style=cppmonitoria,caption={Sintaxis del ciclo for en C++}]
+for (int i = 1; i <= n; i++) {
+    cout << i << endl;
+}
+\end{lstlisting}
+
+Orden exacto en que C++ ejecuta \texttt{for (A; B; C)}: (1) ejecuta \texttt{A} una sola vez al inicio; (2) evalúa \texttt{B}; si es falsa, sale; (3) si es verdadera, ejecuta el cuerpo; (4) ejecuta \texttt{C} y regresa al paso 2.
+
+\begin{tablatraduccion}[Equivalencias DFD $\leftrightarrow$ PSeInt $\leftrightarrow$ C++ en Estructuras Repetitivas]
+Ciclo pre-evaluado & Rombo \emph{antes} del cuerpo & Mientras cond Hacer \dots\ FinMientras & while (cond) \{ \dots\ \} \\
+Ciclo post-evaluado & Cuerpo primero, rombo al final & Repetir \dots\ Hasta Que condSalida & do \{ \dots\ \} while (condSeguir); \\
+Ciclo con contador & Inicio + rombo + paso & Para i <- 1 Hasta n Con Paso 1 Hacer & for (int i = 1; i <= n; i++) \\
+Paso descendente & Paso negativo \texttt{i <- i - 1} & Para i <- n Hasta 1 Con Paso -1 Hacer & for (int i = n; i >= 1; i--) \\
+Bandera booleana & Variable \texttt{Logico} / \texttt{bool} & Definir ok Como Logico; ok <- Verdadero; & bool ok = true; \\
+\end{tablatraduccion}
+
+\imagenmodulo[0.92\linewidth]{mem_02_puente_ciclos.png}{Puente comparativo visual: \texttt{while} vs \texttt{do-while} vs \texttt{for} y la condición invertida entre PSeInt y C++.}
+
+% ============================================================================
+\section{Guía ``Para Tontos'' de CUÁNDO Usar Cada Ciclo}
+% ============================================================================
+
+Cuando leas un enunciado de parcial, sigue este árbol de decisión de 5 segundos:
+\begin{enumerate}
+  \item \textbf{¿Sé exactamente cuántas veces se repite} (o leo un número \texttt{N} antes del ciclo)\textbf{?} $\rightarrow$ Usa \textbf{\texttt{for} / \textit{Para}}. Ejemplo: tabla del 1 al 10, procesar \texttt{N} estudiantes, dibujar \texttt{N} filas.
+  \item \textbf{¿No sé cuántas veces se repetirá} (depende de un centinela o condición cambiante)\textbf{? Pregunta: ¿DEBE ejecutarse al menos 1 vez sí o sí?}
+  \begin{itemize}
+    \item \textbf{SÍ} $\rightarrow$ Usa \textbf{\texttt{do-while} / \textit{Repetir...Hasta Que}}. Ejemplo: menús interactivos y validación de entradas.
+    \item \textbf{NO} (puede hacer \textbf{0 vueltas} si la condición ya es falsa al iniciar) $\rightarrow$ Usa \textbf{\texttt{while} / \textit{Mientras}}. Ejemplo: caja registradora con centinela \texttt{0}, algoritmo de Euclides, saldo \texttt{> 0}.
+  \end{itemize}
+\end{enumerate}
+
+\imagenmodulo[0.78\linewidth]{dfd/dfd_01_guia_eleccion_ciclo.png}{Guía ``Para Tontos'': árbol de elección de ciclo y resumen visual de la Trampa Mortal.}
+
+% ============================================================================
+\section{LA TRAMPA MORTAL: \textit{Repetir...Hasta Que} vs \texttt{do...while}}
+% ============================================================================
+
+\begin{peligro}{Condiciones OPUESTAS entre PSeInt y C++ (Ley de De Morgan)}
+Esta es la causa \#1 de ceros al pasar pseudocódigo de PSeInt a C++:
+\begin{itemize}
+  \item En \textbf{PSeInt}, \texttt{Repetir ... Hasta Que <condición>} \textbf{TERMINA cuando la condición es VERDADERA} (es la condición de \emph{salida / éxito}).
+  \item En \textbf{C++}, \texttt{do \{ ... \} while (<condición>);} \textbf{CONTINÚA mientras la condición es VERDADERA} (es la condición de \emph{permanencia / error}).
+\end{itemize}
+
+Si traduces sin negar la condición (aplicando De Morgan: \texttt{Y} $\leftrightarrow$ \texttt{||}, \texttt{O} $\leftrightarrow$ \texttt{\&\&}, \texttt{>=} $\leftrightarrow$ \texttt{<}), tu ciclo en C++ atrapará los datos válidos para siempre y dejará pasar los datos malos!
+
+\begin{center}
+\small
+\renewcommand{\arraystretch}{1.25}
+\rowcolors{2}{white}{RojoClaro!40!white}
+\begin{tabularx}{\linewidth}{>{\bfseries\sffamily}p{3.5cm} >{\ttfamily\footnotesize}X >{\ttfamily\footnotesize}X}
+\rowcolor{RojoAlerta}
+\textcolor{white}{Caso} & \textcolor{white}{\textbf{\sffamily PSeInt: Hasta Que (¿Cuándo PARO?)}} & \textcolor{white}{\textbf{\sffamily C++: while (¿Cuándo SIGO?)}} \\
+Entero positivo & Hasta Que n > 0 & while (n <= 0); \\
+Nota entre 0.0 y 5.0 & Hasta Que nota >= 0 Y nota <= 5 & while (nota < 0 || nota > 5); \\
+Menú hasta salir (4) & Hasta Que opcion = 4 & while (opcion != 4); \\
+Máx 3 intentos o éxito & Hasta Que intentos = 3 O acierto & while (intentos < 3 \&\& !acierto); \\
+\bottomrule
+\end{tabularx}
+\end{center}
+\end{peligro}
+
+\subsection{Los 6 errores clásicos de parcial (y cómo evitarlos)}
+
+\begin{enumerate}
+  \item \textbf{El punto y coma asesino:} Escribir \texttt{for (int i = 1; i <= 10; i++);} o \texttt{while (x > 0);} cierra el ciclo con un cuerpo vacío. El único ciclo que lleva \texttt{;} obligatorio es \texttt{do \{ ... \} while (...);}.
+  \item \textbf{Bucle infinito por olvidar actualizar:} Olvidar \texttt{i++} o no volver a leer el dato dentro de un \texttt{while}.
+  \item \textbf{Acumulador multiplicativo iniciado en \texttt{0}:} Todo producto o factorial arranca en \textbf{\texttt{1}} (neutro multiplicativo); toda suma arranca en \textbf{\texttt{0}}.
+  \item \textbf{Inicializar \texttt{mayor = 0}:} Si todos los datos ingresados son negativos (por ejemplo temperaturas \texttt{-12, -4, -18}), reportará \texttt{0} como mayor aunque nunca se ingresó. Solución: usar el \textbf{primer dato real} con bandera \texttt{esPrimero}.
+  \item \textbf{Sumar o contar el valor centinela:} Si lees dentro del \texttt{while} antes de chequear la condición, sumarás el \texttt{0} o \texttt{-999}. Solución: usar \textbf{lectura cebadora} (\emph{priming read}) antes del \texttt{while} y leer el siguiente dato al \textbf{final} del cuerpo.
+  \item \textbf{Error ``uno más o uno menos'' (\emph{off-by-one}):} Confundir \texttt{<} con \texttt{<=} o empezar en \texttt{0} vs \texttt{1}. Prueba siempre con un caso mental pequeño (\texttt{n = 3}).
+\end{enumerate}
+
+% ============================================================================
+\section{Caja de Herramientas: Técnicas Clave SIN Arreglos}
+% ============================================================================
+
+\begin{itemize}
+  \item \textbf{Contadores (\texttt{cont++}):} Cuentan ocurrencias de paso fijo \texttt{1} (pares, aprobados, intentos). Inician en \texttt{0}.
+  \item \textbf{Acumuladores (\texttt{suma += x}, \texttt{prod *= i}):} Suman cantidades variables (\texttt{0}) o multiplican factores (\texttt{1}). Al calcular promedios, protege siempre la división por cero (\texttt{if (cont > 0)}).
+  \item \textbf{Banderas booleanas (\texttt{bool} / \textit{Logico}):} Interruptores \texttt{true}/\texttt{false} para recordar si apareció un evento o detener un ciclo temprano (por ejemplo \texttt{esPrimo}).
+  \item \textbf{Máximo y mínimo sin arreglos:} Guarda solo el campeón actual (\texttt{mayor} y \texttt{menor}). Usando la bandera booleana \texttt{esPrimero} iniciada en \texttt{true}, el primer dato leído inicializa ambos; los siguientes compiten contra ellos.
+  \item \textbf{Lectura segura ante fin de archivo (EOF):} Todos nuestros archivos \texttt{.cpp} verifican la lectura (\texttt{if (!(cin >> x)) break;}) para salir limpiamente si termina el flujo de entrada estándar.
+  \item \textbf{Ciclos anidados (``El Reloj''):} El ciclo externo es la aguja de las horas (filas); el interno es el minutero (columnas). Por cada paso del externo, el interno da todas sus vueltas completas.
+\end{itemize}
+
+\imagenmodulo[0.92\linewidth]{dfd_03_ciclo_mientras_centinela.png}{Patrón maestro en el curso: ciclo Mientras con lectura cebadora, centinela y rechazo de valores negativos.}
+
+\imagenmodulo[0.92\linewidth]{dfd_04_ciclo_para_factorial.png}{Patrón maestro en el curso: ciclo Para con acumulador multiplicativo (factorial) y prueba de escritorio.}
+
+% ============================================================================
+\section{10 Problemas Resueltos Completos (EPS, DFD, PSeInt, C++ y Prueba de Escritorio)}
+% ============================================================================
+
+% ----------------------------------------------------------------------------
+\subsection{Problema 01: Tabla de multiplicar y suma de productos}
+% ----------------------------------------------------------------------------
+
+\textbf{Enunciado:} Lee un número entero \texttt{n}, imprime su tabla de multiplicar del \texttt{1} al \texttt{10} (en formato \texttt{n x i = resultado}) y muestra la suma de los 10 productos generados.
+
+\begin{analisis}{Problema 01 --- Tabla de multiplicar}
+\begin{itemize}
+  \item \textbf{Entradas:} Entero \texttt{n}.
+  \item \textbf{Proceso:} Recorrer \texttt{i} de \texttt{1} a \texttt{10}; en cada paso calcular \texttt{producto = n * i}, imprimir la línea y acumular en \texttt{sumaProductos}.
+  \item \textbf{Salidas:} Las 10 líneas de la tabla y \texttt{sumaProductos}.
+  \item \textbf{Ciclo elegido:} \textbf{\texttt{for} / \textit{Para}}, porque sabemos exactamente que son 10 iteraciones.
+\end{itemize}
+\end{analisis}
+
+\imagenmodulo[0.90\linewidth]{dfd/dfd_02_p01_para_tabla.png}{DFD del Problema 01: Tabla de multiplicar con ciclo Para / \texttt{for}.}
+
+\lstinputlisting[style=pseintmonitoria,caption={PSeInt --- Problema 01 (\texttt{pseint/p01\_tabla\_multiplicar.psc})}]{pseint/p01_tabla_multiplicar.psc}
+
+\lstinputlisting[style=cppmonitoria,caption={C++ --- Problema 01 (\texttt{cpp/p01\_tabla\_multiplicar.cpp})}]{cpp/p01_tabla_multiplicar.cpp}
+
+\begin{pruebaescritorio}{Problema 01 con \texttt{n = 7}}
+\begin{center}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.15}
+\rowcolors{2}{white}{AzulClaro!35!white}
+\begin{tabularx}{\linewidth}{c c c c c X}
+\rowcolor{AzulMarino}
+\textcolor{white}{\textbf{Paso}} & \textcolor{white}{\texttt{n}} & \textcolor{white}{\texttt{i}} & \textcolor{white}{\texttt{i <= 10}} & \textcolor{white}{\texttt{producto}} & \textcolor{white}{\textbf{\texttt{sumaProductos} / Salida}} \\
+Inicio & 7 & -- & -- & -- & 0 / Imprime \texttt{Tabla del 7:} \\
+1 & 7 & 1 & true & 7 & 7 / \texttt{7 x 1 = 7} \\
+2 & 7 & 2 & true & 14 & 21 / \texttt{7 x 2 = 14} \\
+3 & 7 & 3 & true & 21 & 42 / \texttt{7 x 3 = 21} \\
+\dots & \dots & \dots & \dots & \dots & \dots \\
+9 & 7 & 9 & true & 63 & 315 / \texttt{7 x 9 = 63} \\
+10 & 7 & 10 & true & 70 & 385 / \texttt{7 x 10 = 70} \\
+Fin & 7 & 11 & false & 70 & \textbf{385} / \texttt{Suma de los 10 productos: 385} \\
+\bottomrule
+\end{tabularx}
+\end{center}
+\end{pruebaescritorio}
+
+% ----------------------------------------------------------------------------
+\subsection{Problema 02: Suma de 1 a n y factorial n!}
+% ----------------------------------------------------------------------------
+
+\textbf{Enunciado:} Lee un entero \texttt{n} validado entre \texttt{0} y \texttt{20}. Calcula la sumatoria $1 + 2 + \dots + n$ y el factorial $n!$ (recordando $0! = 1$).
+
+\begin{analisis}{Problema 02 --- Suma y factorial}
+\begin{itemize}
+  \item \textbf{Entradas:} Entero \texttt{n} validado en $[0, 20]$.
+  \item \textbf{Proceso:} Validar \texttt{n} con \texttt{do-while}. Iniciar \texttt{suma = 0} y \texttt{factorial = 1}. Recorrer \texttt{i} de \texttt{1} a \texttt{n} acumulando suma y producto. Si \texttt{n = 0}, el ciclo \texttt{for} hace 0 vueltas y conserva $0! = 1$.
+  \item \textbf{Salidas:} \texttt{suma} y \texttt{factorial}.
+  \item \textbf{Ciclos elegidos:} \textbf{\texttt{do-while}} (validar al menos 1 vez) + \textbf{\texttt{for}} (número conocido \texttt{n} de pasos).
+\end{itemize}
+\end{analisis}
+
+\lstinputlisting[style=pseintmonitoria,caption={PSeInt --- Problema 02 (\texttt{pseint/p02\_suma\_y\_factorial.psc})}]{pseint/p02_suma_y_factorial.psc}
+
+\lstinputlisting[style=cppmonitoria,caption={C++ --- Problema 02 (\texttt{cpp/p02\_suma\_y\_factorial.cpp})}]{cpp/p02_suma_y_factorial.cpp}
+
+\begin{pruebaescritorio}{Problema 02 con entradas \texttt{-3} (inválido) y luego \texttt{5}}
+\begin{center}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.15}
+\rowcolors{2}{white}{AzulClaro!35!white}
+\begin{tabularx}{\linewidth}{l c c c c c X}
+\rowcolor{AzulMarino}
+\textcolor{white}{\textbf{Fase}} & \textcolor{white}{\texttt{n}} & \textcolor{white}{\texttt{i}} & \textcolor{white}{\texttt{suma}} & \textcolor{white}{\texttt{factorial}} & \textcolor{white}{\textbf{Condición}} & \textcolor{white}{\textbf{Acción}} \\
+Validación 1 & -3 & -- & -- & -- & true (sigue) & Error: fuera de rango \\
+Validación 2 & 5 & -- & 0 & 1 & false (sale) & Inicia acumuladores \\
+\texttt{for} v1 & 5 & 1 & 1 & 1 & true & Acumula \texttt{i=1} \\
+\texttt{for} v2 & 5 & 2 & 3 & 2 & true & Acumula \texttt{i=2} \\
+\texttt{for} v3 & 5 & 3 & 6 & 6 & true & Acumula \texttt{i=3} \\
+\texttt{for} v4 & 5 & 4 & 10 & 24 & true & Acumula \texttt{i=4} \\
+\texttt{for} v5 & 5 & 5 & 15 & 120 & true & Acumula \texttt{i=5} \\
+Fin \texttt{for} & 5 & 6 & \textbf{15} & \textbf{120} & false & Imprime \texttt{Suma=15, 5!=120} \\
+\bottomrule
+\end{tabularx}
+\end{center}
+\end{pruebaescritorio}
+
+% ----------------------------------------------------------------------------
+\subsection{Problema 03: Caja registradora con centinela 0}
+% ----------------------------------------------------------------------------
+
+\textbf{Enunciado:} Registra precios reales de productos hasta ingresar \texttt{0} (centinela). Ignora precios negativos con advertencia y, al final, muestra cantidad válida, total a pagar y precio promedio (sin dividir por cero si no hubo compras).
+
+\begin{analisis}{Problema 03 --- Caja registradora con centinela}
+\begin{itemize}
+  \item \textbf{Entradas:} Secuencia de precios reales terminada en \texttt{0}.
+  \item \textbf{Proceso:} Lectura cebadora antes del ciclo. Mientras \texttt{precio != 0}: si es negativo, advertir; si no, acumular \texttt{total} y contar \texttt{cantidad}. Al final del cuerpo leer el siguiente precio. Al salir proteger \texttt{cantidad == 0}.
+  \item \textbf{Salidas:} \texttt{cantidad}, \texttt{total} y \texttt{promedio}.
+  \item \textbf{Ciclo elegido:} \textbf{\texttt{while} / \textit{Mientras}}, porque depende de centinela y puede ejecutarse 0 veces.
+\end{itemize}
+\end{analisis}
+
+\imagenmodulo[0.92\linewidth]{dfd/dfd_03_p03_mientras_centinela.png}{DFD del Problema 03: Caja registradora con lectura cebadora y centinela \texttt{0}.}
+
+\lstinputlisting[style=pseintmonitoria,caption={PSeInt --- Problema 03 (\texttt{pseint/p03\_caja\_centinela.psc})}]{pseint/p03_caja_centinela.psc}
+
+\lstinputlisting[style=cppmonitoria,caption={C++ --- Problema 03 (\texttt{cpp/p03\_caja\_centinela.cpp})}]{cpp/p03_caja_centinela.cpp}
+
+\begin{pruebaescritorio}{Problema 03 con entradas \texttt{1500, -200, 3500, 1000, 0}}
+\begin{center}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.15}
+\rowcolors{2}{white}{AzulClaro!35!white}
+\begin{tabularx}{\linewidth}{l c c c c c X}
+\rowcolor{AzulMarino}
+\textcolor{white}{\textbf{Paso}} & \textcolor{white}{\texttt{precio}} & \textcolor{white}{\texttt{!= 0}} & \textcolor{white}{\texttt{< 0}} & \textcolor{white}{\texttt{cant}} & \textcolor{white}{\texttt{total}} & \textcolor{white}{\textbf{Acción / Salida}} \\
+Cebador & 1500 & -- & -- & 0 & 0.00 & Entra al \texttt{while} \\
+Vuelta 1 & 1500 & true & false & 1 & 1500.00 & Suma; lee siguiente (\texttt{-200}) \\
+Vuelta 2 & -200 & true & true & 1 & 1500.00 & Advierte e ignora; lee \texttt{3500} \\
+Vuelta 3 & 3500 & true & false & 2 & 5000.00 & Suma; lee \texttt{1000} \\
+Vuelta 4 & 1000 & true & false & 3 & 6000.00 & Suma; lee \texttt{0} \\
+Salida & 0 & false & -- & \textbf{3} & \textbf{6000.00} & \texttt{Promedio: \$2000.00} \\
+\bottomrule
+\end{tabularx}
+\end{center}
+\end{pruebaescritorio}
+
+% ----------------------------------------------------------------------------
+\subsection{Problema 04: Validación de notas y estadísticas de grupo}
+% ----------------------------------------------------------------------------
+
+\textbf{Enunciado:} Pide la cantidad \texttt{n} de estudiantes (\texttt{n >= 1}) y luego valida la nota de cada estudiante en $[0.0, 5.0]$. Calcula aprobados (\texttt{>= 3.0}), reprobados y promedio del grupo.
+
+\begin{analisis}{Problema 04 --- Validación de notas (Trampa Mortal)}
+\begin{itemize}
+  \item \textbf{Entradas:} Entero \texttt{n >= 1} y \texttt{n} notas en $[0.0, 5.0]$.
+  \item \textbf{Proceso:} Validar \texttt{n} con \texttt{do-while}; recorrer \texttt{n} estudiantes con \texttt{for}; validar cada nota con \texttt{do-while} (\textbf{OJO}: en PSeInt \texttt{Hasta Que nota >= 0 Y nota <= 5}, mientras que en C++ \texttt{while (nota < 0 || nota > 5);}).
+  \item \textbf{Salidas:} \texttt{aprobados}, \texttt{reprobados} y \texttt{promedio}.
+  \item \textbf{Ciclos elegidos:} \textbf{\texttt{do-while}} para validar + \textbf{\texttt{for}} para los \texttt{n} estudiantes.
+\end{itemize}
+\end{analisis}
+
+\imagenmodulo[0.82\linewidth]{dfd/dfd_04_p04_repetir_validacion.png}{DFD del Problema 04: Validación con \textit{Repetir} / \texttt{do-while} dentro de ciclo \textit{Para}.}
+
+\lstinputlisting[style=pseintmonitoria,caption={PSeInt --- Problema 04 (\texttt{pseint/p04\_validacion\_notas\_grupo.psc})}]{pseint/p04_validacion_notas_grupo.psc}
+
+\lstinputlisting[style=cppmonitoria,caption={C++ --- Problema 04 (\texttt{cpp/p04\_validacion\_notas\_grupo.cpp})}]{cpp/p04_validacion_notas_grupo.cpp}
+
+\begin{pruebaescritorio}{Problema 04 con \texttt{n: 0 -> 3} y notas \texttt{6.0, 4.0, -1, 2.5, 3.0}}
+\begin{center}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.15}
+\rowcolors{2}{white}{AzulClaro!35!white}
+\begin{tabularx}{\linewidth}{l c c c c c X}
+\rowcolor{AzulMarino}
+\textcolor{white}{\textbf{Paso}} & \textcolor{white}{\texttt{n}} & \textcolor{white}{\texttt{i}} & \textcolor{white}{\texttt{nota}} & \textcolor{white}{\texttt{suma}} & \textcolor{white}{\textbf{Apr / Rep}} & \textcolor{white}{\textbf{Validación}} \\
+Val. \texttt{n} & 0 & -- & -- & -- & 0 / 0 & \texttt{0 < 1} $\rightarrow$ error, repite \\
+Val. \texttt{n} & 3 & -- & -- & 0.0 & 0 / 0 & \texttt{3 < 1} falso $\rightarrow$ sale \\
+Est. 1 & 3 & 1 & 6.0 & 0.0 & 0 / 0 & \texttt{6.0 > 5.0} $\rightarrow$ repite \\
+Est. 1 & 3 & 1 & 4.0 & 4.0 & 1 / 0 & Válida (\texttt{>= 3.0}) \\
+Est. 2 & 3 & 2 & -1.0 & 4.0 & 1 / 0 & \texttt{-1.0 < 0} $\rightarrow$ repite \\
+Est. 2 & 3 & 2 & 2.5 & 6.5 & 1 / 1 & Válida (\texttt{< 3.0}) \\
+Est. 3 & 3 & 3 & 3.0 & 9.5 & \textbf{2 / 1} & Promedio: \texttt{9.5 / 3 = 3.17} \\
+\bottomrule
+\end{tabularx}
+\end{center}
+\end{pruebaescritorio}
+
+% ----------------------------------------------------------------------------
+\subsection{Problema 05: Máximo, mínimo y día SIN arreglos (Bandera \texttt{esPrimero})}
+% ----------------------------------------------------------------------------
+
+\textbf{Enunciado:} Lee temperaturas diarias (incluso todas negativas!) hasta ingresar el centinela \texttt{-999}. Determina sin arreglos la temperatura máxima, la mínima, el día de ocurrencia de cada una y el promedio general.
+
+\begin{analisis}{Problema 05 --- Máximo y mínimo sin arreglos}
+\begin{itemize}
+  \item \textbf{Entradas:} Secuencia de temperaturas reales terminada en \texttt{-999}.
+  \item \textbf{Proceso:} Ciclo \texttt{while} con lectura cebadora. Usar bandera \texttt{bool esPrimero = true;}: con el primer dato válido inicializar \texttt{mayor}, \texttt{menor}, \texttt{diaMayor}, \texttt{diaMenor} y cambiar \texttt{esPrimero = false}. En los siguientes comparar contra \texttt{mayor} y \texttt{menor}.
+  \item \textbf{Salidas:} \texttt{contador}, \texttt{mayor (diaMayor)}, \texttt{menor (diaMenor)} y \texttt{promedio}.
+  \item \textbf{Ciclo elegido:} \textbf{\texttt{while} / \textit{Mientras}} por uso de centinela \texttt{-999}.
+\end{itemize}
+\end{analisis}
+
+\imagenmodulo[0.88\linewidth]{dfd/dfd_05_p05_max_min_sin_arreglos.png}{DFD del Problema 05: Búsqueda de máximo y mínimo sin arreglos usando \texttt{esPrimero}.}
+
+\lstinputlisting[style=pseintmonitoria,caption={PSeInt --- Problema 05 (\texttt{pseint/p05\_maximo\_minimo\_temperaturas.psc})}]{pseint/p05_maximo_minimo_temperaturas.psc}
+
+\lstinputlisting[style=cppmonitoria,caption={C++ --- Problema 05 (\texttt{cpp/p05\_maximo\_minimo\_temperaturas.cpp})}]{cpp/p05_maximo_minimo_temperaturas.cpp}
+
+\begin{pruebaescritorio}{Problema 05 con temperaturas todas negativas: \texttt{-12.5, -4.0, -18.2, -999}}
+\begin{center}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.15}
+\rowcolors{2}{white}{AzulClaro!35!white}
+\begin{tabularx}{\linewidth}{l c c c c c X}
+\rowcolor{AzulMarino}
+\textcolor{white}{\textbf{Paso}} & \textcolor{white}{\texttt{temp}} & \textcolor{white}{\texttt{cont}} & \textcolor{white}{\texttt{esPrimero}} & \textcolor{white}{\texttt{mayor (día)}} & \textcolor{white}{\texttt{menor (día)}} & \textcolor{white}{\texttt{suma}} \\
+Cebador & -12.5 & 0 & true & 0 (0) & 0 (0) & 0.0 \\
+Día 1 & -12.5 & 1 & true $\rightarrow$ false & -12.5 (1) & -12.5 (1) & -12.5 \\
+Día 2 & -4.0 & 2 & false & \textbf{-4.0 (2)} & -12.5 (1) & -16.5 \\
+Día 3 & -18.2 & 3 & false & -4.0 (2) & \textbf{-18.2 (3)} & -34.7 \\
+Centinela & -999 & 3 & false & -4.0 (día 2) & -18.2 (día 3) & Promedio: \textbf{-11.57 C} \\
+\bottomrule
+\end{tabularx}
+\end{center}
+\end{pruebaescritorio}
+
+% ----------------------------------------------------------------------------
+\subsection{Problema 06: Análisis de dígitos y número capicúa}
+% ----------------------------------------------------------------------------
+
+\textbf{Enunciado:} Dado un entero no negativo \texttt{n >= 0} (validado), calcula su cantidad de dígitos, suma de dígitos, número invertido y si es \textbf{capicúa} (ej. \texttt{12321} o \texttt{0}).
+
+\begin{analisis}{Problema 06 --- Dígitos y capicúa}
+\begin{itemize}
+  \item \textbf{Entradas:} Entero \texttt{n >= 0}.
+  \item \textbf{Proceso:} Copiar \texttt{aux = n} para preservar el original. Usar \texttt{do-while} (\texttt{aux > 0}) extrayendo \texttt{digito = aux \% 10} y reduciendo \texttt{aux = aux / 10} (en PSeInt: \texttt{trunc(aux / 10)}). Usar \texttt{do-while} garantiza que el caso \texttt{n = 0} cuente 1 dígito. Al final comparar \texttt{invertido == n}.
+  \item \textbf{Salidas:} \texttt{cantidadDigitos}, \texttt{sumaDigitos}, \texttt{invertido} y \texttt{SI}/\texttt{NO}.
+  \item \textbf{Ciclo elegido:} \textbf{\texttt{do-while}} para el bloque de descomposición (al menos 1 dígito).
+\end{itemize}
+\end{analisis}
+
+\lstinputlisting[style=pseintmonitoria,caption={PSeInt --- Problema 06 (\texttt{pseint/p06\_digitos\_y\_capicua.psc})}]{pseint/p06_digitos_y_capicua.psc}
+
+\lstinputlisting[style=cppmonitoria,caption={C++ --- Problema 06 (\texttt{cpp/p06\_digitos\_y\_capicua.cpp})}]{cpp/p06_digitos_y_capicua.cpp}
+
+\begin{pruebaescritorio}{Problema 06 con \texttt{n = 12321}}
+\begin{center}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.15}
+\rowcolors{2}{white}{AzulClaro!35!white}
+\begin{tabularx}{\linewidth}{c c c c c c c X}
+\rowcolor{AzulMarino}
+\textcolor{white}{\textbf{Vuelta}} & \textcolor{white}{\texttt{aux} (ini)} & \textcolor{white}{\texttt{digito}} & \textcolor{white}{\texttt{cant}} & \textcolor{white}{\texttt{suma}} & \textcolor{white}{\texttt{invertido}} & \textcolor{white}{\texttt{aux} (fin)} & \textcolor{white}{\texttt{aux > 0}} \\
+1 & 12321 & 1 & 1 & 1 & 1 & 1232 & true \\
+2 & 1232 & 2 & 2 & 3 & 12 & 123 & true \\
+3 & 123 & 3 & 3 & 6 & 123 & 12 & true \\
+4 & 12 & 2 & 4 & 8 & 1232 & 1 & true \\
+5 & 1 & 1 & \textbf{5} & \textbf{9} & \textbf{12321} & 0 & false (sale; \texttt{12321 == 12321} $\rightarrow$ SI) \\
+\bottomrule
+\end{tabularx}
+\end{center}
+\end{pruebaescritorio}
+
+% ----------------------------------------------------------------------------
+\subsection{Problema 07: Detector de número primo con bandera booleana}
+% ----------------------------------------------------------------------------
+
+\textbf{Enunciado:} Lee un entero positivo \texttt{n >= 1} (validado) y determina si es primo. Recuerda que \texttt{1} NO es primo y \texttt{2} SÍ es primo. Si es compuesto, muestra su menor divisor mayor que \texttt{1}.
+
+\begin{analisis}{Problema 07 --- Detector de primo con bandera}
+\begin{itemize}
+  \item \textbf{Entradas:} Entero \texttt{n >= 1}.
+  \item \textbf{Proceso:} Iniciar \texttt{bool esPrimo = true;}. Si \texttt{n == 1}, marcar \texttt{esPrimo = false}. Si \texttt{n >= 2}, probar divisores \texttt{d} desde \texttt{2} mientras \texttt{d <= n / d \&\& esPrimo}. Al primer divisor encontrado (\texttt{n \% d == 0}), apagar la bandera \texttt{esPrimo = false} y guardar \texttt{menorDivisor = d}.
+  \item \textbf{Salidas:} Indicar si es primo o mostrar \texttt{menorDivisor}.
+  \item \textbf{Ciclo elegido:} \textbf{\texttt{for}} (en C++) / \textbf{\textit{Mientras}} (en PSeInt) con condición de parada temprana \texttt{esPrimo}.
+\end{itemize}
+\end{analisis}
+
+\imagenmodulo[0.88\linewidth]{dfd/dfd_06_p07_bandera_primo.png}{DFD del Problema 07: Detector de número primo con bandera lógica \texttt{esPrimo}.}
+
+\lstinputlisting[style=pseintmonitoria,caption={PSeInt --- Problema 07 (\texttt{pseint/p07\_numero\_primo\_bandera.psc})}]{pseint/p07_numero_primo_bandera.psc}
+
+\lstinputlisting[style=cppmonitoria,caption={C++ --- Problema 07 (\texttt{cpp/p07\_numero\_primo\_bandera.cpp})}]{cpp/p07_numero_primo_bandera.cpp}
+
+\begin{pruebaescritorio}{Problema 07 con \texttt{n = 91}}
+\begin{center}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.15}
+\rowcolors{2}{white}{AzulClaro!35!white}
+\begin{tabularx}{\linewidth}{c c c c c X}
+\rowcolor{AzulMarino}
+\textcolor{white}{\textbf{Vuelta}} & \textcolor{white}{\texttt{d}} & \textcolor{white}{\texttt{d <= 91/d}} & \textcolor{white}{\texttt{91 \% d == 0}} & \textcolor{white}{\texttt{esPrimo}} & \textcolor{white}{\textbf{\texttt{menorDivisor} / Estado}} \\
+1 & 2 & 2 <= 45 (V) & 1 == 0 (F) & true & 0 / Sigue \\
+2 & 3 & 3 <= 30 (V) & 1 == 0 (F) & true & 0 / Sigue \\
+3 & 4 & 4 <= 22 (V) & 3 == 0 (F) & true & 0 / Sigue \\
+4 & 5 & 5 <= 18 (V) & 1 == 0 (F) & true & 0 / Sigue \\
+5 & 6 & 6 <= 15 (V) & 1 == 0 (F) & true & 0 / Sigue \\
+6 & 7 & 7 <= 13 (V) & 0 == 0 (V) & \textbf{false} & \textbf{7} / Corta el ciclo (\texttt{\&\& esPrimo} falso) \\
+\bottomrule
+\end{tabularx}
+\end{center}
+\end{pruebaescritorio}
+
+% ----------------------------------------------------------------------------
+\subsection{Problema 08: Serie de Fibonacci con variables deslizantes}
+% ----------------------------------------------------------------------------
+
+\textbf{Enunciado:} Lee \texttt{n} validado entre \texttt{1} y \texttt{50}, imprime los primeros \texttt{n} términos de la serie de Fibonacci (\texttt{0, 1, 1, 2, 3, 5, 8...}), calcula la suma total y cuántos términos son pares, \textbf{sin arreglos}.
+
+\begin{analisis}{Problema 08 --- Serie de Fibonacci sin arreglos}
+\begin{itemize}
+  \item \textbf{Entradas:} Entero \texttt{n} en $[1, 50]$.
+  \item \textbf{Proceso:} Mantener una ventana deslizante con \texttt{a = 0} y \texttt{b = 1}. Durante \texttt{n} vueltas: imprimir \texttt{a}, acumular \texttt{sumaTotal += a}, contar si \texttt{a \% 2 == 0}, calcular \texttt{siguiente = a + b} y deslizar \texttt{a = b; b = siguiente;}.
+  \item \textbf{Salidas:} Los \texttt{n} términos, \texttt{sumaTotal} y \texttt{cantidadPares}.
+  \item \textbf{Ciclo elegido:} \textbf{\texttt{do-while}} (validar \texttt{n}) + \textbf{\texttt{for}} (exactamente \texttt{n} términos).
+\end{itemize}
+\end{analisis}
+
+\lstinputlisting[style=pseintmonitoria,caption={PSeInt --- Problema 08 (\texttt{pseint/p08\_fibonacci\_deslizante.psc})}]{pseint/p08_fibonacci_deslizante.psc}
+
+\lstinputlisting[style=cppmonitoria,caption={C++ --- Problema 08 (\texttt{cpp/p08\_fibonacci\_deslizante.cpp})}]{cpp/p08_fibonacci_deslizante.cpp}
+
+\begin{pruebaescritorio}{Problema 08 con \texttt{n = 7}}
+\begin{center}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.15}
+\rowcolors{2}{white}{AzulClaro!35!white}
+\begin{tabularx}{\linewidth}{c c c c c c c X}
+\rowcolor{AzulMarino}
+\textcolor{white}{\texttt{i}} & \textcolor{white}{\textbf{Imprime (\texttt{a})}} & \textcolor{white}{\texttt{sumaTotal}} & \textcolor{white}{\texttt{cantPares}} & \textcolor{white}{\texttt{sig = a+b}} & \textcolor{white}{\texttt{a} (nuevo)} & \textcolor{white}{\texttt{b} (nuevo)} & \textcolor{white}{\textbf{Nota}} \\
+1 & 0 & 0 & 1 & 1 & 1 & 1 & 0 es par \\
+2 & 1 & 1 & 1 & 2 & 1 & 2 & -- \\
+3 & 1 & 2 & 1 & 3 & 2 & 3 & -- \\
+4 & 2 & 4 & 2 & 5 & 3 & 5 & 2 es par \\
+5 & 3 & 7 & 2 & 8 & 5 & 8 & -- \\
+6 & 5 & 12 & 2 & 13 & 8 & 13 & -- \\
+7 & 8 & \textbf{20} & \textbf{3} & 21 & 13 & 21 & 8 es par; fin \\
+\bottomrule
+\end{tabularx}
+\end{center}
+\end{pruebaescritorio}
+
+% ----------------------------------------------------------------------------
+\subsection{Problema 09: Ciclos anidados --- Figuras de asteriscos y tabla cruzada}
+% ----------------------------------------------------------------------------
+
+\textbf{Enunciado:} Lee \texttt{n} validado entre \texttt{1} y \texttt{10}, e imprime usando ciclos anidados: (1) un triángulo rectángulo de asteriscos, (2) una pirámide centrada y (3) la tabla de multiplicar cruzada de \texttt{1..n} $\times$ \texttt{1..n}.
+
+\begin{analisis}{Problema 09 --- Ciclos anidados}
+\begin{itemize}
+  \item \textbf{Entradas:} Entero \texttt{n} en $[1, 10]$.
+  \item \textbf{Proceso:} Cada figura utiliza un ciclo externo para las \texttt{n} filas y uno o dos ciclos internos para las columnas: triángulo (\texttt{col = 1..fila}), pirámide (\texttt{n - fila} espacios seguidos de \texttt{2 * fila - 1} asteriscos) y tabla (\texttt{i * j} para \texttt{i, j = 1..n}).
+  \item \textbf{Salidas:} Las 3 figuras/tablas impresas en consola.
+  \item \textbf{Ciclos elegidos:} \textbf{\texttt{for} anidados}, pues el tamaño de cada fila y columna está completamente determinado por \texttt{n} y \texttt{fila}.
+\end{itemize}
+\end{analisis}
+
+\imagenmodulo[0.90\linewidth]{dfd/dfd_07_p09_ciclos_anidados.png}{DFD del Problema 09: Anatomía de ciclos anidados (``El Reloj'') para el triángulo rectángulo.}
+
+\lstinputlisting[style=pseintmonitoria,caption={PSeInt --- Problema 09 (\texttt{pseint/p09\_ciclos\_anidados\_figuras\_tablas.psc})}]{pseint/p09_ciclos_anidados_figuras_tablas.psc}
+
+\lstinputlisting[style=cppmonitoria,caption={C++ --- Problema 09 (\texttt{cpp/p09\_ciclos\_anidados\_figuras\_tablas.cpp})}]{cpp/p09_ciclos_anidados_figuras_tablas.cpp}
+
+\begin{pruebaescritorio}{Problema 09 con \texttt{n = 4} (Pirámide y Tabla \texttt{4x4})}
+\begin{center}
+\footnotesize
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.15}
+\rowcolors{2}{white}{AzulClaro!35!white}
+\begin{tabularx}{\linewidth}{c c c X X}
+\rowcolor{AzulMarino}
+\textcolor{white}{\texttt{fila / i}} & \textcolor{white}{\textbf{Espacios (\texttt{n-fila})}} & \textcolor{white}{\textbf{Asteriscos (\texttt{2*fila-1})}} & \textcolor{white}{\textbf{Salida Pirámide}} & \textcolor{white}{\textbf{Fila Tabla Cruzada}} \\
+1 & 3 & 1 & \texttt{\ \ \ *} & \texttt{1\ \ 2\ \ 3\ \ 4} \\
+2 & 2 & 3 & \texttt{\ \ ***} & \texttt{2\ \ 4\ \ 6\ \ 8} \\
+3 & 1 & 5 & \texttt{\ *****} & \texttt{3\ \ 6\ \ 9\ 12} \\
+4 & 0 & 7 & \texttt{*******} & \texttt{4\ \ 8\ 12\ 16} \\
+\bottomrule
+\end{tabularx}
+\end{center}
+\end{pruebaescritorio}
+
+% ----------------------------------------------------------------------------
+\subsection{Problema 10: Menú interactivo de cajero automático}
+% ----------------------------------------------------------------------------
+
+\textbf{Enunciado:} Simula un cajero que inicia con saldo de \texttt{\$100000.00} y repite un menú: \texttt{1. Consultar saldo}, \texttt{2. Consignar}, \texttt{3. Retirar}, \texttt{4. Salir}. Valida montos positivos y fondos suficientes, mostrando al final el resumen de transacciones.
+
+\begin{analisis}{Problema 10 --- Menú interactivo con \texttt{do-while} y \texttt{switch}}
+\begin{itemize}
+  \item \textbf{Entradas:} \texttt{opcion} entera (\texttt{1..4}) repetidamente y \texttt{monto} real en opciones \texttt{2} y \texttt{3}.
+  \item \textbf{Proceso:} Un menú siempre aparece al menos 1 vez $\rightarrow$ \textbf{\texttt{do-while}} (\texttt{while (opcion != 4);} en C++, opuesto a \texttt{Hasta Que opcion = 4} en PSeInt). Adentro, \textbf{\texttt{switch}} despacha cada operación y actualiza contadores y acumuladores.
+  \item \textbf{Salidas:} Respuestas por operación y resumen final (operaciones exitosas, total consignado, total retirado y saldo final).
+\end{itemize}
+\end{analisis}
+
+\imagenmodulo[0.94\linewidth]{dfd/dfd_08_p10_menu_cajero.png}{DFD del Problema 10: Menú interactivo de cajero con \texttt{do-while} y \texttt{switch}.}
+
+\lstinputlisting[style=pseintmonitoria,caption={PSeInt --- Problema 10 (\texttt{pseint/p10\_menu\_cajero\_interactivo.psc})}]{pseint/p10_menu_cajero_interactivo.psc}
+
+\lstinputlisting[style=cppmonitoria,caption={C++ --- Problema 10 (\texttt{cpp/p10\_menu\_cajero\_interactivo.cpp})}]{cpp/p10_menu_cajero_interactivo.cpp}
+
+\begin{pruebaescritorio}{Problema 10 con secuencia \texttt{1, 2 (50000), 3 (200000), 3 (30000), 9, 4}}
+\begin{center}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.15}
+\rowcolors{2}{white}{AzulClaro!35!white}
+\begin{tabularx}{\linewidth}{c c c c c c X}
+\rowcolor{AzulMarino}
+\textcolor{white}{\textbf{Turno}} & \textcolor{white}{\texttt{op}} & \textcolor{white}{\texttt{monto}} & \textcolor{white}{\texttt{saldo}} & \textcolor{white}{\texttt{Cons / Ret}} & \textcolor{white}{\texttt{ops}} & \textcolor{white}{\textbf{Estado / \texttt{op != 4}}} \\
+1 & 1 & -- & 100000 & 0 / 0 & 0 & Consulta saldo; sigue (\texttt{true}) \\
+2 & 2 & 50000 & 150000 & 50000 / 0 & 1 & Consignación OK; sigue \\
+3 & 3 & 200000 & 150000 & 50000 / 0 & 1 & Fondos insuficientes; sigue \\
+4 & 3 & 30000 & 120000 & 50000 / 30000 & 2 & Retiro OK; sigue \\
+5 & 9 & -- & 120000 & 50000 / 30000 & 2 & Opción inválida (\texttt{default}) \\
+6 & 4 & -- & \textbf{120000} & \textbf{50000 / 30000} & \textbf{2} & \texttt{4 != 4} falso $\rightarrow$ sale y resume \\
+\bottomrule
+\end{tabularx}
+\end{center}
+\end{pruebaescritorio}
+
+% ============================================================================
+\section{16 Ejercicios Propuestos (con Pista del Monitor)}
+% ============================================================================
+
+Resuelve primero cada ejercicio en papel (EPS + elección del ciclo + prueba de escritorio) antes de consultar el solucionario de la siguiente sección. Recuerda: \textbf{SIN arreglos}.
+
+\subsection{Nivel Básico (Ejercicios 1 al 5)}
+
+\begin{ejercicio}{1. Cuenta regresiva de lanzamiento}
+Pide un entero \texttt{n >= 1} (validado) e imprime la cuenta regresiva desde \texttt{n} hasta \texttt{1}, terminando con \texttt{"Despegue!"}.\\
+\textbf{Pista del Monitor:} Usa un \texttt{for} descendente (\texttt{i--} en C++, \texttt{Con Paso -1} en PSeInt).
+\end{ejercicio}
+
+\begin{ejercicio}{2. Suma de pares e impares en un rango}
+Lee dos enteros \texttt{a} y \texttt{b} (si \texttt{a > b}, intercámbialos). Suma por separado todos los pares y todos los impares entre \texttt{a} y \texttt{b} inclusive.\\
+\textbf{Pista del Monitor:} Dos acumuladores en \texttt{0} y un \texttt{for} de \texttt{a} a \texttt{b} usando \texttt{i \% 2 == 0}.
+\end{ejercicio}
+
+\begin{ejercicio}{3. Potencia sin usar \texttt{pow()}}
+Lee una base entera \texttt{base} y un exponente \texttt{exp >= 0} (validado). Calcula \texttt{base\textasciicircum exp} mediante multiplicaciones sucesivas.\\
+\textbf{Pista del Monitor:} Arranca \texttt{resultado = 1} (nunca en \texttt{0}!) y multiplica por \texttt{base} exactamente \texttt{exp} veces; así \texttt{exp = 0} da \texttt{1}.
+\end{ejercicio}
+
+\begin{ejercicio}{4. Contador de vocales hasta centinela \texttt{'*'}}
+Lee caracteres uno por uno hasta ingresar \texttt{'*'}. Cuenta el total de caracteres válidos y cuántas vocales entraron (mayúsculas o minúsculas).\\
+\textbf{Pista del Monitor:} Usa \texttt{while (c != '*')} con lectura cebadora y normaliza con \texttt{tolower(c)}.
+\end{ejercicio}
+
+\begin{ejercicio}{5. Tabla de conversión Celsius a Fahrenheit}
+Lee \texttt{cIni}, \texttt{cFin >= cIni} y \texttt{paso > 0}. Imprime la tabla usando $F = C \cdot \frac{9}{5} + 32$.\\
+\textbf{Pista del Monitor:} Usa \texttt{for (int c = cIni; c <= cFin; c += paso)} y escribe \texttt{9.0 / 5.0} para no perder decimales por división entera.
+\end{ejercicio}
+
+\subsection{Nivel Intermedio (Ejercicios 6 al 11)}
+
+\begin{ejercicio}{6. Censo rápido de edades con centinela negativo}
+Lee edades hasta ingresar un número negativo. Si una edad supera \texttt{120}, muéstrala como error sin contarla. Reporta promedio y porcentaje de mayores de edad (\texttt{>= 18}).\\
+\textbf{Pista del Monitor:} Usa \texttt{while (edad >= 0)} con lectura cebadora y protege \texttt{total > 0} antes de dividir.
+\end{ejercicio}
+
+\begin{ejercicio}{7. Acceso con máximo 3 intentos (PIN de seguridad)}
+El PIN correcto es \texttt{2025}. Con máximo \texttt{3} intentos, imprime \texttt{"Acceso concedido"} si acierta o \texttt{"Tarjeta bloqueada"} si agota los 3 intentos.\\
+\textbf{Pista del Monitor:} Usa \texttt{do-while} con \texttt{intentos} y bandera \texttt{bool acceso = false}; ojo con la condición en C++: \texttt{while (!acceso \&\& intentos < 3);}.
+\end{ejercicio}
+
+\begin{ejercicio}{8. El mayor y el segundo mayor SIN arreglos}
+Lee \texttt{n >= 2} números enteros y determina cuál fue el mayor (\texttt{mayor1}) y el segundo mayor (\texttt{mayor2}).\\
+\textbf{Pista del Monitor:} Lee los dos primeros para inicializar \texttt{mayor1 >= mayor2}. Luego, si \texttt{x > mayor1}, baja el campeón anterior (\texttt{mayor2 = mayor1; mayor1 = x;}).
+\end{ejercicio}
+
+\begin{ejercicio}{9. Número perfecto}
+Lee un entero \texttt{n >= 1} y determina si es perfecto (igual a la suma de sus divisores propios positivos menores que \texttt{n}, como $6 = 1 + 2 + 3$ o $28$).\\
+\textbf{Pista del Monitor:} Suma con un \texttt{for} los divisores \texttt{d} desde \texttt{1} hasta \texttt{n / 2} que cumplan \texttt{n \% d == 0}, y compara \texttt{sumaDiv == n}.
+\end{ejercicio}
+
+\begin{ejercicio}{10. Serie alternante de fracciones}
+Dado \texttt{n >= 1}, calcula $S = 1 - \frac{1}{2} + \frac{1}{3} - \frac{1}{4} + \dots \pm \frac{1}{n}$.\\
+\textbf{Pista del Monitor:} Mantén \texttt{int signo = 1;}, suma \texttt{signo * (1.0 / i)} y voltea el signo en cada vuelta con \texttt{signo = -signo;}.
+\end{ejercicio}
+
+\begin{ejercicio}{11. Máximo Común Divisor (Algoritmo de Euclides)}
+Lee dos enteros positivos \texttt{a > 0} y \texttt{b > 0} y halla su MCD: mientras \texttt{b != 0}, calcula \texttt{r = a \% b}, luego \texttt{a = b} y \texttt{b = r}. Al salir, el MCD queda en \texttt{a}.\\
+\textbf{Pista del Monitor:} Usa \texttt{while (b != 0)} porque no sabes cuántas divisiones sucesivas tomará llegar a residuo cero.
+\end{ejercicio}
+
+\subsection{Nivel Reto de Parcial (Ejercicios 12 al 16)}
+
+\begin{ejercicio}{12. Números primos en un rango \texttt{[A, B]} (Ciclos anidados)}
+Lee \texttt{1 <= A <= B}, imprime todos los números primos en el rango e informa cuántos primos se encontraron en total.\\
+\textbf{Pista del Monitor:} Ciclo externo \texttt{num = A..B}; adentro reinicia \texttt{bool esPrimo = true} y corre un ciclo interno de divisores hasta \texttt{d <= num / d}.
+\end{ejercicio}
+
+\begin{ejercicio}{13. Marco rectangular hueco de asteriscos}
+Lee alto \texttt{F >= 2} y ancho \texttt{C >= 2} y dibuja el borde rectangular de \texttt{'*'} dejando el interior con espacios.\\
+\textbf{Pista del Monitor:} Doble \texttt{for} (\texttt{i = 1..F}, \texttt{j = 1..C}); imprime \texttt{'*'} solo si \texttt{i == 1 || i == F || j == 1 || j == C}.
+\end{ejercicio}
+
+\begin{ejercicio}{14. Diamante (Rombo) de asteriscos}
+Lee \texttt{n} (\texttt{1 <= n <= 10}) e imprime un diamante completo de altura \texttt{2 * n - 1}.\\
+\textbf{Pista del Monitor:} Primer \texttt{for} (\texttt{1..n}) para la mitad superior y segundo \texttt{for} (\texttt{n - 1} bajando hasta \texttt{1}) para la mitad inferior, ambos con \texttt{n - fila} espacios y \texttt{2 * fila - 1} asteriscos.
+\end{ejercicio}
+
+\begin{ejercicio}{15. Estadísticas de encuesta universitaria SIN arreglos}
+Lee pares \texttt{(carrera, nota)} hasta ingresar código de carrera \texttt{0}. Códigos válidos: \texttt{1} (Sistemas), \texttt{2} (Industrial), \texttt{3} (Civil); nota validada en $[0.0, 5.0]$. Reporta conteos por carrera, promedio global, mejor nota y código ganador.\\
+\textbf{Pista del Monitor:} Tres contadores independientes, un acumulador global y la técnica \texttt{esPrimero} para hallar \texttt{mejorNota} y \texttt{carreraMejor}.
+\end{ejercicio}
+
+\begin{ejercicio}{16. Facturación de restaurante con menú y descuento}
+Menú repetitivo: 1. Hamburguesa (\$18000), 2. Perro (\$12000), 3. Gaseosa (\$4000), 4. Cobrar. En las opciones \texttt{1..3} pide cantidad \texttt{>= 1} y acumula al subtotal. Al salir, si el subtotal supera \$50000, aplica 10\,\% de descuento e imprime la factura.\par\smallskip
+\textbf{Pista del Monitor:} \texttt{do-while} hasta \texttt{opcion == 4} con \texttt{switch}; calcula el descuento una sola vez fuera del ciclo.
+\end{ejercicio}
+
+% ============================================================================
+\section{Solucionario Completo Paso a Paso (Ejercicios 1 al 16)}
+% ============================================================================
+
+Todos los códigos C++ de este solucionario respetan estrictamente el alcance del módulo (sin arreglos ni punteros) e incluyen protección ante fin de entrada (\texttt{EOF}).
+
+% ----------------------------------------------------------------------------
+\subsection{Solución Ejercicio 1: Cuenta regresiva de lanzamiento}
+% ----------------------------------------------------------------------------
+
+\begin{solucion}{Ejercicio 1 --- EPS, ciclo y prueba de escritorio}
+\begin{itemize}
+  \item \textbf{EPS:} Entrada: entero \texttt{n >= 1}. Proceso: validar \texttt{n} con \texttt{do-while}; descender con \texttt{for} desde \texttt{n} hasta \texttt{1} (\texttt{i--}). Salida: cuenta y \texttt{"Despegue!"}.
+  \item \textbf{Ciclo elegido:} \texttt{for} descendente porque la cantidad de pasos (\texttt{n}) es conocida.
+\end{itemize}
+\begin{center}
+\footnotesize
+\renewcommand{\arraystretch}{1.15}
+\rowcolors{2}{white}{GrisSuave}
+\begin{tabularx}{0.85\linewidth}{c c c X}
+\rowcolor{AzulMarino}
+\textcolor{white}{\textbf{Paso}} & \textcolor{white}{\texttt{i}} & \textcolor{white}{\texttt{i >= 1}} & \textcolor{white}{\textbf{Salida (\texttt{n = 4})}} \\
+1 & 4 & true & \texttt{4} \\
+2 & 3 & true & \texttt{3} \\
+3 & 2 & true & \texttt{2} \\
+4 & 1 & true & \texttt{1} \\
+Fin & 0 & false & \texttt{Despegue!} \\
+\bottomrule
+\end{tabularx}
+\end{center}
+\end{solucion}
+
+\begin{lstlisting}[style=cppmonitoria,caption={Solución Ejercicio 1: Cuenta regresiva (C++)}]
+#include <iostream>
+using namespace std;
+
+int main() {
+    int n = 0;
+    do {
+        cout << "Ingrese numero inicial (>= 1): ";
+        if (!(cin >> n)) return 0;
+    } while (n < 1);
+
+    for (int i = n; i >= 1; i--) {
+        cout << i << endl;
+    }
+    cout << "Despegue!" << endl;
+    return 0;
+}
+\end{lstlisting}
+
+% ----------------------------------------------------------------------------
+\subsection{Solución Ejercicio 2: Suma de pares e impares en un rango}
+% ----------------------------------------------------------------------------
+
+\begin{solucion}{Ejercicio 2 --- EPS, ciclo y prueba de escritorio}
+\begin{itemize}
+  \item \textbf{EPS:} Entradas: enteros \texttt{a, b}. Proceso: si \texttt{a > b}, intercambiar usando \texttt{aux}; recorrer \texttt{i = a..b} acumulando en \texttt{sumaPares} (\texttt{i \% 2 == 0}) o \texttt{sumaImpares}. Salidas: ambas sumas.
+  \item \textbf{Ciclo elegido:} \texttt{for} de \texttt{a} hasta \texttt{b} (rango conocido).
+\end{itemize}
+\begin{center}
+\footnotesize
+\renewcommand{\arraystretch}{1.15}
+\rowcolors{2}{white}{GrisSuave}
+\begin{tabularx}{0.9\linewidth}{c c c c X}
+\rowcolor{AzulMarino}
+\textcolor{white}{\texttt{i}} & \textcolor{white}{\texttt{i <= 6}} & \textcolor{white}{\texttt{i \% 2 == 0}} & \textcolor{white}{\texttt{sumaPares}} & \textcolor{white}{\texttt{sumaImpares} (\texttt{a=6, b=3 -> 3..6})} \\
+3 & true & false & 0 & 3 \\
+4 & true & true & 4 & 3 \\
+5 & true & false & 4 & 8 \\
+6 & true & true & \textbf{10} & \textbf{8} (fin en \texttt{i=7}) \\
+\bottomrule
+\end{tabularx}
+\end{center}
+\end{solucion}
+
+\begin{lstlisting}[style=cppmonitoria,caption={Solución Ejercicio 2: Suma de pares e impares (C++)}]
+#include <iostream>
+using namespace std;
+
+int main() {
+    int a = 0, b = 0;
+    cout << "Ingrese limites a y b: ";
+    if (!(cin >> a >> b)) return 0;
+
+    if (a > b) {
+        int aux = a;
+        a = b;
+        b = aux;
+    }
+
+    int sumaPares = 0, sumaImpares = 0;
+    for (int i = a; i <= b; i++) {
+        if (i % 2 == 0) sumaPares += i;
+        else sumaImpares += i;
+    }
+
+    cout << "Suma pares: " << sumaPares << endl;
+    cout << "Suma impares: " << sumaImpares << endl;
+    return 0;
+}
+\end{lstlisting}
+
+% ----------------------------------------------------------------------------
+\subsection{Solución Ejercicio 3: Potencia sin usar pow()}
+% ----------------------------------------------------------------------------
+
+\begin{solucion}{Ejercicio 3 --- EPS, ciclo y prueba de escritorio}
+\begin{itemize}
+  \item \textbf{EPS:} Entradas: \texttt{base} entera y \texttt{exp >= 0}. Proceso: iniciar \texttt{resultado = 1} (neutro multiplicativo) y multiplicar por \texttt{base} exactamente \texttt{exp} veces. Salida: \texttt{resultado}.
+  \item \textbf{Ciclo elegido:} \texttt{for} (\texttt{1..exp}); si \texttt{exp = 0}, hace 0 vueltas y conserva \texttt{1}.
+\end{itemize}
+\begin{center}
+\footnotesize
+\renewcommand{\arraystretch}{1.15}
+\rowcolors{2}{white}{GrisSuave}
+\begin{tabularx}{0.85\linewidth}{c c c X}
+\rowcolor{AzulMarino}
+\textcolor{white}{\texttt{i}} & \textcolor{white}{\texttt{i <= 4}} & \textcolor{white}{\texttt{resultado} (\texttt{3\textasciicircum 4})} & \textcolor{white}{\textbf{Acción}} \\
+Init & -- & 1 & Neutro multiplicativo \\
+1 & true & 3 & \texttt{1 * 3} \\
+2 & true & 9 & \texttt{3 * 3} \\
+3 & true & 27 & \texttt{9 * 3} \\
+4 & true & \textbf{81} & \texttt{27 * 3} (sale en \texttt{i=5}) \\
+\bottomrule
+\end{tabularx}
+\end{center}
+\end{solucion}
+
+\begin{lstlisting}[style=cppmonitoria,caption={Solución Ejercicio 3: Potencia mediante multiplicaciones (C++)}]
+#include <iostream>
+using namespace std;
+
+int main() {
+    long long base = 0;
+    int exp = 0;
+    cout << "Ingrese la base entera: ";
+    if (!(cin >> base)) return 0;
+
+    do {
+        cout << "Ingrese el exponente (>= 0): ";
+        if (!(cin >> exp)) return 0;
+    } while (exp < 0);
+
+    long long resultado = 1;
+    for (int i = 1; i <= exp; i++) {
+        resultado *= base;
+    }
+    cout << base << "^" << exp << " = " << resultado << endl;
+    return 0;
+}
+\end{lstlisting}
+
+% ----------------------------------------------------------------------------
+\subsection{Solución Ejercicio 4: Contador de vocales hasta centinela \texttt{'*'}}
+% ----------------------------------------------------------------------------
+
+\begin{solucion}{Ejercicio 4 --- EPS, ciclo y prueba de escritorio}
+\begin{itemize}
+  \item \textbf{EPS:} Entrada: caracteres hasta \texttt{'*'}. Proceso: lectura cebadora; mientras \texttt{c != '*'}, contar carácter, convertir a minúscula y sumar si es vocal. Salida: \texttt{totalChars} y \texttt{vocales}.
+  \item \textbf{Ciclo elegido:} \texttt{while} con centinela \texttt{'*'} (0 o más repeticiones).
+\end{itemize}
+\begin{center}
+\footnotesize
+\renewcommand{\arraystretch}{1.15}
+\rowcolors{2}{white}{GrisSuave}
+\begin{tabularx}{0.9\linewidth}{c c c c X}
+\rowcolor{AzulMarino}
+\textcolor{white}{\texttt{c}} & \textcolor{white}{\texttt{c != '*'}} & \textcolor{white}{\texttt{minC}} & \textcolor{white}{\texttt{totalChars}} & \textcolor{white}{\texttt{vocales} (\texttt{H, o, l, A, *})} \\
+\texttt{'H'} & true & \texttt{'h'} & 1 & 0 \\
+\texttt{'o'} & true & \texttt{'o'} & 2 & 1 (es vocal) \\
+\texttt{'l'} & true & \texttt{'l'} & 3 & 1 \\
+\texttt{'A'} & true & \texttt{'a'} & 4 & 2 (es vocal) \\
+\texttt{'*'} & false & -- & \textbf{4} & \textbf{2} (sale) \\
+\bottomrule
+\end{tabularx}
+\end{center}
+\end{solucion}
+
+\begin{lstlisting}[style=cppmonitoria,caption={Solución Ejercicio 4: Contador de vocales con centinela (C++)}]
+#include <cctype>
+#include <iostream>
+using namespace std;
+
+int main() {
+    char c = ' ';
+    int totalChars = 0, vocales = 0;
+    cout << "Ingrese caracteres (* para terminar): ";
+    if (!(cin >> c)) return 0;
+
+    while (c != '*') {
+        totalChars++;
+        char minC = static_cast<char>(tolower(static_cast<unsigned char>(c)));
+        if (minC == 'a' || minC == 'e' || minC == 'i' || minC == 'o' || minC == 'u') {
+            vocales++;
+        }
+        if (!(cin >> c)) break;
+    }
+    cout << "Total caracteres: " << totalChars << ", Vocales: " << vocales << endl;
+    return 0;
+}
+\end{lstlisting}
+
+% ----------------------------------------------------------------------------
+\subsection{Solución Ejercicio 5: Tabla de conversión Celsius a Fahrenheit}
+% ----------------------------------------------------------------------------
+
+\begin{solucion}{Ejercicio 5 --- EPS, ciclo y prueba de escritorio}
+\begin{itemize}
+  \item \textbf{EPS:} Entradas: \texttt{cIni}, \texttt{cFin >= cIni}, \texttt{paso > 0}. Proceso: recorrer \texttt{c} de \texttt{cIni} a \texttt{cFin} sumando \texttt{paso} y calcular \texttt{f = c * 9.0 / 5.0 + 32.0}. Salida: tabla.
+  \item \textbf{Ciclo elegido:} \texttt{for} con incremento \texttt{c += paso}.
+\end{itemize}
+\begin{center}
+\footnotesize
+\renewcommand{\arraystretch}{1.15}
+\rowcolors{2}{white}{GrisSuave}
+\begin{tabularx}{0.85\linewidth}{c c c X}
+\rowcolor{AzulMarino}
+\textcolor{white}{\texttt{c}} & \textcolor{white}{\texttt{c <= 30}} & \textcolor{white}{\texttt{f}} & \textcolor{white}{\textbf{Salida (\texttt{0..30, paso 10})}} \\
+0 & true & 32.0 & \texttt{0\ \ \ \ 32.0} \\
+10 & true & 50.0 & \texttt{10\ \ \ 50.0} \\
+20 & true & 68.0 & \texttt{20\ \ \ 68.0} \\
+30 & true & 86.0 & \texttt{30\ \ \ 86.0} (sale en \texttt{c=40}) \\
+\bottomrule
+\end{tabularx}
+\end{center}
+\end{solucion}
+
+\begin{lstlisting}[style=cppmonitoria,caption={Solución Ejercicio 5: Conversión Celsius a Fahrenheit (C++)}]
+#include <iomanip>
+#include <iostream>
+using namespace std;
+
+int main() {
+    int cIni = 0, cFin = 0, paso = 0;
+    cout << "Celsius inicial: ";
+    if (!(cin >> cIni)) return 0;
+
+    do {
+        cout << "Celsius final (>= " << cIni << "): ";
+        if (!(cin >> cFin)) return 0;
+    } while (cFin < cIni);
+
+    do {
+        cout << "Paso (> 0): ";
+        if (!(cin >> paso)) return 0;
+    } while (paso <= 0);
+
+    cout << fixed << setprecision(1);
+    for (int c = cIni; c <= cFin; c += paso) {
+        double f = c * 9.0 / 5.0 + 32.0;
+        cout << c << "\t" << f << endl;
+    }
+    return 0;
+}
+\end{lstlisting}
+
+% ----------------------------------------------------------------------------
+\subsection{Solución Ejercicio 6: Censo rápido de edades con centinela negativo}
+% ----------------------------------------------------------------------------
+
+\begin{solucion}{Ejercicio 6 --- EPS, ciclo y prueba de escritorio}
+\begin{itemize}
+  \item \textbf{EPS:} Entradas: edades hasta \texttt{< 0}. Proceso: lectura cebadora; si \texttt{edad > 120}, ignorar; si no, acumular \texttt{suma}, contar \texttt{total} y \texttt{mayores} (\texttt{>= 18}). Proteger \texttt{total == 0}. Salida: promedio y \% mayores.
+  \item \textbf{Ciclo elegido:} \texttt{while (edad >= 0)} por centinela negativo.
+\end{itemize}
+\begin{center}
+\footnotesize
+\renewcommand{\arraystretch}{1.15}
+\rowcolors{2}{white}{GrisSuave}
+\begin{tabularx}{0.9\linewidth}{c c c c c X}
+\rowcolor{AzulMarino}
+\textcolor{white}{\texttt{edad}} & \textcolor{white}{\texttt{>= 0}} & \textcolor{white}{\texttt{total}} & \textcolor{white}{\texttt{mayores}} & \textcolor{white}{\texttt{suma}} & \textcolor{white}{\textbf{Acción}} \\
+20 & true & 1 & 1 & 20 & Válida y mayor de edad \\
+150 & true & 1 & 1 & 20 & Ignorada (\texttt{> 120}) \\
+15 & true & 2 & 1 & 35 & Válida, menor de edad \\
+25 & true & 3 & 2 & 60 & Válida y mayor de edad \\
+-1 & false & \textbf{3} & \textbf{2} & \textbf{60} & Prom: \textbf{20.00}, Mayores: \textbf{66.67\%} \\
+\bottomrule
+\end{tabularx}
+\end{center}
+\end{solucion}
+
+\begin{lstlisting}[style=cppmonitoria,caption={Solución Ejercicio 6: Censo rápido de edades (C++)}]
+#include <iomanip>
+#include <iostream>
+using namespace std;
+
+int main() {
+    int edad = 0, total = 0, mayores = 0, suma = 0;
+    cout << "Ingrese edad (< 0 para terminar): ";
+    if (!(cin >> edad)) return 0;
+
+    while (edad >= 0) {
+        if (edad > 120) {
+            cout << "Edad invalida (> 120), ignorada." << endl;
+        } else {
+            suma += edad;
+            total++;
+            if (edad >= 18) mayores++;
+        }
+        cout << "Siguiente edad (< 0 para terminar): ";
+        if (!(cin >> edad)) break;
+    }
+
+    cout << fixed << setprecision(2);
+    if (total == 0) {
+        cout << "Sin edades validas." << endl;
+    } else {
+        cout << "Promedio: " << (static_cast<double>(suma) / total) << endl;
+        cout << "Porcentaje mayores: " << (mayores * 100.0 / total) << "%" << endl;
+    }
+    return 0;
+}
+\end{lstlisting}
+
+% ----------------------------------------------------------------------------
+\subsection{Solución Ejercicio 7: Acceso con máximo 3 intentos (PIN)}
+% ----------------------------------------------------------------------------
+
+\begin{solucion}{Ejercicio 7 --- EPS, ciclo y prueba de escritorio}
+\begin{itemize}
+  \item \textbf{EPS:} Entradas: hasta 3 enteros \texttt{pin}. Proceso: \texttt{do-while} con \texttt{intentos} y bandera \texttt{acceso}; se repite mientras \texttt{!acceso \&\& intentos < 3} (en PSeInt: \texttt{Hasta Que acceso O intentos = 3}). Salida: acceso o bloqueo.
+  \item \textbf{Ciclo elegido:} \texttt{do-while} (el usuario intenta al menos 1 vez).
+\end{itemize}
+\begin{center}
+\footnotesize
+\renewcommand{\arraystretch}{1.15}
+\rowcolors{2}{white}{GrisSuave}
+\begin{tabularx}{0.9\linewidth}{c c c c c X}
+\rowcolor{AzulMarino}
+\textcolor{white}{\textbf{Vuelta}} & \textcolor{white}{\texttt{pin}} & \textcolor{white}{\texttt{intentos}} & \textcolor{white}{\texttt{acceso}} & \textcolor{white}{\texttt{!acceso \&\& int < 3}} & \textcolor{white}{\textbf{Acción}} \\
+1 & 1111 & 1 & false & true & PIN incorrecto \\
+2 & 9999 & 2 & false & true & PIN incorrecto \\
+3 & 2025 & 3 & \textbf{true} & false (sale) & \texttt{Acceso concedido.} \\
+\bottomrule
+\end{tabularx}
+\end{center}
+\end{solucion}
+
+\begin{lstlisting}[style=cppmonitoria,caption={Solución Ejercicio 7: Acceso con máximo 3 intentos (C++)}]
+#include <iostream>
+using namespace std;
+
+int main() {
+    const int PIN_REAL = 2025;
+    int pin = 0, intentos = 0;
+    bool acceso = false;
+
+    do {
+        cout << "Ingrese su PIN (intento " << (intentos + 1) << " de 3): ";
+        if (!(cin >> pin)) break;
+        intentos++;
+        if (pin == PIN_REAL) acceso = true;
+        else cout << "PIN incorrecto." << endl;
+    } while (!acceso && intentos < 3);
+
+    if (acceso) cout << "Acceso concedido." << endl;
+    else cout << "Tarjeta bloqueada." << endl;
+    return 0;
+}
+\end{lstlisting}
+
+% ----------------------------------------------------------------------------
+\subsection{Solución Ejercicio 8: El mayor y el segundo mayor SIN arreglos}
+% ----------------------------------------------------------------------------
+
+\begin{solucion}{Ejercicio 8 --- EPS, ciclo y prueba de escritorio}
+\begin{itemize}
+  \item \textbf{EPS:} Entradas: \texttt{n >= 2} y \texttt{n} enteros. Proceso: leer los dos primeros para fijar \texttt{mayor1 >= mayor2}; del 3 al \texttt{n}, si \texttt{x > mayor1}, bajar \texttt{mayor1} a \texttt{mayor2} y asignar \texttt{mayor1 = x}; si no, verificar \texttt{x > mayor2}. Salidas: \texttt{mayor1, mayor2}.
+  \item \textbf{Ciclo elegido:} \texttt{for (i = 3; i <= n; i++)}.
+\end{itemize}
+\begin{center}
+\footnotesize
+\renewcommand{\arraystretch}{1.15}
+\rowcolors{2}{white}{GrisSuave}
+\begin{tabularx}{0.9\linewidth}{c c c c X}
+\rowcolor{AzulMarino}
+\textcolor{white}{\textbf{Paso}} & \textcolor{white}{\textbf{Dato}} & \textcolor{white}{\texttt{mayor1}} & \textcolor{white}{\texttt{mayor2}} & \textcolor{white}{\textbf{Comparación (\texttt{15, 7, 10, 20, 4})}} \\
+Init 1--2 & 15, 7 & 15 & 7 & \texttt{15 >= 7} \\
+\texttt{i=3} & 10 & 15 & 10 & \texttt{10 > 7} $\rightarrow$ actualiza \texttt{mayor2} \\
+\texttt{i=4} & 20 & \textbf{20} & \textbf{15} & \texttt{20 > 15} $\rightarrow$ baja 15 a \texttt{mayor2} \\
+\texttt{i=5} & 4 & 20 & 15 & Sin cambios \\
+\bottomrule
+\end{tabularx}
+\end{center}
+\end{solucion}
+
+\begin{lstlisting}[style=cppmonitoria,caption={Solución Ejercicio 8: Mayor y segundo mayor sin arreglos (C++)}]
+#include <iostream>
+using namespace std;
+
+int main() {
+    int n = 0;
+    do {
+        cout << "Cantidad de numeros (>= 2): ";
+        if (!(cin >> n)) return 0;
+    } while (n < 2);
+
+    int x1 = 0, x2 = 0;
+    cout << "Numero 1: "; if (!(cin >> x1)) return 0;
+    cout << "Numero 2: "; if (!(cin >> x2)) return 0;
+
+    int mayor1 = (x1 >= x2) ? x1 : x2;
+    int mayor2 = (x1 >= x2) ? x2 : x1;
+
+    for (int i = 3; i <= n; i++) {
+        int x = 0;
+        cout << "Numero " << i << ": ";
+        if (!(cin >> x)) break;
+        if (x > mayor1) {
+            mayor2 = mayor1;
+            mayor1 = x;
+        } else if (x > mayor2) {
+            mayor2 = x;
+        }
+    }
+    cout << "Mayor: " << mayor1 << ", Segundo mayor: " << mayor2 << endl;
+    return 0;
+}
+\end{lstlisting}
+
+% ----------------------------------------------------------------------------
+\subsection{Solución Ejercicio 9: Número perfecto}
+% ----------------------------------------------------------------------------
+
+\begin{solucion}{Ejercicio 9 --- EPS, ciclo y prueba de escritorio}
+\begin{itemize}
+  \item \textbf{EPS:} Entrada: entero \texttt{n >= 1}. Proceso: sumar todos los divisores propios \texttt{d} en \texttt{1..n/2} que cumplan \texttt{n \% d == 0}; comparar \texttt{sumaDiv == n}. Salida: si es perfecto o no.
+  \item \textbf{Ciclo elegido:} \texttt{for (d = 1; d <= n / 2; d++)}.
+\end{itemize}
+\begin{center}
+\footnotesize
+\renewcommand{\arraystretch}{1.15}
+\rowcolors{2}{white}{GrisSuave}
+\begin{tabularx}{0.85\linewidth}{c c c X}
+\rowcolor{AzulMarino}
+\textcolor{white}{\texttt{d}} & \textcolor{white}{\texttt{d <= 3}} & \textcolor{white}{\texttt{6 \% d == 0}} & \textcolor{white}{\texttt{sumaDiv} (\texttt{n = 6})} \\
+1 & true & true & 1 \\
+2 & true & true & 3 \\
+3 & true & true & \textbf{6} (sale en \texttt{d=4}; \texttt{6 == 6} $\rightarrow$ ES perfecto) \\
+\bottomrule
+\end{tabularx}
+\end{center}
+\end{solucion}
+
+\begin{lstlisting}[style=cppmonitoria,caption={Solución Ejercicio 9: Número perfecto (C++)}]
+#include <iostream>
+using namespace std;
+
+int main() {
+    int n = 0;
+    do {
+        cout << "Ingrese un entero positivo (>= 1): ";
+        if (!(cin >> n)) return 0;
+    } while (n < 1);
+
+    int sumaDiv = 0;
+    for (int d = 1; d <= n / 2; d++) {
+        if (n % d == 0) sumaDiv += d;
+    }
+
+    if (sumaDiv == n) {
+        cout << n << " ES un numero perfecto (suma = " << sumaDiv << ")." << endl;
+    } else {
+        cout << n << " NO es perfecto (suma = " << sumaDiv << ")." << endl;
+    }
+    return 0;
+}
+\end{lstlisting}
+
+% ----------------------------------------------------------------------------
+\subsection{Solución Ejercicio 10: Serie alternante de fracciones}
+% ----------------------------------------------------------------------------
+
+\begin{solucion}{Ejercicio 10 --- EPS, ciclo y prueba de escritorio}
+\begin{itemize}
+  \item \textbf{EPS:} Entrada: \texttt{n >= 1}. Proceso: iniciar \texttt{suma = 0.0, signo = 1}; en \texttt{for (i = 1..n)} acumular \texttt{signo * (1.0 / i)} y alternar \texttt{signo = -signo}. Salida: \texttt{suma}.
+  \item \textbf{Ciclo elegido:} \texttt{for} de \texttt{1} a \texttt{n}.
+\end{itemize}
+\begin{center}
+\footnotesize
+\renewcommand{\arraystretch}{1.15}
+\rowcolors{2}{white}{GrisSuave}
+\begin{tabularx}{0.88\linewidth}{c c c c X}
+\rowcolor{AzulMarino}
+\textcolor{white}{\texttt{i}} & \textcolor{white}{\texttt{signo} (ini)} & \textcolor{white}{\textbf{Término}} & \textcolor{white}{\texttt{suma}} & \textcolor{white}{\texttt{signo} (fin) (\texttt{n = 4})} \\
+1 & +1 & +1.0000 & 1.0000 & -1 \\
+2 & -1 & -0.5000 & 0.5000 & +1 \\
+3 & +1 & +0.3333 & 0.8333 & -1 \\
+4 & -1 & -0.2500 & \textbf{0.5833} & +1 \\
+\bottomrule
+\end{tabularx}
+\end{center}
+\end{solucion}
+
+\begin{lstlisting}[style=cppmonitoria,caption={Solución Ejercicio 10: Serie alternante de fracciones (C++)}]
+#include <iomanip>
+#include <iostream>
+using namespace std;
+
+int main() {
+    int n = 0;
+    do {
+        cout << "Cantidad de terminos n (>= 1): ";
+        if (!(cin >> n)) return 0;
+    } while (n < 1);
+
+    double suma = 0.0;
+    int signo = 1;
+    for (int i = 1; i <= n; i++) {
+        suma += signo * (1.0 / i);
+        signo = -signo;
+    }
+
+    cout << fixed << setprecision(4);
+    cout << "Suma hasta n = " << n << ": " << suma << endl;
+    return 0;
+}
+\end{lstlisting}
+
+% ----------------------------------------------------------------------------
+\subsection{Solución Ejercicio 11: Máximo Común Divisor (Euclides)}
+% ----------------------------------------------------------------------------
+
+\begin{solucion}{Ejercicio 11 --- EPS, ciclo y prueba de escritorio}
+\begin{itemize}
+  \item \textbf{EPS:} Entradas: \texttt{a > 0, b > 0}. Proceso: guardar copias \texttt{origA, origB}; mientras \texttt{b != 0}, hacer \texttt{r = a \% b; a = b; b = r;}. Salida: \texttt{a} (el MCD).
+  \item \textbf{Ciclo elegido:} \texttt{while (b != 0)} (pasos indeterminados).
+\end{itemize}
+\begin{center}
+\footnotesize
+\renewcommand{\arraystretch}{1.15}
+\rowcolors{2}{white}{GrisSuave}
+\begin{tabularx}{0.88\linewidth}{c c c c c X}
+\rowcolor{AzulMarino}
+\textcolor{white}{\textbf{Vuelta}} & \textcolor{white}{\texttt{a}} & \textcolor{white}{\texttt{b}} & \textcolor{white}{\texttt{b != 0}} & \textcolor{white}{\texttt{r = a \% b}} & \textcolor{white}{\textbf{Nuevo estado}} \\
+1 & 48 & 18 & true & 12 & \texttt{a = 18, b = 12} \\
+2 & 18 & 12 & true & 6 & \texttt{a = 12, b = 6} \\
+3 & 12 & 6 & true & 0 & \texttt{a = 6, b = 0} \\
+Fin & \textbf{6} & 0 & false & -- & Sale: \texttt{MCD(48, 18) = 6} \\
+\bottomrule
+\end{tabularx}
+\end{center}
+\end{solucion}
+
+\begin{lstlisting}[style=cppmonitoria,caption={Solución Ejercicio 11: MCD por algoritmo de Euclides (C++)}]
+#include <iostream>
+using namespace std;
+
+int main() {
+    int a = 0, b = 0;
+    do {
+        cout << "Ingrese dos enteros positivos (a b): ";
+        if (!(cin >> a >> b)) return 0;
+    } while (a <= 0 || b <= 0);
+
+    int origA = a, origB = b;
+    while (b != 0) {
+        int r = a % b;
+        a = b;
+        b = r;
+    }
+    cout << "MCD(" << origA << ", " << origB << ") = " << a << endl;
+    return 0;
+}
+\end{lstlisting}
+
+% ----------------------------------------------------------------------------
+\subsection{Solución Ejercicio 12: Números primos en un rango [A, B]}
+% ----------------------------------------------------------------------------
+
+\begin{solucion}{Ejercicio 12 --- EPS, ciclos y prueba de escritorio}
+\begin{itemize}
+  \item \textbf{EPS:} Entradas: \texttt{1 <= A <= B}. Proceso: ciclo externo \texttt{num = A..B}; adentro reiniciar \texttt{bool esPrimo = true} (falso si \texttt{num == 1}) y verificar divisores \texttt{d <= num / d} con parada temprana. Imprimir los primos y contarlos. Salida: lista y conteo.
+  \item \textbf{Ciclos elegidos:} \texttt{for} anidados.
+\end{itemize}
+\begin{center}
+\footnotesize
+\renewcommand{\arraystretch}{1.15}
+\rowcolors{2}{white}{GrisSuave}
+\begin{tabularx}{0.9\linewidth}{c c c X}
+\rowcolor{AzulMarino}
+\textcolor{white}{\texttt{num}} & \textcolor{white}{\textbf{Prueba interna}} & \textcolor{white}{\texttt{esPrimo}} & \textcolor{white}{\texttt{contPrimos} / Salida (\texttt{A=1, B=10})} \\
+1 & \texttt{num == 1} & false & 0 / -- \\
+2 & \texttt{2 <= 1} (F) & true & 1 / \texttt{2} \\
+3 & \texttt{2 <= 1} (F) & true & 2 / \texttt{3} \\
+4 & \texttt{4 \% 2 == 0} & false & 2 / -- \\
+5 & \texttt{5 \% 2 != 0} & true & 3 / \texttt{5} \\
+6, 8, 9, 10 & Divisores 2 o 3 & false & 3 / -- \\
+7 & \texttt{7 \% 2 != 0} & true & \textbf{4} / \texttt{7} (Total final: \textbf{4}) \\
+\bottomrule
+\end{tabularx}
+\end{center}
+\end{solucion}
+
+\begin{lstlisting}[style=cppmonitoria,caption={Solución Ejercicio 12: Primos en un rango con ciclos anidados (C++)}]
+#include <iostream>
+using namespace std;
+
+int main() {
+    int a = 0, b = 0;
+    do {
+        cout << "Ingrese inicio A (>= 1) y fin B (>= A): ";
+        if (!(cin >> a >> b)) return 0;
+    } while (a < 1 || b < a);
+
+    int contPrimos = 0;
+    cout << "Primos en el rango: ";
+    for (int num = a; num <= b; num++) {
+        bool esPrimo = true;
+        if (num == 1) {
+            esPrimo = false;
+        } else {
+            for (int d = 2; d <= num / d && esPrimo; d++) {
+                if (num % d == 0) esPrimo = false;
+            }
+        }
+        if (esPrimo) {
+            cout << num << " ";
+            contPrimos++;
+        }
+    }
+    cout << "\nCantidad total de primos: " << contPrimos << endl;
+    return 0;
+}
+\end{lstlisting}
+
+% ----------------------------------------------------------------------------
+\subsection{Solución Ejercicio 13: Marco rectangular hueco de asteriscos}
+% ----------------------------------------------------------------------------
+
+\begin{solucion}{Ejercicio 13 --- EPS, ciclos y prueba de escritorio}
+\begin{itemize}
+  \item \textbf{EPS:} Entradas: alto \texttt{F >= 2} y ancho \texttt{C >= 2}. Proceso: doble \texttt{for}; en cada celda \texttt{(i, j)} imprimir \texttt{'*'} si es borde (\texttt{i == 1 || i == F || j == 1 || j == C}), o espacio en caso contrario. Salida: rectángulo hueco.
+  \item \textbf{Ciclos elegidos:} \texttt{for} anidados.
+\end{itemize}
+\begin{center}
+\footnotesize
+\renewcommand{\arraystretch}{1.15}
+\rowcolors{2}{white}{GrisSuave}
+\begin{tabularx}{0.85\linewidth}{c X X}
+\rowcolor{AzulMarino}
+\textcolor{white}{\textbf{Fila \texttt{i}}} & \textcolor{white}{\textbf{Criterio (\texttt{F=3, C=5})}} & \textcolor{white}{\textbf{Línea impresa}} \\
+1 & Todas las columnas cumplen \texttt{i == 1} & \texttt{*****} \\
+2 & Solo \texttt{j == 1} y \texttt{j == 5} cumplen; resto espacios & \texttt{*\ \ \ *} \\
+3 & Todas las columnas cumplen \texttt{i == F} & \texttt{*****} \\
+\bottomrule
+\end{tabularx}
+\end{center}
+\end{solucion}
+
+\begin{lstlisting}[style=cppmonitoria,caption={Solución Ejercicio 13: Marco rectangular hueco (C++)}]
+#include <iostream>
+using namespace std;
+
+int main() {
+    int f = 0, c = 0;
+    do {
+        cout << "Ingrese alto F (>= 2) y ancho C (>= 2): ";
+        if (!(cin >> f >> c)) return 0;
+    } while (f < 2 || c < 2);
+
+    for (int i = 1; i <= f; i++) {
+        for (int j = 1; j <= c; j++) {
+            if (i == 1 || i == f || j == 1 || j == c) cout << "*";
+            else cout << " ";
+        }
+        cout << endl;
+    }
+    return 0;
+}
+\end{lstlisting}
+
+% ----------------------------------------------------------------------------
+\subsection{Solución Ejercicio 14: Diamante (Rombo) de asteriscos}
+% ----------------------------------------------------------------------------
+
+\begin{solucion}{Ejercicio 14 --- EPS, ciclos y prueba de escritorio}
+\begin{itemize}
+  \item \textbf{EPS:} Entrada: \texttt{n} en $[1, 10]$. Proceso: primera mitad con \texttt{fila = 1..n}, segunda mitad con \texttt{fila = n-1..1}; ambas imprimen \texttt{n - fila} espacios y \texttt{2 * fila - 1} asteriscos. Salida: diamante completo.
+  \item \textbf{Ciclos elegidos:} \texttt{for} anidados.
+\end{itemize}
+\begin{center}
+\footnotesize
+\renewcommand{\arraystretch}{1.15}
+\rowcolors{2}{white}{GrisSuave}
+\begin{tabularx}{0.85\linewidth}{l c c c X}
+\rowcolor{AzulMarino}
+\textcolor{white}{\textbf{Mitad}} & \textcolor{white}{\texttt{fila}} & \textcolor{white}{\textbf{Espacios}} & \textcolor{white}{\textbf{Asteriscos}} & \textcolor{white}{\textbf{Salida (\texttt{n = 3})}} \\
+Superior & 1 & 2 & 1 & \texttt{\ \ *} \\
+Superior & 2 & 1 & 3 & \texttt{\ ***} \\
+Superior & 3 & 0 & 5 & \texttt{*****} \\
+Inferior & 2 & 1 & 3 & \texttt{\ ***} \\
+Inferior & 1 & 2 & 1 & \texttt{\ \ *} \\
+\bottomrule
+\end{tabularx}
+\end{center}
+\end{solucion}
+
+\begin{lstlisting}[style=cppmonitoria,caption={Solución Ejercicio 14: Diamante de asteriscos (C++)}]
+#include <iostream>
+using namespace std;
+
+int main() {
+    int n = 0;
+    do {
+        cout << "Mitad superior n (1 a 10): ";
+        if (!(cin >> n)) return 0;
+    } while (n < 1 || n > 10);
+
+    for (int fila = 1; fila <= n; fila++) {
+        for (int e = 1; e <= n - fila; e++) cout << " ";
+        for (int a = 1; a <= 2 * fila - 1; a++) cout << "*";
+        cout << endl;
+    }
+    for (int fila = n - 1; fila >= 1; fila--) {
+        for (int e = 1; e <= n - fila; e++) cout << " ";
+        for (int a = 1; a <= 2 * fila - 1; a++) cout << "*";
+        cout << endl;
+    }
+    return 0;
+}
+\end{lstlisting}
+
+% ----------------------------------------------------------------------------
+\subsection{Solución Ejercicio 15: Estadísticas de encuesta universitaria SIN arreglos}
+% ----------------------------------------------------------------------------
+
+\begin{solucion}{Ejercicio 15 --- EPS, ciclos y prueba de escritorio}
+\begin{itemize}
+  \item \textbf{EPS:} Entradas: pares \texttt{(carrera, nota)} terminados en \texttt{carrera = 0}. Proceso: ciclo \texttt{while} con lectura cebadora (\texttt{carrera != 0}); validar \texttt{nota} en $[0.0, 5.0]$ con \texttt{do-while}; actualizar conteos separados, \texttt{sumaNotas} y máximo con bandera \texttt{esPrimero}. Salidas: conteos, promedio, mejor nota y código ganador.
+  \item \textbf{Ciclos elegidos:} \texttt{while} (centinela) + \texttt{do-while} (validación de nota).
+\end{itemize}
+\begin{center}
+\footnotesize
+\renewcommand{\arraystretch}{1.15}
+\rowcolors{2}{white}{GrisSuave}
+\begin{tabularx}{0.92\linewidth}{c c c c c X}
+\rowcolor{AzulMarino}
+\textcolor{white}{\textbf{Reg.}} & \textcolor{white}{\texttt{carrera}} & \textcolor{white}{\texttt{nota}} & \textcolor{white}{\textbf{Sis/Ind/Civ}} & \textcolor{white}{\texttt{suma}} & \textcolor{white}{\texttt{mejorNota (carrera)}} \\
+1 & 1 & 4.2 & 1 / 0 / 0 & 4.2 & 4.20 (1) \\
+2 & 2 & 3.8 & 1 / 1 / 0 & 8.0 & 4.20 (1) \\
+3 & 1 & 4.7 & 2 / 1 / 0 & 12.7 & \textbf{4.70 (1)} \\
+Fin & 0 & -- & \textbf{2 / 1 / 0} & \textbf{12.7} & Prom: \textbf{4.23}, Mejor: \textbf{4.70 (1)} \\
+\bottomrule
+\end{tabularx}
+\end{center}
+\end{solucion}
+
+\begin{lstlisting}[style=cppmonitoria,caption={Solución Ejercicio 15: Estadísticas de encuesta sin arreglos (C++)}]
+#include <iomanip>
+#include <iostream>
+using namespace std;
+
+int main() {
+    int carrera = 0, contSis = 0, contInd = 0, contCiv = 0, total = 0, carreraMejor = 0;
+    double sumaNotas = 0.0, mejorNota = 0.0;
+    bool esPrimero = true;
+
+    cout << "Carrera (1=Sis, 2=Ind, 3=Civ, 0=Salir): ";
+    if (!(cin >> carrera)) return 0;
+
+    while (carrera != 0) {
+        if (carrera < 1 || carrera > 3) {
+            cout << "Codigo de carrera invalido." << endl;
+        } else {
+            double nota = 0.0;
+            bool ok = true;
+            do {
+                cout << "Promedio del estudiante (0.0 a 5.0): ";
+                if (!(cin >> nota)) { ok = false; break; }
+            } while (nota < 0.0 || nota > 5.0);
+            if (!ok) break;
+
+            if (carrera == 1) contSis++;
+            else if (carrera == 2) contInd++;
+            else contCiv++;
+
+            total++;
+            sumaNotas += nota;
+            if (esPrimero || nota > mejorNota) {
+                mejorNota = nota;
+                carreraMejor = carrera;
+                esPrimero = false;
+            }
+        }
+        cout << "Siguiente carrera (1=Sis, 2=Ind, 3=Civ, 0=Salir): ";
+        if (!(cin >> carrera)) break;
+    }
+
+    cout << fixed << setprecision(2);
+    cout << "Sistemas: " << contSis << ", Industrial: " << contInd << ", Civil: " << contCiv << endl;
+    if (total > 0) {
+        cout << "Promedio general: " << (sumaNotas / total) << endl;
+        cout << "Mejor nota: " << mejorNota << " (carrera " << carreraMejor << ")" << endl;
+    } else {
+        cout << "Sin encuestas validas." << endl;
+    }
+    return 0;
+}
+\end{lstlisting}
+
+% ----------------------------------------------------------------------------
+\subsection{Solución Ejercicio 16: Facturación de restaurante con menú y descuento}
+% ----------------------------------------------------------------------------
+
+\begin{solucion}{Ejercicio 16 --- EPS, ciclo y prueba de escritorio}
+\begin{itemize}
+  \item \textbf{EPS:} Entradas: \texttt{opcion} (\texttt{1..4}) y \texttt{cant >= 1}. Proceso: \texttt{do-while} con \texttt{switch} acumulando en \texttt{subtotal}; al salir, si \texttt{subtotal > 50000}, calcular 10\,\% de descuento una sola vez. Salidas: \texttt{subtotal}, \texttt{descuento}, \texttt{totalFinal}.
+  \item \textbf{Ciclo elegido:} \texttt{do-while} para menú interactivo + \texttt{do-while} para validar \texttt{cant}.
+\end{itemize}
+\begin{center}
+\footnotesize
+\renewcommand{\arraystretch}{1.15}
+\rowcolors{2}{white}{GrisSuave}
+\begin{tabularx}{0.9\linewidth}{c c c c X}
+\rowcolor{AzulMarino}
+\textcolor{white}{\textbf{Turno}} & \textcolor{white}{\texttt{op}} & \textcolor{white}{\texttt{cant}} & \textcolor{white}{\texttt{subtotal}} & \textcolor{white}{\textbf{Detalle}} \\
+1 & 1 & 2 & 36000.00 & \texttt{2 * 18000}; sigue (\texttt{1 != 4}) \\
+2 & 3 & 4 & 52000.00 & \texttt{4 * 4000}; sigue (\texttt{3 != 4}) \\
+3 & 4 & -- & \textbf{52000.00} & Sale; \texttt{52000 > 50000} $\rightarrow$ Desc: \textbf{\$5200.00}, Total: \textbf{\$46800.00} \\
+\bottomrule
+\end{tabularx}
+\end{center}
+\end{solucion}
+
+\begin{lstlisting}[style=cppmonitoria,caption={Solución Ejercicio 16: Facturación de restaurante (C++)}]
+#include <iomanip>
+#include <iostream>
+using namespace std;
+
+int main() {
+    int opcion = 0;
+    double subtotal = 0.0;
+
+    do {
+        cout << "\n1. Hamburguesa ($18000)\n2. Perro ($12000)\n3. Gaseosa ($4000)\n4. Cobrar\nOpcion: ";
+        if (!(cin >> opcion)) break;
+
+        if (opcion >= 1 && opcion <= 3) {
+            int cant = 0;
+            bool ok = true;
+            do {
+                cout << "Cantidad (>= 1): ";
+                if (!(cin >> cant)) { ok = false; break; }
+            } while (cant < 1);
+            if (!ok) break;
+
+            switch (opcion) {
+                case 1: subtotal += cant * 18000.0; break;
+                case 2: subtotal += cant * 12000.0; break;
+                case 3: subtotal += cant * 4000.0;  break;
+                default: break;
+            }
+        } else if (opcion != 4) {
+            cout << "Opcion invalida." << endl;
+        }
+    } while (opcion != 4);
+
+    double descuento = (subtotal > 50000.0) ? (subtotal * 0.10) : 0.0;
+    double totalFinal = subtotal - descuento;
+
+    cout << fixed << setprecision(2);
+    cout << "Subtotal:  $" << subtotal << endl;
+    cout << "Descuento: $" << descuento << endl;
+    cout << "Total:     $" << totalFinal << endl;
+    return 0;
+}
+\end{lstlisting}
+
+% ============================================================================
+\begin{consejo}{Checklist final antes de avanzar a M06 (Vectores Estáticos)}
+\begin{itemize}
+  \item[\faCheckSquare] Elijo sin dudar entre \texttt{for} (conteo conocido), \texttt{while} (centinela / 0 o más vueltas) y \texttt{do-while} (menús / validación al menos 1 vez).
+  \item[\faCheckSquare] Domino la \textbf{Trampa Mortal}: PSeInt (\texttt{Hasta Que} termina en V) vs C++ (\texttt{do...while} continúa en V).
+  \item[\faCheckSquare] Inicializo sumas en \texttt{0}, productos en \texttt{1}, y máximos/mínimos con el primer dato (\texttt{esPrimero}).
+  \item[\faCheckSquare] Uso lectura cebadora en ciclos \texttt{while} con centinela y comprendo ciclos anidados como un reloj.
+\end{itemize}
+\end{consejo}
+
+\end{document}

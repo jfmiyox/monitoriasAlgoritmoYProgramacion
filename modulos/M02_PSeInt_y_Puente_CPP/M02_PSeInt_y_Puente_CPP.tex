@@ -1,0 +1,446 @@
+\documentclass[11pt,letterpaper]{article}
+\usepackage{../../latex_common/estilo_monitoria}
+
+\begin{document}
+
+\portadamodulo{02}{PSeInt y el Puente hacia tu Primer Programa en C++}{3.0 horas}{%
+  Instalación de PSeInt, tabla maestra de traducción, anatomía de C++ básico, diccionario de errores y 6 programas compilados%
+}{%
+  \begin{enumerate}
+    \item Instalar, configurar y usar \textbf{PSeInt} (incluida su ejecución paso a paso y su vista automática de DFD).
+    \item Traducir cualquier algoritmo secuencial desde \textbf{DFD $\rightarrow$ PSeInt $\rightarrow$ C++} usando la tabla maestra de equivalencias.
+    \item Entender línea por línea la \textbf{anatomía de un programa básico en C++} (\texttt{\#include <iostream>}, \texttt{using namespace std;}, \texttt{int main()}, \texttt{cin}, \texttt{cout}, \texttt{return 0;}).
+    \item Compilar y ejecutar programas reales en C++ con \texttt{g++}, y \textbf{traducir al español los errores del compilador} sin entrar en pánico.
+  \end{enumerate}
+}
+
+\tableofcontents
+\vspace{8pt}
+
+\section{Mapa Conceptual del Módulo}
+
+\begin{center}
+\begin{tikzpicture}[
+  node distance=0.55cm,
+  caja/.style={rectangle, rounded corners=4pt, draw=AzulMarino, fill=AzulClaro, thick,
+               text width=0.82\linewidth, align=center, font=\sffamily\small, inner sep=7pt},
+  flecha/.style={-{Stealth[length=2.5mm]}, thick, color=Turquesa}
+]
+  \node[caja, fill=AzulMarino, text=white] (n1) {\textbf{1. DFD EN PAPEL (Módulo 01)} $\longrightarrow$ Mapa visual del algoritmo};
+  \node[caja, below=of n1, fill=TurquesaClaro, draw=Turquesa] (n2) {\textbf{2. PSEUDOCÓDIGO EN PSEINT (\texttt{.psc})} $\longrightarrow$ \texttt{Algoritmo}, \texttt{Definir}, \texttt{Leer}, \texttt{Escribir}, \texttt{<-}};
+  \node[caja, below=of n2, fill=NaranjaClaro, draw=NaranjaCalido] (n3) {\textbf{3. PRIMER PROGRAMA EN C++ (\texttt{.cpp})} $\longrightarrow$ \texttt{iostream}, \texttt{int}/\texttt{double}, \texttt{cin >>}, \texttt{cout <<}, \texttt{;}};
+  \node[caja, below=of n3, fill=VerdeClaro, draw=VerdeExito] (n4) {\textbf{4. COMPILAR CON \texttt{g++} Y PROBAR} $\longrightarrow$ Traducir mensajes de error al español y verificar salidas};
+
+  \draw[flecha] (n1) -- (n2);
+  \draw[flecha] (n2) -- (n3);
+  \draw[flecha] (n3) -- (n4);
+\end{tikzpicture}
+\end{center}
+
+\section{Explicado ``Para Tontos'': ¿Por Qué PSeInt Antes de C++?}
+
+\imagenmodulo[0.86\linewidth]{ilus_03_puente_dfd_pseint_cpp.jpg}{El viaje de los tres puentes: de los dibujos DFD al español en PSeInt y al código real en C++.}
+
+\begin{paratontos}{Las rueditas de entrenamiento antes de la bici de carreras}
+Imagina que estás aprendiendo a montar en bicicleta:
+\begin{itemize}
+  \item \textbf{DFD (M01)} fue mirar el mapa del recorrido antes de salir de casa.
+  \item \textbf{PSeInt} es la \textbf{bicicleta con rueditas de entrenamiento}: escribes instrucciones en \textbf{español} (\codigo{Leer}, \codigo{Escribir}, \codigo{Si...Entonces}) y el programa te avisa en tu idioma si algo falta.
+  \item \textbf{C++} es la \textbf{bicicleta de carreras profesional}: rapidísima y poderosa, pero estricta. Exige palabras en inglés (\codigo{cout}, \codigo{cin}, \codigo{int}, \codigo{double}), distingue mayúsculas de minúsculas y exige punto y coma (\codigo{;}) al final de cada instrucción.
+\end{itemize}
+Si pensaste bien tu lógica en DFD y PSeInt, pasar a C++ \textbf{no es empezar de cero}: es simplemente cambiar las palabras de español a inglés.
+\end{paratontos}
+
+\section{Instalación y Uso Básico de PSeInt}
+
+\begin{enumerate}
+  \item Descarga PSeInt gratis desde \texttt{pseint.sourceforge.net} (disponible para Windows, Linux y macOS).
+  \item \textbf{Configuración recomendada del monitor} (en \textit{Configurar $\rightarrow$ Opciones del Lenguaje $\rightarrow$ Personalizar}):
+    \begin{itemize}
+      \item Activa \textbf{``Obligar a definir los tipos de variables''} (te acostumbra a declarar \codigo{Entero} y \codigo{Real}, igual que \codigo{int} y \codigo{double} en C++).
+      \item Activa \textbf{``Controlar el uso de punto y coma''} (así jamás olvidarás el \codigo{;} al dar el salto a C++).
+    \end{itemize}
+  \item \textbf{Los 3 botones mágicos:} \textbf{Ejecutar (F9)} para probar el programa; \textbf{Paso a paso (``los piecitos'')} para ver qué línea se ejecuta cada segundo; y \textbf{Dibujar Diagrama de Flujo} para ver tu pseudocódigo convertido en DFD automático.
+\end{enumerate}
+
+\section{Tabla Maestra de Traducción: DFD \texorpdfstring{$\leftrightarrow$}{<->} PSeInt \texorpdfstring{$\leftrightarrow$}{<->} C++}
+
+\begin{tablatraduccion}[Diccionario Bilingüe del Módulo 02: DFD $\leftrightarrow$ PSeInt $\leftrightarrow$ C++]
+  Inicio / Fin & Óvalo \texttt{INICIO} / \texttt{FIN} & Algoritmo \dots{} FinAlgoritmo & int main() \{ \dots{} return 0; \} \\
+  Comentario & Nota al margen & // nota para humanos & // nota para humanos \\
+  Caja entera & Implícito & Definir edad Como Entero; & int edad; \\
+  Caja decimal & Implícito & Definir nota Como Real; & double nota; \\
+  Caja 1 letra & Implícito & Definir letra Como Caracter; & char letra; \\
+  Pedir dato & Paralelogramo \texttt{Leer: x} & Leer x; & cin >> x; \\
+  Mostrar & Paralelogramo \texttt{Mostrar} & Escribir "Hola ", x; & cout << "Hola " << x << endl; \\
+  Asignación & Rectángulo \texttt{s <- a + b} & s <- a + b; & s = a + b; \\
+  Aritmética & \texttt{+}, \texttt{-}, \texttt{*}, \texttt{/} & \texttt{+}, \texttt{-}, \texttt{*}, \texttt{/} & \texttt{+}, \texttt{-}, \texttt{*}, \texttt{/} (usar \texttt{.0} al dividir) \\
+  Decisión \textit{(M04)} & Rombo \texttt{¿x >= 3?} & Si x >= 3 Entonces \dots{} FinSi & if (x >= 3) \{ \dots{} \} else \{ \dots{} \} \\
+\end{tablatraduccion}
+
+\imagenmodulo[0.84\linewidth]{ilus_02_variables_ram.jpg}{Las variables son cajitas etiquetadas en la memoria RAM: cada tipo guarda una clase distinta de dato.}
+
+\imagenmodulo[0.95\linewidth]{mem_01_variables_ram.png}{Memoria RAM ``Para Tontos'': tipos básicos, ejemplos válidos, errores frecuentes y reglas de oro.}
+
+\begin{consejo}{El truco visual de las flechitas \texttt{cout <<} y \texttt{cin >>}}
+\begin{itemize}
+  \item \codigo{cout <<}: viene de \textit{C-OUT} (\textbf{afuera}). Las flechas \codigo{<<} apuntan \textbf{hacia afuera}, sacando datos de tu programa hacia la pantalla.
+  \item \codigo{cin >>}: viene de \textit{C-IN} (\textbf{adentro}). Las flechas \codigo{>>} apuntan \textbf{hacia adentro} de la variable, metiendo lo que escribe el usuario dentro de la caja.
+\end{itemize}
+\end{consejo}
+
+\section{Anatomía de un Programa en C++ Básico}
+
+Analicemos línea por línea qué hace tu primer programa en C++:
+
+\begin{lstlisting}[style=cppmonitoria,caption={Radiografía de un programa mínimo en C++}]
+#include <iostream>        // 1. Herramientas de entrada/salida (teclado y pantalla)
+using namespace std;       // 2. Evita escribir std::cout y std::cin en cada línea
+
+int main() {               // 3. Puerta principal: aquí arranca SIEMPRE el programa
+    int edad;              // 4. Creamos una caja entera llamada 'edad'
+
+    cout << "Tu edad: ";   // 5. Muestra mensaje en pantalla (sin saltar línea)
+    cin >> edad;           // 6. Lee el número que escribe el usuario y lo guarda
+
+    cout << "En 5 anios tendras: " << (edad + 5) << endl; // 7. Calcula y salta línea
+
+    return 0;              // 8. Avisa al sistema: "Todo salió bien (cero errores)"
+}                          // 9. Llave que cierra la función principal main
+\end{lstlisting}
+
+\subsection{¿Cómo compilar y ejecutar desde terminal con \texorpdfstring{\texttt{g++}}{g++}?}
+A diferencia de PSeInt, C++ se traduce primero a un archivo ejecutable mediante el compilador \texttt{g++} (o presionando \textit{Compilar y Ejecutar} en tu IDE):
+\begin{lstlisting}[style=monitoriaBaseCode,language=bash,numbers=none]
+g++ -std=c++17 -Wall -Wextra programa.cpp -o programa
+./programa
+\end{lstlisting}
+
+\section{Traducción de Errores de Compilación de C++ al Español}
+
+\begin{peligro}{¡No entres en pánico ante el texto rojo!}
+Casi siempre \textbf{1 solo descuido pequeño provoca 10 líneas de error}. Regla de oro del monitor: \textbf{lee y corrige únicamente el PRIMER error de arriba hacia abajo} y vuelve a compilar.
+\end{peligro}
+
+\begin{center}
+\footnotesize
+\renewcommand{\arraystretch}{1.3}
+\rowcolors{2}{GrisSuave}{white}
+\begin{tabularx}{\linewidth}{>{\leavevmode\ttfamily\scriptsize\color{RojoAlerta}\raggedright\arraybackslash}p{4.6cm} >{\leavevmode\raggedright\arraybackslash}p{4.8cm} >{\leavevmode\raggedright\arraybackslash}X}
+  \rowcolor{AzulMarino}
+  \textcolor{white}{\textbf{\sffamily Mensaje de \texttt{g++} (inglés)}} &
+  \textcolor{white}{\textbf{Traducción ``Para Tontos''}} &
+  \textcolor{white}{\textbf{Cómo arreglarlo}} \\
+  error: expected ';' before 'cout' & Se te olvidó el punto y coma (\texttt{;}) al final de la línea \textbf{ANTERIOR}. & Mira la línea justo arriba del número reportado y agrega \texttt{;}. \\
+  error: 'suma' was not declared in this scope & Usaste la caja \texttt{suma} sin crearla antes (o la escribiste con otra mayúscula). & Declara \texttt{int suma;} o \texttt{double suma;} arriba y revisa la ortografía. \\
+  error: 'cout' was not declared in this scope & El compilador no conoce \texttt{cout}, \texttt{cin} o \texttt{endl}. & Revisa que arriba estén \texttt{\#include <iostream>} y \texttt{using namespace std;}. \\
+  error: no match for 'operator>>' (o '<<') & Pusiste las flechas al revés (\texttt{cout >>} o \texttt{cin <<}). & Usa \texttt{cout <<} (afuera) y \texttt{cin >>} (adentro). \\
+  error: expected '\}' at end of input & Abriste una llave \texttt{\{} y olvidaste cerrarla con \texttt{\}}. & Cuenta tus llaves y cierra \texttt{main} al final con \texttt{\}}. \\
+  error: stray '\textbackslash 303' in program & Escribiste una tilde, \texttt{ñ} o comilla curva de Word fuera de texto entre comillas. & Usa nombres sin tildes (\texttt{anio}, \texttt{numero}); deja tildes solo dentro de \texttt{"..."}. \\
+  error: redeclaration of 'int x' & Creaste dos cajas llamadas \texttt{x} en el mismo bloque. & Borra el segundo \texttt{int} si solo querías cambiar su valor (\texttt{x = 5;}). \\
+  warning: 'x' is used uninitialized & Usaste \texttt{x} en una fórmula antes de darle un valor con \texttt{cin} o \texttt{=}. & Lee o asigna \texttt{x} antes de operarla. \\
+  División \texttt{9 / 5} da \texttt{1} en vez de \texttt{1.8} & División entera silenciosa: entre dos enteros, C++ corta los decimales. & Usa al menos un punto decimal: \texttt{9.0 / 5.0}. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\section{Seis Ejemplos Completos: PSeInt (\texorpdfstring{\texttt{.psc}}{.psc}) y C++ (\texorpdfstring{\texttt{.cpp}}{.cpp}) Probados}
+
+Todos los programas siguientes existen como archivos reales en \texttt{pseint/} y \texttt{cpp/}, y fueron compilados con \texttt{g++ -std=c++17 -Wall -Wextra -Werror} sin advertencias ni errores.
+
+\subsection{Ejemplo 01: Saludo y suma de dos números enteros}
+\begin{analisis}{Ejemplo 01 -- 01\_saludo\_y\_suma (.psc y .cpp)}
+\textbf{E:} \codigo{numero1}, \codigo{numero2} (\codigo{int}) \quad $\bullet$ \textbf{P:} \codigo{suma = numero1 + numero2} \quad $\bullet$ \textbf{S:} \codigo{suma}.
+\end{analisis}
+
+\lstinputlisting[style=pseintmonitoria,caption={PSeInt: \texttt{pseint/01\_saludo\_y\_suma.psc}}]{pseint/01_saludo_y_suma.psc}
+\lstinputlisting[style=cppmonitoria,caption={C++: \texttt{cpp/01\_saludo\_y\_suma.cpp}}]{cpp/01_saludo_y_suma.cpp}
+
+\begin{pruebaescritorio}{Ejemplo 01 -- Entradas: numero1 = 15, numero2 = 27}
+\codigo{suma = 15 + 27 = 42}. Salida real en consola: \texttt{La suma de 15 + 27 es: 42}.
+\end{pruebaescritorio}
+
+\subsection{Ejemplo 02: Promedio de tres calificaciones (\texorpdfstring{\texttt{double}}{double})}
+\begin{analisis}{Ejemplo 02 -- 02\_promedio\_notas (.psc y .cpp)}
+\textbf{E:} \codigo{nota1}, \codigo{nota2}, \codigo{nota3} (\codigo{double}) \quad $\bullet$ \textbf{P:} \codigo{suma = nota1 + nota2 + nota3}; \codigo{promedio = suma / 3.0} \quad $\bullet$ \textbf{S:} \codigo{suma}, \codigo{promedio}.
+\end{analisis}
+
+\lstinputlisting[style=pseintmonitoria,caption={PSeInt: \texttt{pseint/02\_promedio\_notas.psc}}]{pseint/02_promedio_notas.psc}
+\lstinputlisting[style=cppmonitoria,caption={C++: \texttt{cpp/02\_promedio\_notas.cpp}}]{cpp/02_promedio_notas.cpp}
+
+\begin{pruebaescritorio}{Ejemplo 02 -- Entradas: 4.2, 3.5, 4.0}
+\codigo{suma = 11.7}; \codigo{promedio = 11.7 / 3.0 = 3.9}. Consola real: \texttt{Suma total de notas: 11.7} $\mid$ \texttt{Tu promedio final es: 3.9}.
+\end{pruebaescritorio}
+
+\subsection{Ejemplo 03: Área y perímetro de un terreno rectangular}
+\begin{analisis}{Ejemplo 03 -- 03\_rectangulo\_terreno (.psc y .cpp)}
+\textbf{E:} \codigo{base}, \codigo{altura} (\codigo{double}) \quad $\bullet$ \textbf{P:} \codigo{area = base * altura}; \codigo{perimetro = 2.0 * (base + altura)} \quad $\bullet$ \textbf{S:} \codigo{area}, \codigo{perimetro}.
+\end{analisis}
+
+\lstinputlisting[style=pseintmonitoria,caption={PSeInt: \texttt{pseint/03\_rectangulo\_terreno.psc}}]{pseint/03_rectangulo_terreno.psc}
+\lstinputlisting[style=cppmonitoria,caption={C++: \texttt{cpp/03\_rectangulo\_terreno.cpp}}]{cpp/03_rectangulo_terreno.cpp}
+
+\begin{pruebaescritorio}{Ejemplo 03 -- Entradas: base = 12.5, altura = 8}
+\codigo{area = 12.5 * 8 = 100}; \codigo{perimetro = 2.0 * 20.5 = 41}. Consola real: \texttt{Area del terreno: 100 m2} $\mid$ \texttt{Perimetro del terreno: 41 m}.
+\end{pruebaescritorio}
+
+\subsection{Ejemplo 04: Conversión de temperatura (Celsius a Fahrenheit y Kelvin)}
+\begin{analisis}{Ejemplo 04 -- 04\_conversion\_temperatura (.psc y .cpp)}
+\textbf{E:} \codigo{celsius} (\codigo{double}) \quad $\bullet$ \textbf{P:} \codigo{fahrenheit = (9.0 / 5.0) * celsius + 32.0}; \codigo{kelvin = celsius + 273.15} \quad $\bullet$ \textbf{S:} \codigo{fahrenheit}, \codigo{kelvin}.
+\end{analisis}
+
+\begin{peligro}{La trampa mortal de \texttt{9 / 5} en C++}
+Si escribes \codigo{(9 / 5) * celsius + 32}, el compilador \textbf{NO} da error, pero calcula \codigo{9 / 5 = 1} (descarta el \texttt{.8}) y te da un resultado falso. Escribir \codigo{9.0 / 5.0} garantiza la división real \texttt{1.8}.
+\end{peligro}
+
+\lstinputlisting[style=pseintmonitoria,caption={PSeInt: \texttt{pseint/04\_conversion\_temperatura.psc}}]{pseint/04_conversion_temperatura.psc}
+\lstinputlisting[style=cppmonitoria,caption={C++: \texttt{cpp/04\_conversion\_temperatura.cpp}}]{cpp/04_conversion_temperatura.cpp}
+
+\begin{pruebaescritorio}{Ejemplo 04 -- Entrada: celsius = 25}
+\codigo{fahrenheit = 1.8 * 25 + 32.0 = 77}; \codigo{kelvin = 25 + 273.15 = 298.15}. Consola real: \texttt{25 C equivalen a 77 F} $\mid$ \texttt{25 C equivalen a 298.15 K}.
+\end{pruebaescritorio}
+
+\subsection{Ejemplo 05: Factura sencilla de cafetería}
+\begin{analisis}{Ejemplo 05 -- 05\_factura\_cafeteria (.psc y .cpp)}
+\textbf{E:} \codigo{precioUnitario} (\codigo{double}), \codigo{cantidad} (\codigo{int}) \quad $\bullet$ \textbf{P:} \codigo{subtotal}, \codigo{propina = subtotal * 0.10}, \codigo{totalPagar} \quad $\bullet$ \textbf{S:} \codigo{subtotal}, \codigo{propina}, \codigo{totalPagar}.
+\end{analisis}
+
+\lstinputlisting[style=pseintmonitoria,caption={PSeInt: \texttt{pseint/05\_factura\_cafeteria.psc}}]{pseint/05_factura_cafeteria.psc}
+\lstinputlisting[style=cppmonitoria,caption={C++: \texttt{cpp/05\_factura\_cafeteria.cpp}}]{cpp/05_factura_cafeteria.cpp}
+
+\begin{pruebaescritorio}{Ejemplo 05 -- Entradas: precioUnitario = 4500, cantidad = 3}
+\codigo{subtotal = 13500}; \codigo{propina = 1350}; \codigo{totalPagar = 14850}. Consola real: \texttt{Subtotal: \$13500}, \texttt{Propina sugerida (10\%): \$1350}, \texttt{Total a pagar: \$14850}.
+\end{pruebaescritorio}
+
+\subsection{Ejemplo 06: Liquidación de salario semanal con bonificación}
+\begin{analisis}{Ejemplo 06 -- 06\_salario\_semanal (.psc y .cpp)}
+\textbf{E:} \codigo{horasTrabajadas} (\codigo{int}), \codigo{pagoPorHora} (\codigo{double}), \codigo{bonoFijo} (\codigo{double}) \quad $\bullet$ \textbf{P:} \codigo{pagoBase}, \codigo{salarioTotal} \quad $\bullet$ \textbf{S:} \codigo{pagoBase}, \codigo{bonoFijo}, \codigo{salarioTotal}.
+\end{analisis}
+
+\lstinputlisting[style=pseintmonitoria,caption={PSeInt: \texttt{pseint/06\_salario\_semanal.psc}}]{pseint/06_salario_semanal.psc}
+\lstinputlisting[style=cppmonitoria,caption={C++: \texttt{cpp/06\_salario\_semanal.cpp}}]{cpp/06_salario_semanal.cpp}
+
+\begin{pruebaescritorio}{Ejemplo 06 -- Entradas: horas=20, valorHora=18500, bono=45000}
+\codigo{pagoBase = 370000}; \codigo{salarioTotal = 370000 + 45000 = 415000}. Consola real: \texttt{Pago por horas: \$370000}, \texttt{Bono de transporte: \$45000}, \texttt{Salario total a recibir: \$415000}.
+\end{pruebaescritorio}
+
+\section{Consejos de Monitoría para Sobrevivir a tu Primera Semana en C++}
+
+\begin{consejo}{Cuatro hábitos de programador tranquilo}
+\begin{enumerate}
+  \item \textbf{Compila cada 5 o 10 líneas:} Nunca escribas un archivo entero sin compilar en el camino.
+  \item \textbf{Siempre escribe un \codigo{cout} antes de cada \codigo{cin}:} Si no avisas qué pedir, el usuario ve una pantalla negra vacía.
+  \item \textbf{Cero tildes ni espacios en nombres de variables:} Usa \codigo{anioNacimiento} en lugar de \codigo{año} o \codigo{anio nacimiento}.
+  \item \textbf{Verifica comillas y punto y coma antes de compilar.}
+\end{enumerate}
+\end{consejo}
+
+\section{Ejercicios Propuestos (PSeInt \texorpdfstring{$\rightarrow$}{->} C++ y Depuración)}
+
+\begin{ejercicio}{1 -- Caza los 5 errores de compilación}
+Encuentra y corrige todos los errores de este código C++:
+\begin{lstlisting}[style=cppmonitoria,numbers=none]
+#include <iostream>
+int main() {
+    int a, b
+    cout << "Dame dos numeros: " << endl;
+    cin << a >> b;
+    suma = a + b;
+    cout >> "Resultado: " >> suma;
+    return 0
+\end{lstlisting}
+\end{ejercicio}
+
+\begin{ejercicio}{2 -- Traducción PSeInt $\rightarrow$ C++}
+Traduce a C++ compilable: \texttt{Definir n Como Entero; Definir doble, mitad Como Real; Leer n; doble <- n * 2; mitad <- n / 2.0; Escribir doble, mitad;}.
+\end{ejercicio}
+
+\begin{ejercicio}{3 -- Área y circunferencia de un círculo}
+Lee \codigo{radio} (\codigo{double}), usa \codigo{piVal = 3.14159}, calcula área y circunferencia en PSeInt y C++. Prueba con \codigo{radio = 4}.
+\end{ejercicio}
+
+\begin{ejercicio}{4 -- Kilómetros a metros y centímetros}
+Lee \codigo{km} (\codigo{double}) y convierte a metros (\codigo{* 1000.0}) y centímetros (\codigo{* 100000.0}).
+\end{ejercicio}
+
+\begin{ejercicio}{5 -- Chaqueta con descuento variable}
+Lee \codigo{precio} y \codigo{porcentajeDescuento} (ej. \codigo{25} para 25\%). Calcula el monto descontado y el precio final.
+\end{ejercicio}
+
+\begin{ejercicio}{6 -- Índice de Masa Corporal (IMC)}
+Lee \codigo{pesoKg} y \codigo{estaturaM} (ej. \codigo{1.72}). Calcula \codigo{imc = pesoKg / (estaturaM * estaturaM)}.
+\end{ejercicio}
+
+\begin{ejercicio}{7 -- Duración total en segundos}
+Lee \codigo{horas}, \codigo{minutos} y \codigo{segundos} (enteros) y calcula el total convertido únicamente a segundos.
+\end{ejercicio}
+
+\begin{ejercicio}{8 -- Intercambio de dos enteros en C++}
+Lee \codigo{a} y \codigo{b}, muéstralos antes, intercámbialos con una variable auxiliar \codigo{aux}, y muéstralos después.
+\end{ejercicio}
+
+\begin{ejercicio}{9 -- Costo de pintura de una pared}
+Lee \codigo{ancho}, \codigo{alto} y \codigo{precioM2}. Calcula el área y el costo total de pintar la pared.
+\end{ejercicio}
+
+\begin{ejercicio}{10 -- Nota definitiva (70\% teoría, 30\% laboratorio)}
+Lee \codigo{notaTeoria} y \codigo{notaLab}, calcula \codigo{definitiva} y muéstrala.
+\end{ejercicio}
+
+\section{Solucionario Paso a Paso (Ejercicios 1 al 10)}
+
+\begin{solucion}{Ejercicios 1 al 5}
+\textbf{1. Código corregido} (faltaban \codigo{using namespace std;}, \codigo{;} tras \codigo{int a, b}, declarar \codigo{suma}, invertir flechas en \codigo{cin >>} y \codigo{cout <<}, \codigo{;} en \codigo{return 0;} y llave final \codigo{\}}):
+\begin{lstlisting}[style=cppmonitoria]
+#include <iostream>
+using namespace std;
+int main() {
+    int a, b, suma;
+    cout << "Dame dos numeros: " << endl;
+    cin >> a >> b;
+    suma = a + b;
+    cout << "Resultado: " << suma << endl;
+    return 0;
+}
+\end{lstlisting}
+
+\textbf{2. Doble y mitad} (Prueba \codigo{n=7}: \codigo{doble=14}, \codigo{mitad=3.5}):
+\begin{lstlisting}[style=cppmonitoria]
+#include <iostream>
+using namespace std;
+int main() {
+    int n;
+    double doble, mitad;
+    cout << "Ingresa un numero entero: ";
+    cin >> n;
+    doble = n * 2;
+    mitad = n / 2.0;
+    cout << "Doble: " << doble << " | Mitad: " << mitad << endl;
+    return 0;
+}
+\end{lstlisting}
+
+\textbf{3. Círculo} (Prueba \codigo{radio=4}: \codigo{area=50.26544}, \codigo{circunferencia=25.13272}):
+\begin{lstlisting}[style=cppmonitoria]
+#include <iostream>
+using namespace std;
+int main() {
+    double radio, area, circunferencia;
+    double piVal = 3.14159;
+    cout << "Ingresa el radio: ";
+    cin >> radio;
+    area = piVal * radio * radio;
+    circunferencia = 2.0 * piVal * radio;
+    cout << "Area: " << area << " | Circunferencia: " << circunferencia << endl;
+    return 0;
+}
+\end{lstlisting}
+
+\textbf{4. Kilómetros} (Prueba \codigo{km=2.5}: \codigo{2500 m}, \codigo{250000 cm}):
+\begin{lstlisting}[style=cppmonitoria]
+#include <iostream>
+using namespace std;
+int main() {
+    double km, metros, cm;
+    cout << "Distancia en km: ";
+    cin >> km;
+    metros = km * 1000.0;
+    cm = km * 100000.0;
+    cout << "Metros: " << metros << " | Centimetros: " << cm << endl;
+    return 0;
+}
+\end{lstlisting}
+
+\textbf{5. Chaqueta con descuento} (Prueba \codigo{120000}, \codigo{25\%}: \codigo{descuento=30000}, \codigo{final=90000}):
+\begin{lstlisting}[style=cppmonitoria]
+#include <iostream>
+using namespace std;
+int main() {
+    double precio, porcentaje, descuento, precioFinal;
+    cout << "Precio original y porcentaje de descuento: ";
+    cin >> precio >> porcentaje;
+    descuento = precio * (porcentaje / 100.0);
+    precioFinal = precio - descuento;
+    cout << "Descuento: $" << descuento << " | Final: $" << precioFinal << endl;
+    return 0;
+}
+\end{lstlisting}
+\end{solucion}
+
+\begin{solucion}{Ejercicios 6 al 10}
+\textbf{6. IMC} (Prueba \codigo{68 kg}, \codigo{1.70 m}: \codigo{IMC = 23.5294}):
+\begin{lstlisting}[style=cppmonitoria]
+#include <iostream>
+using namespace std;
+int main() {
+    double pesoKg, estaturaM, imc;
+    cout << "Peso (kg) y estatura (m): ";
+    cin >> pesoKg >> estaturaM;
+    imc = pesoKg / (estaturaM * estaturaM);
+    cout << "Tu IMC es: " << imc << endl;
+    return 0;
+}
+\end{lstlisting}
+
+\textbf{7. Total en segundos} (Prueba \codigo{1h 30m 15s}: \codigo{5415 s}):
+\begin{lstlisting}[style=cppmonitoria]
+#include <iostream>
+using namespace std;
+int main() {
+    int horas, minutos, segundos, totalSeg;
+    cout << "Horas, minutos y segundos: ";
+    cin >> horas >> minutos >> segundos;
+    totalSeg = (horas * 3600) + (minutos * 60) + segundos;
+    cout << "Total en segundos: " << totalSeg << endl;
+    return 0;
+}
+\end{lstlisting}
+
+\textbf{8. Intercambio de variables} (Prueba \codigo{a=10, b=25} $\rightarrow$ \codigo{a=25, b=10}):
+\begin{lstlisting}[style=cppmonitoria]
+#include <iostream>
+using namespace std;
+int main() {
+    int a, b, aux;
+    cout << "Ingresa a y b: ";
+    cin >> a >> b;
+    cout << "Antes: a=" << a << " b=" << b << endl;
+    aux = a;
+    a = b;
+    b = aux;
+    cout << "Despues: a=" << a << " b=" << b << endl;
+    return 0;
+}
+\end{lstlisting}
+
+\textbf{9. Costo de pintura} (Prueba \codigo{4.0 x 2.5} a \codigo{\$18000/m2}: \codigo{area=10}, \codigo{costo=\$180000}):
+\begin{lstlisting}[style=cppmonitoria]
+#include <iostream>
+using namespace std;
+int main() {
+    double ancho, alto, precioM2, area, costoTotal;
+    cout << "Ancho, alto y precio por m2: ";
+    cin >> ancho >> alto >> precioM2;
+    area = ancho * alto;
+    costoTotal = area * precioM2;
+    cout << "Area: " << area << " m2 | Costo: $" << costoTotal << endl;
+    return 0;
+}
+\end{lstlisting}
+
+\textbf{10. Nota definitiva} (Prueba \codigo{4.0} y \codigo{5.0} $\rightarrow$ \codigo{4.3}):
+\begin{lstlisting}[style=cppmonitoria]
+#include <iostream>
+using namespace std;
+int main() {
+    double notaTeoria, notaLab, definitiva;
+    cout << "Nota teoria (70%) y nota lab (30%): ";
+    cin >> notaTeoria >> notaLab;
+    definitiva = (notaTeoria * 0.70) + (notaLab * 0.30);
+    cout << "Nota definitiva: " << definitiva << endl;
+    return 0;
+}
+\end{lstlisting}
+\end{solucion}
+
+\end{document}

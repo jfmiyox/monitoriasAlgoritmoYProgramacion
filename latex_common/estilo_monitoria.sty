@@ -1,0 +1,476 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{estilo_monitoria}[2026/11/15 Estilo oficial del curso 30h Algoritmos y Programacion]
+
+% ============================================================================
+% Opciones del paquete
+% ============================================================================
+\newif\ifmonitoria@ficha
+\monitoria@fichafalse
+\DeclareOption{ficha}{\monitoria@fichatrue}
+\ProcessOptions\relax
+
+% ============================================================================
+% Tipografia UTF-8 para XeLaTeX (Inter + DejaVu Sans Mono)
+% ============================================================================
+\RequirePackage{fontspec}
+\setmainfont{Inter}[Scale=0.96]
+\setsansfont{Inter}[Scale=0.96]
+\setmonofont{DejaVu Sans Mono}[Scale=0.86]
+
+% ============================================================================
+% Idioma y matematicas
+% ============================================================================
+% es-tabla cambia "Cuadro" a "Tabla"; es-noshorthands evita conflictos con TikZ/listings (<<, >>, ->)
+\RequirePackage[spanish,es-tabla,es-noshorthands]{babel}
+\RequirePackage{amsmath,amssymb}
+\RequirePackage{microtype}
+
+% ============================================================================
+% Paleta moderna y amigable para estudiantes
+% ============================================================================
+\RequirePackage[table]{xcolor}
+
+\definecolor{AzulMarino}{HTML}{1E3A5F}
+\definecolor{AzulClaro}{HTML}{EFF6FF}
+\definecolor{AzulSuave}{HTML}{DBEAFE}
+\definecolor{Turquesa}{HTML}{0D9488}
+\definecolor{TurquesaClaro}{HTML}{F0FDFA}
+\definecolor{NaranjaCalido}{HTML}{EA580C}
+\definecolor{NaranjaClaro}{HTML}{FFF7ED}
+\definecolor{RojoAlerta}{HTML}{DC2626}
+\definecolor{RojoClaro}{HTML}{FEF2F2}
+\definecolor{VerdeExito}{HTML}{16A34A}
+\definecolor{VerdeClaro}{HTML}{F0FDF4}
+\definecolor{GrisSuave}{HTML}{F8FAFC}
+\definecolor{GrisClaro}{HTML}{F1F5F9}
+\definecolor{GrisBorde}{HTML}{CBD5E1}
+\definecolor{GrisTexto}{HTML}{334155}
+\definecolor{ComentarioCodigo}{HTML}{64748B}
+\definecolor{MoradoAcento}{HTML}{6D28D9}
+
+% ============================================================================
+% Geometria de pagina
+% ============================================================================
+\ifmonitoria@ficha
+  \RequirePackage[letterpaper,top=1.2cm,bottom=1.2cm,left=1.2cm,right=1.2cm,headheight=20pt,footskip=0.7cm]{geometry}
+\else
+  \RequirePackage[letterpaper,top=2.2cm,bottom=2.0cm,left=1.9cm,right=1.9cm,headheight=24pt,footskip=0.9cm]{geometry}
+\fi
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt}
+\linespread{1.12}
+
+% ============================================================================
+% Tablas, graficos, listas e iconos
+% ============================================================================
+\RequirePackage{graphicx}
+\graphicspath{
+  {../../assets/diagramas/}
+  {../../assets/ilustraciones/}
+  {../assets/diagramas/}
+  {../assets/ilustraciones/}
+  {assets/diagramas/}
+  {assets/ilustraciones/}
+  {./}
+  {dfd/}
+}
+\RequirePackage{float}
+\RequirePackage{booktabs}
+\RequirePackage{colortbl}
+\RequirePackage{multirow}
+\RequirePackage{tabularx}
+\RequirePackage{array}
+\RequirePackage{caption}
+\captionsetup{hypcap=false,font={small,sf},labelfont={bf,color=AzulMarino},skip=6pt}
+
+\RequirePackage{enumitem}
+\setlist{itemsep=3pt, topsep=4pt, parsep=1pt}
+\setlist[itemize,1]{label=\textcolor{Turquesa}{\textbullet}}
+\setlist[enumerate,1]{label=\textcolor{AzulMarino}{\textbf{\arabic*.}}}
+
+\RequirePackage{fontawesome5}
+\RequirePackage{etoolbox}
+
+% ============================================================================
+% TikZ
+% ============================================================================
+\RequirePackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,shapes.misc,calc,fit,backgrounds}
+
+% ============================================================================
+% Encabezados y pies de pagina (fancyhdr)
+% ============================================================================
+\newcommand{\monitoria@headerleft}{Algoritmos y Programación (DFD $\rightarrow$ PSeInt $\rightarrow$ C++)}
+\newcommand{\monitoria@headerright}{Curso de Monitoría (30 horas)}
+
+\RequirePackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\footnotesize\sffamily\color{GrisTexto}\textbf{\monitoria@headerleft}}
+\fancyhead[R]{\footnotesize\sffamily\color{Turquesa}\textbf{\monitoria@headerright}}
+\fancyfoot[L]{\footnotesize\sffamily\color{ComentarioCodigo}Monitoría de Algoritmos y Programación --- Vectores y Matrices Estáticos}
+\fancyfoot[R]{\footnotesize\sffamily\color{AzulMarino}\textbf{Página \thepage}}
+\renewcommand{\headrulewidth}{0.6pt}
+\renewcommand{\headrule}{\hbox to\headwidth{\color{GrisBorde}\leaders\hrule height \headrulewidth\hfill}}
+\renewcommand{\footrulewidth}{0.4pt}
+\renewcommand{\footrule}{\hbox to\headwidth{\color{GrisBorde}\leaders\hrule height \footrulewidth\hfill}}
+
+\fancypagestyle{plain}{
+  \fancyhf{}
+  \fancyfoot[L]{\footnotesize\sffamily\color{ComentarioCodigo}Monitoría de Algoritmos y Programación --- Curso 30 horas}
+  \fancyfoot[R]{\footnotesize\sffamily\color{AzulMarino}\textbf{Página \thepage}}
+  \renewcommand{\headrulewidth}{0pt}
+  \renewcommand{\footrulewidth}{0.4pt}
+  \renewcommand{\footrule}{\hbox to\headwidth{\color{GrisBorde}\leaders\hrule height \footrulewidth\hfill}}
+}
+
+% ============================================================================
+% Estilo de secciones
+% ============================================================================
+\RequirePackage{titlesec}
+\titleformat{\section}
+  {\Large\bfseries\sffamily\color{AzulMarino}}
+  {\colorbox{AzulMarino}{\color{white}\makebox[1.6em]{\thesection}}\hspace{0.55em}}
+  {0pt}
+  {}
+  [\vspace{2pt}{\color{Turquesa}\titlerule[1.2pt]}]
+
+\titleformat{name=\section,numberless}
+  {\Large\bfseries\sffamily\color{AzulMarino}}
+  {}
+  {0pt}
+  {}
+  [\vspace{2pt}{\color{Turquesa}\titlerule[1.2pt]}]
+
+\titleformat{\subsection}
+  {\large\bfseries\sffamily\color{Turquesa}}
+  {\thesubsection\hspace{0.5em}}
+  {0pt}
+  {}
+
+\titleformat{\subsubsection}
+  {\normalsize\bfseries\sffamily\color{AzulMarino}}
+  {\thesubsubsection\hspace{0.5em}}
+  {0pt}
+  {}
+
+\titlespacing*{\section}{0pt}{14pt plus 3pt minus 2pt}{8pt plus 2pt}
+\titlespacing*{\subsection}{0pt}{11pt plus 2pt minus 1pt}{5pt plus 1pt}
+\titlespacing*{\subsubsection}{0pt}{8pt plus 2pt minus 1pt}{4pt plus 1pt}
+
+% ============================================================================
+% Cajas pedagogicas tcolorbox (breakable y seguras entre paginas)
+% ============================================================================
+\RequirePackage[most]{tcolorbox}
+
+\tcbset{
+  monitoriaBase/.style={
+    enhanced,
+    breakable,
+    pad at break*=2.5mm,
+    boxrule=0.8pt,
+    leftrule=3.5pt,
+    arc=3.5pt,
+    outer arc=3.5pt,
+    top=3mm,
+    bottom=3mm,
+    left=3.5mm,
+    right=3.5mm,
+    toptitle=2mm,
+    bottomtitle=2mm,
+    lefttitle=3.5mm,
+    fonttitle=\bfseries\sffamily\normalsize,
+    coltitle=white,
+    coltext=GrisTexto,
+    before skip=10pt plus 3pt,
+    after skip=10pt plus 3pt,
+  }
+}
+
+% 1. paratontos{titulo}
+\newtcolorbox{paratontos}[2][]{
+  monitoriaBase,
+  colback=TurquesaClaro,
+  colframe=Turquesa,
+  colbacktitle=Turquesa,
+  title={\faLightbulb\hspace{0.55em}Explicado Para Tontos / Con Plastilina\ifstrempty{#2}{}{: #2}},
+  #1
+}
+
+% 2. consejo{titulo}
+\newtcolorbox{consejo}[2][]{
+  monitoriaBase,
+  colback=AzulClaro,
+  colframe=AzulMarino,
+  colbacktitle=AzulMarino,
+  title={\faCompass\hspace{0.55em}Consejo de Monitoría\ifstrempty{#2}{}{: #2}},
+  #1
+}
+
+% 3. peligro{titulo}
+\newtcolorbox{peligro}[2][]{
+  monitoriaBase,
+  colback=RojoClaro,
+  colframe=RojoAlerta,
+  colbacktitle=RojoAlerta,
+  title={\faExclamationTriangle\hspace{0.55em}OJO: Trampa Clásica de Parcial\ifstrempty{#2}{}{: #2}},
+  #1
+}
+
+% 4. analisis{titulo}
+\newtcolorbox{analisis}[2][]{
+  monitoriaBase,
+  colback=NaranjaClaro,
+  colframe=NaranjaCalido,
+  colbacktitle=NaranjaCalido,
+  title={\faSearch\hspace{0.55em}Cómo Analizar e Interpretar el Problema (EPS)\ifstrempty{#2}{}{: #2}},
+  #1
+}
+
+% 5. pruebaescritorio{titulo}
+\newtcolorbox{pruebaescritorio}[2][]{
+  monitoriaBase,
+  colback=GrisSuave,
+  colframe=AzulMarino,
+  colbacktitle=AzulMarino!85!Turquesa,
+  title={\faTable\hspace{0.55em}Prueba de Escritorio Paso a Paso\ifstrempty{#2}{}{: #2}},
+  #1
+}
+
+% 6. ejercicio{titulo}
+\newtcolorbox{ejercicio}[2][]{
+  monitoriaBase,
+  colback=VerdeClaro,
+  colframe=VerdeExito,
+  colbacktitle=VerdeExito,
+  title={\faTasks\hspace{0.55em}Ejercicio Propuesto\ifstrempty{#2}{}{: #2}},
+  #1
+}
+
+% Extra util: solucion{titulo}
+\newtcolorbox{solucion}[2][]{
+  monitoriaBase,
+  colback=GrisClaro,
+  colframe=GrisTexto,
+  colbacktitle=GrisTexto,
+  title={\faCheckCircle\hspace{0.55em}Solución Explicada Paso a Paso\ifstrempty{#2}{}{: #2}},
+  #1
+}
+
+% ============================================================================
+% Configuracion de listings: UTF-8 para XeLaTeX + C++ + PSeInt
+% ============================================================================
+\RequirePackage{listings}
+\AtBeginDocument{%
+  \renewcommand{\lstlistingname}{Código}%
+  \renewcommand{\lstlistlistingname}{Índice de códigos}%
+}
+
+\lstdefinelanguage{PSeInt}{
+  morekeywords=[1]{
+    Algoritmo, FinAlgoritmo, Proceso, FinProceso,
+    Definir, Como, Dimension,
+    Escribir, Imprimir, Leer,
+    Si, Entonces, SiNo, Sino, FinSi,
+    Segun, De, Otro, Modo, Hacer, FinSegun,
+    Mientras, FinMientras,
+    Repetir, Hasta, Que,
+    Para, Con, Paso, FinPara,
+    Funcion, FinFuncion, SubProceso, FinSubProceso
+  },
+  morekeywords=[2]{
+    Entero, Real, Caracter, Logico, Cadena,
+    Verdadero, Falso, Y, O, NO, MOD
+  },
+  sensitive=false,
+  morecomment=[l]{//},
+  morestring=[b]",
+  morestring=[b]'
+}
+
+\lstdefinestyle{monitoriaBaseCode}{
+  basicstyle=\ttfamily\footnotesize\color{AzulMarino!90!black},
+  backgroundcolor=\color{GrisSuave},
+  frame=single,
+  rulecolor=\color{GrisBorde},
+  frameround=tttt,
+  framesep=5pt,
+  xleftmargin=16pt,
+  xrightmargin=4pt,
+  numbers=left,
+  numberstyle=\tiny\sffamily\color{ComentarioCodigo},
+  numbersep=8pt,
+  tabsize=4,
+  showstringspaces=false,
+  breaklines=true,
+  breakatwhitespace=false,
+  keepspaces=true,
+  columns=fixed,
+  basewidth=0.52em,
+  extendedchars=true,
+  aboveskip=8pt,
+  belowskip=8pt,
+  captionpos=b,
+  commentstyle=\itshape\color{ComentarioCodigo},
+  stringstyle=\color{NaranjaCalido!90!black},
+  literate=
+    {á}{{á}}1 {é}{{é}}1 {í}{{í}}1 {ó}{{ó}}1 {ú}{{ú}}1
+    {Á}{{Á}}1 {É}{{É}}1 {Í}{{Í}}1 {Ó}{{Ó}}1 {Ú}{{Ú}}1
+    {ñ}{{ñ}}1 {Ñ}{{Ñ}}1 {ü}{{ü}}1 {Ü}{{Ü}}1
+    {¿}{{¿}}1 {¡}{{¡}}1
+    {←}{{$\leftarrow$}}1 {≤}{{$\le$}}1 {≥}{{$\ge$}}1 {≠}{{$\neq$}}1
+    {°}{{°}}1
+}
+
+\lstdefinestyle{cppmonitoria}{
+  language=C++,
+  style=monitoriaBaseCode,
+  keywordstyle=\bfseries\color{AzulMarino},
+  keywordstyle=[2]\bfseries\color{Turquesa},
+  morekeywords=[2]{int,float,double,char,bool,void,string,const,true,false,
+                   cin,cout,endl,getline,ignore,size_t},
+  emph={include,define,iostream,iomanip,cmath,string,using,namespace,std},
+  emphstyle=\bfseries\color{MoradoAcento}
+}
+
+\lstdefinestyle{pseintmonitoria}{
+  language=PSeInt,
+  style=monitoriaBaseCode,
+  keywordstyle=[1]\bfseries\color{AzulMarino},
+  keywordstyle=[2]\bfseries\color{Turquesa}
+}
+
+% ============================================================================
+% Macros de portada modular y ayudas visuales
+% ============================================================================
+
+% \portadamodulo{num}{titulo}{horas}{subtitulo}{objetivos}
+\newcommand{\portadamodulo}[5]{%
+  \renewcommand{\monitoria@headerleft}{Módulo #1: #2}%
+  \renewcommand{\monitoria@headerright}{Duración: #3}%
+  \thispagestyle{plain}%
+  \begin{tcolorbox}[
+    enhanced,
+    colback=AzulMarino,
+    colframe=AzulMarino,
+    arc=5pt,
+    top=6mm,
+    bottom=6mm,
+    left=6mm,
+    right=6mm,
+    boxrule=0pt
+  ]
+    {\small\sffamily\bfseries\color{Turquesa!40!white}
+      CURSO DE MONITORÍA $\bullet$ ALGORITMOS Y PROGRAMACIÓN (30 HORAS)}\\[6pt]
+    \tcbox[on line,colback=Turquesa,colframe=Turquesa,arc=3pt,boxsep=2pt,left=5pt,right=5pt,top=2pt,bottom=2pt]{%
+      \small\sffamily\bfseries\color{white} MÓDULO #1%
+    }\hspace{6pt}%
+    \tcbox[on line,colback=NaranjaCalido,colframe=NaranjaCalido,arc=3pt,boxsep=2pt,left=5pt,right=5pt,top=2pt,bottom=2pt]{%
+      \small\sffamily\bfseries\color{white} \faClock\hspace{3pt} #3%
+    }\\[8pt]
+    {\LARGE\bfseries\sffamily\color{white}#2}\\[5pt]
+    {\normalsize\sffamily\color{AzulSuave}#4}
+  \end{tcolorbox}
+  \vspace{2pt}
+  \begin{tcolorbox}[
+    enhanced,
+    breakable,
+    colback=GrisSuave,
+    colframe=Turquesa,
+    leftrule=3.5pt,
+    boxrule=0.7pt,
+    arc=3pt,
+    top=3mm,
+    bottom=3mm,
+    left=4mm,
+    right=4mm,
+    fonttitle=\bfseries\sffamily\color{AzulMarino},
+    colbacktitle=TurquesaClaro,
+    title={\faBullseye\hspace{0.5em}Objetivos de Aprendizaje del Módulo}
+  ]
+    #5
+  \end{tcolorbox}
+  \vspace{6pt}
+}
+
+% Etiqueta/codigo en linea (para tokens sin caracteres especiales o escapados)
+\newcommand{\codigo}[1]{%
+  \tcbox[on line,colback=GrisClaro,colframe=GrisBorde,boxrule=0.4pt,arc=2pt,boxsep=1pt,left=3pt,right=3pt,top=1pt,bottom=1pt]{%
+    \ttfamily\small\color{AzulMarino}#1%
+  }%
+}
+
+% Insignia de tema / palabra clave
+\newcommand{\etiqueta}[2][Turquesa]{%
+  \tcbox[on line,colback=#1!12!white,colframe=#1!60!white,boxrule=0.5pt,arc=2.5pt,boxsep=1pt,left=4pt,right=4pt,top=1pt,bottom=1pt]{%
+    \sffamily\footnotesize\bfseries\color{#1!85!black}#2%
+  }%
+}
+
+% Figura centrada limpia (sin flotante [H] para no interferir con tcolorbox breakable)
+\newcommand{\imagenmodulo}[3][0.88\linewidth]{%
+  \par\addvspace{6pt}
+  \begin{center}
+    \begin{minipage}{\linewidth}
+      \centering
+      \includegraphics[width=#1]{#2}
+      \captionof{figure}{#3}
+    \end{minipage}
+  \end{center}
+  \par\addvspace{6pt}
+}
+
+% ============================================================================
+% Macros y entorno de Tabla de Traduccion (DFD <-> PSeInt <-> C++)
+% ============================================================================
+\NewDocumentEnvironment{tablatraduccion}{ O{Tabla de Traducción: DFD $\leftrightarrow$ PSeInt $\leftrightarrow$ C++} +b }{%
+  \par\addvspace{6pt}
+  \begin{center}
+    \small
+    \captionof{table}{#1}
+    \renewcommand{\arraystretch}{1.35}
+    \rowcolors{2}{GrisSuave}{white}
+    \begin{tabularx}{\linewidth}{>{\leavevmode\bfseries\sffamily\color{AzulMarino}\raggedright\arraybackslash}p{3.2cm} >{\leavevmode\raggedright\arraybackslash}p{3.1cm} >{\leavevmode\ttfamily\footnotesize\raggedright\arraybackslash}X >{\leavevmode\ttfamily\footnotesize\raggedright\arraybackslash}X}
+      \rowcolor{AzulMarino}
+      \textcolor{white}{\textbf{Concepto}} &
+      \textcolor{white}{\textbf{Símbolo DFD}} &
+      \textcolor{white}{\textbf{\sffamily PSeInt}} &
+      \textcolor{white}{\textbf{\sffamily C++ básico}} \\
+      #2
+    \bottomrule
+    \end{tabularx}
+  \end{center}
+  \par\addvspace{6pt}
+}{}
+
+\newcommand{\tablatraducciongeneral}{%
+  \begin{tablatraduccion}[Tabla Maestra de Traducción: DFD $\leftrightarrow$ PSeInt $\leftrightarrow$ C++ Básico]
+    Inicio / Fin & Óvalo (Inicio / Fin) & Algoritmo Nombre \dots\ FinAlgoritmo & int main() \{ \dots\ return 0; \} \\
+    Declarar variable & No obligatorio (implícito) & Definir x Como Entero; & int x; \\
+    Leer dato & Paralelogramo / Trapecio & Leer x; & cin >> x; \\
+    Mostrar pantalla & Cono / Documento salida & Escribir "Hola ", x; & cout << "Hola " << x << endl; \\
+    Asignación & Rectángulo (Proceso) & x <- a + b; & x = a + b; \\
+    Condicional doble & Rombo (Sí / No) & Si c Entonces \dots\ SiNo \dots\ FinSi & if (c) \{ \dots\ \} else \{ \dots\ \} \\
+    Selección múltiple & Rombo encadenado & Segun op Hacer 1: \dots\ FinSegun & switch(op) \{ case 1: \dots\ break; \} \\
+    Ciclo Mientras & Hexágono / Rombo ciclo & Mientras c Hacer \dots\ FinMientras & while (c) \{ \dots\ \} \\
+    Ciclo Hasta / Do-While & Condición al final & Repetir \dots\ Hasta Que (fin!) & do \{ \dots\ \} while (sigue!); \\
+    Ciclo Para & Hexágono contador & Para i <- 0 Hasta n-1 Hacer & for (int i = 0; i < n; i++) \\
+    Vector estático & Proceso + índice & Dimension v[100]; (base 1 ó 0) & const int MAX=100; int v[MAX]; \\
+    Matriz estática & Doble ciclo [i][j] & Dimension m[10,10]; & int m[10][10]; \\
+  \end{tablatraduccion}
+}
+
+% ============================================================================
+% Hyperref siempre al final
+% ============================================================================
+\RequirePackage[
+  colorlinks=true,
+  linkcolor=AzulMarino,
+  urlcolor=Turquesa,
+  citecolor=AzulMarino,
+  bookmarks=true,
+  bookmarksopen=true
+]{hyperref}
+
+\endinput
